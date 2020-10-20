@@ -178,15 +178,6 @@ def print_truth_table(formula: Formula) -> None:
     print(tabulate(arr, variables, tablefmt="github"))
 
 
-# if __name__ == '__main__':
-#
-#     infix1 ='(x&(~z|y))'
-#
-#     formula, rest = Formula._parse_prefix(infix1)
-#     print_truth_table(formula)
-#
-#
-
 
 def is_tautology(formula: Formula) -> bool:
     """Checks if the given formula is a tautology.
@@ -252,6 +243,44 @@ def _synthesize_for_model(model: Model) -> Formula:
     assert is_model(model)
     assert len(model.keys()) > 0
     # Task 2.6
+    vars = list(variables(model))
+    formula =_synthesize_for_model_helper(model, vars, 0)
+    return formula
+
+
+
+def _synthesize_for_model_helper(model, vars,  i) -> Formula:
+    """
+    Args:
+        model: model over a nonempty set of variables, in which the synthesized
+            formula is to hold.
+        vars: list of vars in the model
+        i: iteration in vars index
+
+    Returns: The synthesized formula.
+
+    """
+    if model[vars[i]]:
+        formula =  Formula(vars[i])
+    else:
+        formula =  Formula('~', Formula(vars[i]))
+
+    if i == len(model) - 1:
+        return formula
+    return Formula('&', formula, _synthesize_for_model_helper(model, vars, i+1))
+
+
+
+if __name__ == '__main__':
+    model = {'x': False, 'x2': True, 'x3': True, 'x4': False}
+    # model = {'x': True}
+    vars = list(variables(model))
+    formula = _synthesize_for_model_helper(model, vars, 0)
+    # formula = _synthesize_for_model(model)
+    print(formula)
+
+
+
 
 
 
