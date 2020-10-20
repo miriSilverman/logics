@@ -6,7 +6,7 @@
 
 """Semantic analysis of propositional-logic constructs."""
 
-from typing import AbstractSet, Iterable, Iterator, Mapping, Sequence, Tuple
+from typing import AbstractSet, Iterable, Iterator, Mapping, Sequence, Tuple, Dict
 import itertools
 from tabulate import tabulate
 
@@ -270,20 +270,6 @@ def _synthesize_for_model_helper(model, vars,  i) -> Formula:
     return Formula('&', formula, _synthesize_for_model_helper(model, vars, i+1))
 
 
-
-if __name__ == '__main__':
-    model = {'x': False, 'x2': True, 'x3': True, 'x4': False}
-    # model = {'x': True}
-    vars = list(variables(model))
-    formula = _synthesize_for_model_helper(model, vars, 0)
-    # formula = _synthesize_for_model(model)
-    print(formula)
-
-
-
-
-
-
 def synthesize(variables: Sequence[str], values: Iterable[bool]) -> Formula:
     """Synthesizes a propositional formula in DNF over the given variables,
     that has the specified truth table.
@@ -308,6 +294,23 @@ def synthesize(variables: Sequence[str], values: Iterable[bool]) -> Formula:
     """
     assert len(variables) > 0
     # Task 2.7
+    assignments = all_models(variables)
+    formula = None
+    for var in variables:
+        formula = Formula('&', Formula(var), Formula('~', Formula(var)))
+        break
+    changed = False
+    for val, assignment in zip(values, assignments):
+        if val:
+            cur_formula = _synthesize_for_model(assignment)
+            if not changed:
+                formula = cur_formula
+                changed = not changed
+            else:
+                formula = Formula('|', formula, cur_formula)
+    return formula
+
+
 
 def _synthesize_for_all_except_model(model: Model) -> Formula:
     """Synthesizes a propositional formula in the form of a single disjunctive
