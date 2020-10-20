@@ -7,6 +7,8 @@
 """Semantic analysis of propositional-logic constructs."""
 
 from typing import AbstractSet, Iterable, Iterator, Mapping, Sequence, Tuple
+import itertools
+from tabulate import tabulate
 
 from propositions.syntax import *
 from propositions.proofs import *
@@ -107,6 +109,19 @@ def all_models(variables: Sequence[str]) -> Iterable[Model]:
     for v in variables:
         assert is_variable(v)
     # Task 2.2
+    arr = []
+    var_num = len(variables)
+    for i in itertools.product({False, True}, repeat=var_num):
+        dict = {}
+        for j in range(var_num):
+            dict[variables[j]] = i[j]
+        arr.append(dict)
+    return arr
+
+
+
+
+
 
 def truth_values(formula: Formula, models: Iterable[Model]) -> Iterable[bool]:
     """Calculates the truth value of the given formula in each of the given
@@ -125,6 +140,12 @@ def truth_values(formula: Formula, models: Iterable[Model]) -> Iterable[bool]:
         [True, True, True, False]
     """
     # Task 2.3
+    arr = []
+    for model in models:
+        arr.append(evaluate(formula, model))
+    return arr
+
+
 
 def print_truth_table(formula: Formula) -> None:
     """Prints the truth table of the given formula, with variable-name columns
@@ -143,6 +164,28 @@ def print_truth_table(formula: Formula) -> None:
         | T | T   | F        |
     """
     # Task 2.4
+    variables = list(formula.variables())
+    assignment_dict = all_models(list(variables))
+    assignment_results = list(truth_values(formula, assignment_dict))
+    variables.append(formula)
+    arr = []
+    for i, assignment in enumerate(assignment_dict):
+        x = list(assignment.values())
+        x.append(assignment_results[i])
+        x = ['T' if i == True else 'F' for i in x]
+        arr.append(x)
+
+    print(tabulate(arr, variables, tablefmt="github"))
+
+#
+if __name__ == '__main__':
+
+    infix1 = '((x|y)&x2)'
+    formula, rest = Formula._parse_prefix(infix1)
+    print_truth_table(formula)
+
+
+
 
 def is_tautology(formula: Formula) -> bool:
     """Checks if the given formula is a tautology.

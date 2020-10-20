@@ -164,6 +164,12 @@ class Formula:
 
 
     def form_helper(self, formula, task, t_set):
+        """
+        Args:
+            formula: the formula
+            task: finding operators or variables
+            t_set: set of variables or operators
+        """
         if is_variable(formula.root):
             if task == 2:
                 t_set.add(formula.root)
@@ -251,7 +257,7 @@ class Formula:
         is_var = re.compile("([p-z][0-9]*)").match(string)
 
         if len(string) == 0:        # empty string
-            return None, ''
+            return None, 'ERROR: empty string'
         if is_constant(string[0]):      # constant
             return Formula(string[0]), string[1:]
         if is_var:                      # variable
@@ -259,13 +265,13 @@ class Formula:
             return Formula(variable), string[len(variable):]
         if is_unary(string[0]):         # unary operation
             if len(string) == 1:
-                return None, ''
+                return None, 'ERROR: missing literal after unary operator'
             formula_partition, rest = Formula._parse_prefix(string[1:])
             return Formula(string[0], formula_partition), rest
         if string[0] == '(':            # binary operation
             partition, rest = Formula.parse_prefix_helper(string)
             if partition is None or rest is None:
-                return None, ''
+                return None, 'ERROR: binary section not correct'
 
             first, rest1 = Formula._parse_prefix(partition[0])
             second, rest2 = Formula._parse_prefix(partition[2])
@@ -273,7 +279,7 @@ class Formula:
             if rest1 == rest2 == '' and not None in {first, second}:
                 return Formula(partition[1], first, second), rest
 
-        return None, ''
+        return None, 'ERROR: illegal character'
 
 
 
