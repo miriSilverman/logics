@@ -164,7 +164,7 @@ def print_truth_table(formula: Formula) -> None:
         | T | T   | F        |
     """
     # Task 2.4
-    variables = list(formula.variables())
+    variables = list(sorted(formula.variables()))
     assignment_dict = all_models(list(variables))
     assignment_results = list(truth_values(formula, assignment_dict))
     variables.append(formula)
@@ -177,14 +177,15 @@ def print_truth_table(formula: Formula) -> None:
 
     print(tabulate(arr, variables, tablefmt="github"))
 
+
+# if __name__ == '__main__':
 #
-if __name__ == '__main__':
-
-    infix1 = '((x|y)&x2)'
-    formula, rest = Formula._parse_prefix(infix1)
-    print_truth_table(formula)
-
-
+#     infix1 ='(x&(~z|y))'
+#
+#     formula, rest = Formula._parse_prefix(infix1)
+#     print_truth_table(formula)
+#
+#
 
 
 def is_tautology(formula: Formula) -> bool:
@@ -197,6 +198,14 @@ def is_tautology(formula: Formula) -> bool:
         ``True`` if the given formula is a tautology, ``False`` otherwise.
     """
     # Task 2.5a
+    variables = list(sorted(formula.variables()))
+    assignment_dict = all_models(list(variables))
+    for val in truth_values(formula, assignment_dict):
+        if not val:
+            return False
+    return True
+
+
 
 def is_contradiction(formula: Formula) -> bool:
     """Checks if the given formula is a contradiction.
@@ -208,6 +217,7 @@ def is_contradiction(formula: Formula) -> bool:
         ``True`` if the given formula is a contradiction, ``False`` otherwise.
     """
     # Task 2.5b
+    return not is_satisfiable(formula)
 
 def is_satisfiable(formula: Formula) -> bool:
     """Checks if the given formula is satisfiable.
@@ -219,6 +229,13 @@ def is_satisfiable(formula: Formula) -> bool:
         ``True`` if the given formula is satisfiable, ``False`` otherwise.
     """
     # Task 2.5c
+    variables = list(sorted(formula.variables()))
+    assignment_dict = all_models(list(variables))
+    for val in truth_values(formula, assignment_dict):
+        if val:
+            return True
+    return False
+
 
 def _synthesize_for_model(model: Model) -> Formula:
     """Synthesizes a propositional formula in the form of a single conjunctive
@@ -235,6 +252,8 @@ def _synthesize_for_model(model: Model) -> Formula:
     assert is_model(model)
     assert len(model.keys()) > 0
     # Task 2.6
+
+
 
 def synthesize(variables: Sequence[str], values: Iterable[bool]) -> Formula:
     """Synthesizes a propositional formula in DNF over the given variables,
