@@ -169,18 +169,14 @@ def print_truth_table(formula: Formula) -> None:
     assignment_results = list(truth_values(formula, assignment_dict))
     arr = []
     for i, assignment in enumerate(assignment_dict):
-        vals = [assignment[var] for var in variables]
+        vals = list(assignment.values())
         vals.append(assignment_results[i])
         vals = ['T' if i == True else 'F' for i in vals]
         arr.append(vals)
+
     variables.append(formula)
-
-
     print(tabulate(arr, variables, tablefmt="github"))
 
-if __name__ == '__main__':
-    infix2 = '~(p&q7)'
-    print_truth_table(Formula.parse(infix2))
 
 def is_tautology(formula: Formula) -> bool:
     """Checks if the given formula is a tautology.
