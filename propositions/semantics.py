@@ -52,6 +52,15 @@ def eval_binary(first: bool, second: bool, operator: str) -> bool:
         return first or second
     elif operator == "->":
         return second or not first
+    elif operator == '+':
+        return second != first
+    elif operator == '<->':
+        return first == second
+    elif operator == '-&':
+        return not (first and second)
+    elif operator == '-|':
+        return not (first or second)
+
 
 
 def evaluate(formula: Formula, model: Model) -> bool:
@@ -175,9 +184,21 @@ def print_truth_table(formula: Formula) -> None:
         arr.append(vals)
 
     variables.append(formula)
-    table = tabulate(arr, variables, tablefmt="pipe").replace(":", "-")
-
+    table = tabulate(arr, variables, tablefmt="pipe", stralign="center").replace(":", "-")
     print(table)
+
+# def table_printer(title, content):
+#     print("|", end='')
+#     for var in title:
+#         print(var, "|", end='')
+#     print("\n|")
+#     for var in title:
+#         print('-'*(len(var)+2), '|', end='')
+#     for line in content:
+#         print("\n|")
+#         pr
+
+
 
 
 def is_tautology(formula: Formula) -> bool:
@@ -247,7 +268,6 @@ def _synthesize_for_model(model: Model) -> Formula:
     vars = list(variables(model))
     formula =_synthesize_for_model_helper(model, vars, 0)
     return formula
-
 
 
 def _synthesize_for_model_helper(model, vars,  i) -> Formula:

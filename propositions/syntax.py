@@ -61,9 +61,9 @@ def is_binary(string: str) -> bool:
     Returns:
         ``True`` if the given string is a binary operator, ``False`` otherwise.
     """
-    return string == '&' or string == '|' or string == '->'
+    # return string == '&' or string == '|' or string == '->'
     # For Chapter 3:
-    # return string in {'&', '|',  '->', '+', '<->', '-&', '-|'}
+    return string in {'&', '|',  '->', '+', '<->', '-&', '-|'}
 
 @frozen
 class Formula:
@@ -212,20 +212,34 @@ class Formula:
         par_counter = 0     # indicates the balance between open and close parenthesis
         formula_partition = None    # first, root, second
         operator_indx = 0           # the index of the binary operation
-        for i in range(len(string)):
+        i = 0
+        while i < len(string):
             if string[i] == "(":
                 par_counter += 1
             elif string[i] == ")":
                 par_counter -= 1
 
             if par_counter == 1:
-                if string[i] in {'&', '|'}:
+                if string[i] in {'&', '|', '+'}:
                     operator_indx = i
                     formula_partition = [string[1:i], string[i], string[i + 1:-1]]
+                elif string[i] == '<':
+                    if i+1 < len(string) and string[i+1] == '-' and string[i+2]=='>':
+                        operator_indx = i+2
+                        formula_partition = [string[1:i], "<->", string[i + 2:-1]]
+                        i+=2
                 elif string[i] == "-":
                     if i < len(string) and string[i+1] == ">":
                         operator_indx = i+1
                         formula_partition = [string[1:i], "->", string[i + 1:-1]]
+                    elif i < len(string) and string[i+1] == "&":
+                        operator_indx = i+1
+                        formula_partition = [string[1:i], "-&", string[i + 1:-1]]
+                        i+=1
+                    elif i < len(string) and string[i+1] == "|":
+                        operator_indx = i+1
+                        formula_partition = [string[1:i], "-|", string[i + 1:-1]]
+                        i+=1
                     else:
                         return formula_partition, None
 
@@ -233,6 +247,7 @@ class Formula:
             if par_counter == 0 and formula_partition != None:      # got to the closing parenthesis
                 formula_partition[2] = string[operator_indx + 1:i]  # second son to be until the closing parenthesis
                 return formula_partition, string[i + 1:]            # adding the rest
+            i += 1
         return formula_partition, None
 
 
@@ -396,6 +411,28 @@ class Formula:
         for variable in substitution_map:
             assert is_variable(variable)
         # Task 3.3
+        new_formula = Formula(self.root, self.first, self.second)
+        new_formula.substitute_variables_helper(substitution_map)
+        return new_formula
+
+    def substitute_variables_helper(self, substitution_map: Mapping[str, Formula]):
+        if is_variable(self.root):
+            if self.root in substitution_map:
+                f = substitution_map[self.root]
+                self.root = f.root
+                self.first = f.first
+                self.second = f.second
+        elif is_unary(self.root):
+            self.first.substitute_variables_helper(substitution_map)
+        elif is_binary(self.root):
+            self.first.substitute_variables_helper(substitution_map)
+            self.second.substitute_variables_helper(substitution_map)
+
+
+if __name__ == '__main__':
+    f = Formula.parse('((p->p)|r)').substitute_variables({'p': Formula.parse('(q&r)'), 'r': Formula.parse('p')})
+    print(f)
+
 
     def substitute_operators(self, substitution_map: Mapping[str, Formula]) -> \
         Formula:
