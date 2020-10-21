@@ -411,22 +411,21 @@ class Formula:
         for variable in substitution_map:
             assert is_variable(variable)
         # Task 3.3
-        new_formula = Formula(self.root, self.first, self.second)
-        new_formula.substitute_variables_helper(substitution_map)
-        return new_formula
+        return self.substitute_variables_helper(substitution_map)
 
-    def substitute_variables_helper(self, substitution_map: Mapping[str, Formula]):
+    def substitute_variables_helper(self, substitution_map: Mapping[str, Formula]) -> Formula:
         if is_variable(self.root):
             if self.root in substitution_map:
-                f = substitution_map[self.root]
-                self.root = f.root
-                self.first = f.first
-                self.second = f.second
+                return substitution_map[self.root]
+            else:
+                return Formula(self.root)
         elif is_unary(self.root):
-            self.first.substitute_variables_helper(substitution_map)
+            return Formula(self.root, self.first.substitute_variables_helper(substitution_map))
         elif is_binary(self.root):
-            self.first.substitute_variables_helper(substitution_map)
-            self.second.substitute_variables_helper(substitution_map)
+            return Formula(self.root, self.first.substitute_variables_helper(substitution_map),
+                           self.second.substitute_variables_helper(substitution_map))
+
+
 
 
 if __name__ == '__main__':
