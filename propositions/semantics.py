@@ -295,7 +295,6 @@ def synthesize(variables: Sequence[str], values: Iterable[bool]) -> Formula:
     assert len(variables) > 0
     # Task 2.7
     assignments = all_models(variables)
-    formula = None
     for var in variables:
         formula = Formula('&', Formula(var), Formula('~', Formula(var)))
         break
@@ -327,6 +326,29 @@ def _synthesize_for_all_except_model(model: Model) -> Formula:
     assert is_model(model)
     assert len(model.keys()) > 0
     # Optional Task 2.8
+    vars = list(variables(model))
+    formula =_synthesize_for_all_except_model_helper(model, vars, 0)
+    return formula
+
+def _synthesize_for_all_except_model_helper(model, vars,  i) -> Formula:
+    """
+    Args:
+        model: model over a nonempty set of variables, in which the synthesized
+            formula is to hold.
+        vars: list of vars in the model
+        i: iteration in vars index
+
+    Returns: The synthesized formula.
+
+    """
+    if not model[vars[i]]:
+        formula =  Formula(vars[i])
+    else:
+        formula =  Formula('~', Formula(vars[i]))
+
+    if i == len(model) - 1:
+        return formula
+    return Formula('|', formula, _synthesize_for_all_except_model_helper(model, vars, i+1))
 
 def synthesize_cnf(variables: Sequence[str], values: Iterable[bool]) -> Formula:
     """Synthesizes a propositional formula in CNF over the given variables,
@@ -352,8 +374,23 @@ def synthesize_cnf(variables: Sequence[str], values: Iterable[bool]) -> Formula:
     """
     assert len(variables) > 0
     # Optional Task 2.9
+    assignments = all_models(variables)
+    for var in variables:
+        formula = Formula('|', Formula(var), Formula('~', Formula(var)))
+        break
+    changed = False
+    for val, assignment in zip(values, assignments):
+        if not val:
+            cur_formula = _synthesize_for_all_except_model(assignment)
+            if not changed:
+                formula = cur_formula
+                changed = not changed
+            else:
+                formula = Formula('&', formula, cur_formula)
+    return formula
 
 # Tasks for Chapter 4
+
 
 def evaluate_inference(rule: InferenceRule, model: Model) -> bool:
     """Checks if the given inference rule holds in the given model.
