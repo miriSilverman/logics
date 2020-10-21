@@ -29,8 +29,8 @@ def test_task6(debug=False):
 def test_task7(debug=False):
     test_polish()
 
-def test_task8(debug=False):
-    test_parse_polish()
+# def test_task8(debug=False):
+#     test_parse_polish()
 
 test_task1(True)
 test_task2(True)
