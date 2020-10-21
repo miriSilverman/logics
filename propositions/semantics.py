@@ -175,7 +175,9 @@ def print_truth_table(formula: Formula) -> None:
         arr.append(vals)
 
     variables.append(formula)
-    print(tabulate(arr, variables, tablefmt="github"))
+    table = tabulate(arr, variables, tablefmt="pipe").replace(":", "-")
+
+    print(table)
 
 
 def is_tautology(formula: Formula) -> bool:
