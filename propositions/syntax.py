@@ -411,13 +411,15 @@ class Formula:
         for variable in substitution_map:
             assert is_variable(variable)
         # Task 3.3
+        if len(substitution_map) == 0:
+            return self
         if is_variable(self.root):
             if self.root in substitution_map.keys():
                 return substitution_map[self.root]
             else:
                 return Formula(self.root)
         elif is_constant(self.root):
-            return Formula(self.root)
+                return Formula(self.root)
         elif is_unary(self.root):
             return Formula(self.root, self.first.substitute_variables(substitution_map))
         elif is_binary(self.root):
@@ -454,8 +456,14 @@ class Formula:
                    is_constant(operator)
             assert substitution_map[operator].variables().issubset({'p', 'q'})
         # Task 3.4
+        if len(substitution_map) == 0:
+            return self
         if is_constant(self.root) or is_variable(self.root):
-            return Formula(self.root)
+            if self.root in substitution_map.keys():
+                sub_map = {'p': Formula('p'), 'q':Formula('q')}
+                return substitution_map[self.root].substitute_variables(sub_map)
+            else:
+                return Formula(self.root)
         elif is_binary(self.root):
             if self.root in substitution_map.keys():
                 sub_map = {'p': self.first.substitute_operators(substitution_map),

@@ -24,7 +24,8 @@ def to_not_and_or(formula: Formula) -> Formula:
     """
     # Task 3.5
     sub_map = {'-&': Formula.parse("~(p&q)"), '-|': Formula.parse("~(p|q)"), '+': Formula.parse("(~(p&q)&(p|q))"),
-               '->':Formula.parse("~(p&~q)"), '<->': Formula.parse("((p|~q)&(~p|q))")}
+               '->':Formula.parse("~(p&~q)"), '<->': Formula.parse("((p|~q)&(~p|q))"), 'F': Formula.parse("(p&~p)"),
+               'T': Formula.parse("(p|~p)")}
     return formula.substitute_operators(sub_map)
 
 
@@ -41,7 +42,8 @@ def to_not_and(formula: Formula) -> Formula:
     """
     # Task 3.6a
     sub_map = {'-&': Formula.parse("~(p&q)"), '-|': Formula.parse("(~p&~q)"), '+': Formula.parse("(~(p&q)&~(~p&~q))"),
-               '->':Formula.parse("~(p&~q)"), '<->': Formula.parse("~(~(p&q)&~(~p&~q))"), '|': Formula.parse("~(~p&~q)")}
+               '->':Formula.parse("~(p&~q)"), '<->': Formula.parse("~(~(p&q)&~(~p&~q))"),
+               '|': Formula.parse("~(~p&~q)"),'F': Formula.parse("(p&~p)"), 'T': Formula.parse("~(p&~p)")}
     return to_not_and_or(formula).substitute_operators(sub_map)
 
 
@@ -61,7 +63,8 @@ def to_nand(formula: Formula) -> Formula:
                '|': Formula.parse("((p-&p)-&(q-&q))"), '+': Formula.parse("((p-&(p-&q))-&(q-&(p-&q)))"),
                '-|': Formula.parse("(((p-&p)-&(q-&q))-&((p-&p)-&(q-&q)))"),
                '->': Formula.parse("(p-&(q-&q))"),
-               '<->': Formula.parse("(((p-&(p-&q))-&(q-&(p-&q)))-&((p-&(p-&q))-&(q-&(p-&q))))")}
+               '<->': Formula.parse("(((p-&(p-&q))-&(q-&(p-&q)))-&((p-&(p-&q))-&(q-&(p-&q))))"),
+               'T': Formula.parse("(p-&(p-&p))"), 'F': Formula.parse("((p-&(p-&p))-&(p-&(p-&p)))")}
 
     return formula.substitute_operators(sub_map)
 
@@ -81,7 +84,8 @@ def to_implies_not(formula: Formula) -> Formula:
     # Task 3.6c
     sub_map = {'-&': Formula.parse("(p->~q)"), '&': Formula.parse("~(p->~q)"), '|': Formula.parse("((p->~p)->~(q->~q))"),
                '-|': Formula.parse("~((p->~p)->~(q->~q))"), '+': Formula.parse("((p->~(p->~q))->~(q->~(p->~q)))"),
-               '<->': Formula.parse("~((p->~(p->~q))->~(q->~(p->~q)))")}
+               '<->': Formula.parse("~((p->~(p->~q))->~(q->~(p->~q)))"),
+               'T': Formula.parse("(p->p)"), 'F': Formula.parse("~(p->p)")}
     return formula.substitute_operators(sub_map)
 
 
@@ -102,6 +106,6 @@ def to_implies_false(formula: Formula) -> Formula:
                '|': Formula.parse("((p->(p->F))->((q->(q->F))->F))"),
                '-|': Formula.parse("(((p->(p->F))->((q->(q->F))->F))->F)"),
                '+': Formula.parse("((p->((p->(q->F))->F))->((q->((p->(q->F))->F))->F))"),
-               '<->': Formula.parse("(((p->((p->(q->F))->F))->((q->((p->(q->F))->F))->F))->F)")}
+               '<->': Formula.parse("(((p->((p->(q->F))->F))->((q->((p->(q->F))->F))->F))->F)"),
+               'T': Formula.parse("(p->p)")}
     return formula.substitute_operators(sub_map)
-

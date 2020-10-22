@@ -344,5 +344,5 @@ def test_ex3(debug=False):
 
 def test_all(debug=False):
     test_ex1(debug)
-    test_ex1_opt(debug)
+    # test_ex1_opt(debug)
     test_ex3(debug) 
