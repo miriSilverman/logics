@@ -185,8 +185,6 @@ def print_truth_table(formula: Formula) -> None:
 
     variables.append(str(formula))
     table_printer(variables, arr)
-    # table = tabulate(arr, variables, tablefmt="pipe", stralign="center").replace(":", "-")
-    # print(table)
 
 
 
@@ -199,10 +197,6 @@ def table_printer(title, content):
                      + str(len(title[-1]) + 1) + "}" + '|'
     for assignments in content:
         print(content_format.format(*assignments))
-
-#
-if __name__ == '__main__':
-    print_truth_table(Formula.parse("(p3&q4)"))
 
 
 
