@@ -198,7 +198,12 @@ def print_truth_table(formula: Formula) -> None:
 #         print("\n|")
 #         pr
 
-
+if __name__ == '__main__':
+    sub_map = {'-&': Formula.parse("~(p&q)"), '-|': Formula.parse("~(p|q)"), '+': Formula.parse("(~(p&q)&(p|q))"),
+               '->':Formula.parse("~(p&~q)"), '<->': Formula.parse("((p|~q)&(~p|q))")}
+    for key in sub_map:
+        print(key, " map: ")
+        print_truth_table(sub_map[key])
 
 
 def is_tautology(formula: Formula) -> bool:

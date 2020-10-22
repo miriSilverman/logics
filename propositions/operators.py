@@ -24,7 +24,7 @@ def to_not_and_or(formula: Formula) -> Formula:
     """
     # Task 3.5
     sub_map = {'-&': Formula.parse("~(p&q)"), '-|': Formula.parse("~(p|q)"), '+': Formula.parse("(~(p&q)&(p|q))"),
-               '->':Formula.parse("~(p|q)"), '<->': Formula.parse("((p|~q)&(~p|q))")}
+               '->':Formula.parse("~(p&~q)"), '<->': Formula.parse("((p|~q)&(~p|q))")}
     return formula.substitute_operators(sub_map)
 
 
@@ -40,7 +40,8 @@ def to_not_and(formula: Formula) -> Formula:
         contains no constants or operators beyond ``'~'`` and ``'&'``.
     """
     # Task 3.6a
-    sub_map = {'|': Formula.parse("(~p&~q)")}
+    sub_map = {'-&': Formula.parse("~(p&q)"), '-|': Formula.parse("(~p&~q)"), '+': Formula.parse("(~(p&q)&~(~p&~q))"),
+               '->':Formula.parse("~(p&~q)"), '<->': Formula.parse("~(~(p&q)&~(~p&~q))"), '|': Formula.parse("~(~p&~q)")}
     return to_not_and_or(formula).substitute_operators(sub_map)
 
 
@@ -59,20 +60,18 @@ def to_nand(formula: Formula) -> Formula:
     sub_map = {'~': Formula.parse("(p-&p)"), '&': Formula.parse("((p-&q)-&(p-&q))"),
                '|': Formula.parse("((p-&p)-&(q-&q))"), '+': Formula.parse("((p-&(p-&q))-&(q-&(p-&q)))"),
                '-|': Formula.parse("(((p-&p)-&(q-&q))-&((p-&p)-&(q-&q)))"),
-               '->': Formula.parse("(p-&(q-&q))"), '<->': Formula.parse( ַַַַַַַַַַַַַַַַַַַַַַַַ&&&&&&&&&&&&&&&&&&&&&ַַַַַַַַ) }
+               '->': Formula.parse("(p-&(q-&q))"),
+               '<->': Formula.parse("(((p-&(p-&q))-&(q-&(p-&q)))-&((p-&(p-&q))-&(q-&(p-&q))))")}
 
-    return to_not_and_or(formula).substitute_operators(sub_map)
+    return formula.substitute_operators(sub_map)
 
 if __name__ == '__main__':
-    f =Formula.parse("(x1+x2)")
-    # f =Formula.parse("((x1+x2)->(x3<->x4))")
-    # print(to_not_and_or(f))
-    # print(to_not_and(f))
-    print(to_nand(f))
-    # print(to_not_and_or(Formula.parse("(x3<->x4)")))
-    # print(to_not_and_or(Formula.parse("((x1+x2)->(x3<->x4))")))
-    # print(to_not_and_or(Formula.parse("(x1+x2)")))
-
+    sub_map = {'-&': Formula.parse("~(p&q)"), '-|': Formula.parse("(~p&~q)"), '+': Formula.parse("(~(p&q)&~(~p&~q))"),
+               '->': Formula.parse("~(p&~q)"), '<->': Formula.parse("~(~(p&q)&~(~p&~q))"),
+               '|': Formula.parse("~(~p&~q)")}
+    for key in sub_map:
+        print(key)
+        print_truth_table(sub_map[key])
 
 def to_implies_not(formula: Formula) -> Formula:
     """Syntactically converts the given formula to an equivalent formula that
