@@ -183,27 +183,24 @@ def print_truth_table(formula: Formula) -> None:
         vals = ['T' if i == True else 'F' for i in vals]
         arr.append(vals)
 
-    variables.append(formula)
-    table = tabulate(arr, variables, tablefmt="pipe", stralign="center").replace(":", "-")
-    print(table)
+    variables.append(str(formula))
+    table_printer(variables, arr)
+    # table = tabulate(arr, variables, tablefmt="pipe", stralign="center").replace(":", "-")
+    # print(table)
 
-# def table_printer(title, content):
-#     print("|", end='')
-#     for var in title:
-#         print(var, "|", end='')
-#     print("\n|")
-#     for var in title:
-#         print('-'*(len(var)+2), '|', end='')
-#     for line in content:
-#         print("\n|")
-#         pr
 
-if __name__ == '__main__':
-    sub_map = {'-&': Formula.parse("~(p&q)"), '-|': Formula.parse("~(p|q)"), '+': Formula.parse("(~(p&q)&(p|q))"),
-               '->':Formula.parse("~(p&~q)"), '<->': Formula.parse("((p|~q)&(~p|q))")}
-    for key in sub_map:
-        print(key, " map: ")
-        print_truth_table(sub_map[key])
+
+def table_printer(title, content):
+    title_format = '|' + '|'.join("{:^" + str(len(var) + 2) + "}" for var in title) + '|'
+    separator_format = '|' + '|'.join("{:<" + str(len(var) + 2) + "}" for var in title) + '|'
+    print(title_format.format(*title))
+    print(separator_format.format(*[" "]*len(title)).replace(" ", "-"))
+    for assignments in content:
+        print(title_format.format(*assignments))
+
+
+
+
 
 
 def is_tautology(formula: Formula) -> bool:

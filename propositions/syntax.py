@@ -1,4 +1,4 @@
-# This file is part of the materials accompanying the book 
+# This file is part of the materials accompanying the book
 # "Mathematical Logic through Python" by Gonczarowski and Nisan,
 # Cambridge University Press. Book site: www.LogicThruPython.org
 # (c) Yannai A. Gonczarowski and Noam Nisan, 2017-2020
@@ -158,33 +158,33 @@ class Formula:
         """
         # Task 1.2
         var_set = set()
-        self.form_helper(self, 2, var_set)
+        self.form_helper(2, var_set)
         return var_set
 
 
-
-    def form_helper(self, formula, task, t_set):
+    def form_helper(self, task, t_set):
         """
         Args:
             formula: the formula
             task: finding operators or variables
             t_set: set of variables or operators
         """
-        if is_variable(formula.root):
+        if is_variable(self.root):
             if task == 2:
-                t_set.add(formula.root)
-        elif is_constant(formula.root):
+                t_set.add(self.root)
+        elif is_constant(self.root):
             if task == 3:
-                t_set.add(formula.root)
-        elif is_unary(formula.root):
+                t_set.add(self.root)
+        elif is_unary(self.root):
             if task == 3:
-                t_set.add(formula.root)
-            self.form_helper(formula.first, task, t_set)
-        elif is_binary(formula.root):
+                t_set.add(self.root)
+            self.first.form_helper(task, t_set)
+        elif is_binary(self.root):
             if task == 3:
-                t_set.add(formula.root)
-            self.form_helper(formula.first, task, t_set)
-            self.form_helper(formula.second, task, t_set)
+                t_set.add(self.root)
+            self.first.form_helper(task, t_set)
+            self.second.form_helper(task, t_set)
+
 
 
     @memoized_parameterless_method
@@ -197,7 +197,7 @@ class Formula:
         """
         # Task 1.3
         op_set = set()
-        self.form_helper(self, 3, op_set)
+        self.form_helper(3, op_set)
         return op_set
 
 
@@ -317,7 +317,7 @@ class Formula:
 
 
 
-        
+
     @staticmethod
     def parse(string: str) -> Formula:
         """Parses the given valid string representation into a formula.
@@ -411,7 +411,7 @@ class Formula:
         for variable in substitution_map:
             assert is_variable(variable)
         # Task 3.3
-        if len(substitution_map) == 0:
+        if not substitution_map:
             return self
         if is_variable(self.root):
             if self.root in substitution_map.keys():
@@ -456,7 +456,7 @@ class Formula:
                    is_constant(operator)
             assert substitution_map[operator].variables().issubset({'p', 'q'})
         # Task 3.4
-        if len(substitution_map) == 0:
+        if  not substitution_map:
             return self
         if is_constant(self.root) or is_variable(self.root):
             if self.root in substitution_map.keys():
@@ -478,6 +478,5 @@ class Formula:
                 return substitution_map[self.root].substitute_variables(sub_map)
             else:
                 return Formula(self.root, self.first.substitute_operators(substitution_map))
-
 
 
