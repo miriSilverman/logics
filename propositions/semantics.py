@@ -180,7 +180,7 @@ def print_truth_table(formula: Formula) -> None:
     for i, assignment in enumerate(assignment_dict):
         vals = list(assignment.values())
         vals.append(assignment_results[i])
-        vals = [' T' if i == True else ' F' for i in vals]
+        vals = ['T' if i == True else 'F' for i in vals]
         arr.append(vals)
 
     variables.append(str(formula))
@@ -195,14 +195,14 @@ def table_printer(title, content):
     separator_format = '|' + '|'.join("{:<" + str(len(var) + 2) + "}" for var in title) + '|'
     print(title_format.format(*title))
     print(separator_format.format(*[" "]*len(title)).replace(" ", "-"))
-    content_format = '|' + '|'.join("{:^" + str(len(var) + 2) + "}" for var in title[:-1]) + '|' + "{:<" \
-                     + str(len(title[-1]) + 2) + "}" + '|'
+    content_format = '|' + '|'.join("{:^" + str(len(var) + 2) + "}" for var in title[:-1]) + '|' +" "+ "{:<" \
+                     + str(len(title[-1]) + 1) + "}" + '|'
     for assignments in content:
         print(content_format.format(*assignments))
 
 #
-# if __name__ == '__main__':
-#     print_truth_table(Formula.parse("(p&q)"))
+if __name__ == '__main__':
+    print_truth_table(Formula.parse("(p3&q4)"))
 
 
 
