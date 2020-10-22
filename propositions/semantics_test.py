@@ -288,8 +288,6 @@ def __test_synthesize(synthesizer, dnf, debug):
                 print('Testing', synthesizer.__qualname__, 'for variables',
                       all_variables, 'and model-values', all_values)
             formula = synthesizer(tuple(all_variables), all_values)
-            print(type(formula))
-            print(formula)
             assert type(formula) is Formula, \
                    'Expected a formula, got ' + str(formula)
             if dnf:

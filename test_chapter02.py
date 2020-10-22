@@ -38,10 +38,10 @@ def test_task8(debug=False):
 def test_task9(debug=False):
     test_synthesize_cnf(debug)
 
-def test_task10(debug=False):
-    test_graph3coloring_to_formula(debug)
-    test_assignment_to_3coloring(debug)
-    test_tricolor_graph(debug)
+# def test_task10(debug=False):
+#     test_graph3coloring_to_formula(debug)
+#     test_assignment_to_3coloring(debug)
+#     test_tricolor_graph(debug)
 
 test_task1(False)
 test_task2(False)
