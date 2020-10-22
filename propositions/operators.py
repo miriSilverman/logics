@@ -82,24 +82,7 @@ def to_implies_not(formula: Formula) -> Formula:
     sub_map = {'-&': Formula.parse("(p->~q)"), '&': Formula.parse("~(p->~q)"), '|': Formula.parse("((p->~p)->~(q->~q))"),
                '-|': Formula.parse("~((p->~p)->~(q->~q))"), '+': Formula.parse("((p->~(p->~q))->~(q->~(p->~q)))"),
                '<->': Formula.parse("~((p->~(p->~q))->~(q->~(p->~q)))")}
-    # return to_nand(f).substitute_operators(sub_map)
     return formula.substitute_operators(sub_map)
-
-if __name__ == '__main__':
-    # sub_map = {'-&': Formula.parse("~(p&q)"), '-|': Formula.parse("(~p&~q)"), '+': Formula.parse("(~(p&q)&~(~p&~q))"),
-    #            '->': Formula.parse("~(p&~q)"), '<->': Formula.parse("~(~(p&q)&~(~p&~q))"),
-    #            '|': Formula.parse("~(~p&~q)")}
-    # for key in sub_map:
-    #     print(key)
-    #     print_truth_table(sub_map[key])
-    arr = [Formula.parse("(p&q)"), Formula.parse("(p-&q)"), Formula.parse("(p|q)"), Formula.parse("(p-|q)"),
-            Formula.parse("(p+q)"), Formula.parse("(p<->q)")]
-    for f in arr:
-        f1 = to_implies_not(f)
-        print_truth_table(f1)
-        print("the good one: ")
-        print_truth_table(f)
-        print("_______________________________________")
 
 
 def to_implies_false(formula: Formula) -> Formula:
@@ -114,3 +97,11 @@ def to_implies_false(formula: Formula) -> Formula:
         contains no constants or operators beyond ``'->'`` and ``'F'``.
     """
     # Task 3.6d
+    sub_map = {'~': Formula.parse("(p->F)"),
+               '-&': Formula.parse("(p->(q->F))"), '&': Formula.parse("((p->(q->F))->F)"),
+               '|': Formula.parse("((p->(p->F))->((q->(q->F))->F))"),
+               '-|': Formula.parse("(((p->(p->F))->((q->(q->F))->F))->F)"),
+               '+': Formula.parse("((p->((p->(q->F))->F))->((q->((p->(q->F))->F))->F))"),
+               '<->': Formula.parse("(((p->((p->(q->F))->F))->((q->((p->(q->F))->F))->F))->F)")}
+    return formula.substitute_operators(sub_map)
+

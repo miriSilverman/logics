@@ -466,7 +466,7 @@ class Formula:
                                self.second.substitute_operators(substitution_map))
         elif is_unary(self.root):
             if self.root in substitution_map.keys():
-                sub_map = {'p': self.first}
+                sub_map = {'p': self.first.substitute_operators(substitution_map)}
                 return substitution_map[self.root].substitute_variables(sub_map)
             else:
                 return Formula(self.root, self.first.substitute_operators(substitution_map))
