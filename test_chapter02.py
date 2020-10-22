@@ -43,13 +43,13 @@ def test_task10(debug=False):
     test_assignment_to_3coloring(debug)
     test_tricolor_graph(debug)
 
-test_task1(True)
-test_task2(True)
-test_task3(True)
-test_task4(True)
-test_task5(True)
-test_task6(True)
-test_task7(True)
-#test_task8(True) # Optional
-#test_task9(True) # Optional
+test_task1(False)
+test_task2(False)
+test_task3(False)
+test_task4(False)
+test_task5(False)
+test_task6(False)
+test_task7(False)
+test_task8(False) # Optional
+test_task9(False) # Optional
 #test_task10(True) # Optional
