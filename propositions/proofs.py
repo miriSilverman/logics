@@ -166,13 +166,14 @@ class InferenceRule:
             in fact not a specialization of `general`.
         """
         # Task 4.5b
-
-        specialization_map = None
+        specialization_map = {}
         if is_variable(general.root):
             cur_map = {general.root: specialization}
-            return InferenceRule._merge_specialization_maps(specialization_map, cur_map)
+            return cur_map
         elif is_constant(general.root):
-            return specialization_map   ##todo: not sure
+            if general.root == specialization.root:
+                return specialization_map
+            return None
         elif is_binary(general.root):
             if general.root != specialization.root:
                 return None
@@ -185,6 +186,66 @@ class InferenceRule:
                 return None
             map = InferenceRule._formula_specialization_map(general.first, specialization.first)
             return InferenceRule._merge_specialization_maps(map, specialization_map)
+
+
+specializations = [
+    ['p', 'p', {'p': 'p'}],
+    ['(p->q)', '(p->q)', {'p': 'p', 'q': 'q'}],
+    ['~x', '~x', {'x': 'x'}],
+    ['p', 'p1', {'p': 'p1'}],
+    ['(p->q)', '(p1->q)', {'p': 'p1', 'q': 'q'}],
+    ['~p1', '~p1', {'p1': 'p1'}],
+    ['(p&p)', '(p1&p1)', {'p': 'p1'}],
+    ['(p->p1)', '(p1->p1)', {'p': 'p1', 'p1': 'p1'}],
+    ['p', '(x|y)', {'p': '(x|y)'}],
+    ['(p->q)', '((x|y)->q)', {'p': '(x|y)', 'q': 'q'}],
+    ['~p', '~(x|y)', {'p': '(x|y)'}],
+    ['(T&~p)', '(T&~(x|y))', {'p': '(x|y)'}],
+    ['(p&p)', '((x|y)&(x|y))', {'p': '(x|y)'}],
+    ['(p->q)', '((x|y)->~w)', {'p': '(x|y)', 'q': '~w'}],
+    ['((p->q)->(~q->~p))', '(((x|y)->~w)->(~~w->~(x|y)))',
+     {'p': '(x|y)', 'q': '~w'}],
+    ['((x|x)&x)', '((F|F)&F)', {'x': 'F'}],
+    ['x', 'T', {'x': 'T'}],
+    ['y', '(x&~(y->z))', {'y': '(x&~(y->z))'}],
+    ['T', 'T', {}],
+    ['(F&T)', '(F&T)', {}],
+    ['F', 'x', None],
+    ['~F', 'x', None],
+    ['~F', '~x', None],
+    ['~F', '~T', None],
+    ['F', '(x|y)', None],
+    ['(x&y)', 'F', None],
+    ['(x&y)', '(F&F)', {'x': 'F', 'y': 'F'}],
+    ['(x&y)', '(F&~T)', {'x': 'F', 'y': '~T'}],
+    ['(x&x)', '(F&T)', None],
+    ['(F&F)', '(x&y)', None],
+    ['(F&T)', '(F|T)', None],
+    ['~F', '(F|T)', None],
+    ['((x&y)->x)', '((F&F)->T)', None],
+    ['((x&y)->x)', '((F&F)|F)', None],
+    ['(~p->~(q|T))', '(~(x|y)->~((z&(w->~z))|T))',
+     {'p': '(x|y)', 'q': '(z&(w->~z))'}],
+    ['(~p->~(q|T))', '(~(x|y)->((z&(w->~z))|T))', None],
+    ['(~p->~(q|T))', '(~(x|y)->~((z&(w->~z))|F))', None]
+]
+
+if __name__ == '__main__':
+    for t in specializations:
+        print(t)
+        g = Formula.parse(t[0])
+        s = Formula.parse(t[1])
+        d = None if t[2] == None else {k: Formula.parse(t[2][k]) for k in t[2]}
+        # if debug:
+        #     print("Checking if and how formula", s, "is a special case of", g)
+        dd = InferenceRule._formula_specialization_map(g,s)
+        if dd != None:
+            for k in dd:
+                assert is_variable(k)
+                assert type(dd[k]) is Formula
+        assert dd == d, "expected " + str(d) + " got " + str(dd)
+
+
 
 
     def specialization_map(self, specialization: InferenceRule) -> \
