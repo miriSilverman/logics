@@ -90,6 +90,11 @@ class InferenceRule:
             conclusion of the current inference rule.
         """
         # Task 4.1
+        vars = self.conclusion.variables()
+        for assumption in self.assumptions:
+            vars = vars.union(assumption.variables())
+        return vars
+
 
     def specialize(self, specialization_map: SpecializationMap) -> \
             InferenceRule:
@@ -418,3 +423,13 @@ def inline_proof(main_proof: Proof, lemma_proof: Proof) -> Proof:
         proved by `lemma_proof`.
     """
     # Task 5.2b
+#
+# if __name__ == '__main__':
+#     a1 = Formula.parse("(x&y)")
+#     a2 = Formula.parse("(x2<->x4)")
+#     c = Formula.parse("(p->q)")
+#     rule = InferenceRule([a1, a2], c)
+#     print(rule.variables())
+#     S1 = {7, 8}
+#     S2 = {2, 1}
+#     print(S1.union(S2))
