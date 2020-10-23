@@ -188,64 +188,6 @@ class InferenceRule:
             return InferenceRule._merge_specialization_maps(map, specialization_map)
 
 
-specializations = [
-    ['p', 'p', {'p': 'p'}],
-    ['(p->q)', '(p->q)', {'p': 'p', 'q': 'q'}],
-    ['~x', '~x', {'x': 'x'}],
-    ['p', 'p1', {'p': 'p1'}],
-    ['(p->q)', '(p1->q)', {'p': 'p1', 'q': 'q'}],
-    ['~p1', '~p1', {'p1': 'p1'}],
-    ['(p&p)', '(p1&p1)', {'p': 'p1'}],
-    ['(p->p1)', '(p1->p1)', {'p': 'p1', 'p1': 'p1'}],
-    ['p', '(x|y)', {'p': '(x|y)'}],
-    ['(p->q)', '((x|y)->q)', {'p': '(x|y)', 'q': 'q'}],
-    ['~p', '~(x|y)', {'p': '(x|y)'}],
-    ['(T&~p)', '(T&~(x|y))', {'p': '(x|y)'}],
-    ['(p&p)', '((x|y)&(x|y))', {'p': '(x|y)'}],
-    ['(p->q)', '((x|y)->~w)', {'p': '(x|y)', 'q': '~w'}],
-    ['((p->q)->(~q->~p))', '(((x|y)->~w)->(~~w->~(x|y)))',
-     {'p': '(x|y)', 'q': '~w'}],
-    ['((x|x)&x)', '((F|F)&F)', {'x': 'F'}],
-    ['x', 'T', {'x': 'T'}],
-    ['y', '(x&~(y->z))', {'y': '(x&~(y->z))'}],
-    ['T', 'T', {}],
-    ['(F&T)', '(F&T)', {}],
-    ['F', 'x', None],
-    ['~F', 'x', None],
-    ['~F', '~x', None],
-    ['~F', '~T', None],
-    ['F', '(x|y)', None],
-    ['(x&y)', 'F', None],
-    ['(x&y)', '(F&F)', {'x': 'F', 'y': 'F'}],
-    ['(x&y)', '(F&~T)', {'x': 'F', 'y': '~T'}],
-    ['(x&x)', '(F&T)', None],
-    ['(F&F)', '(x&y)', None],
-    ['(F&T)', '(F|T)', None],
-    ['~F', '(F|T)', None],
-    ['((x&y)->x)', '((F&F)->T)', None],
-    ['((x&y)->x)', '((F&F)|F)', None],
-    ['(~p->~(q|T))', '(~(x|y)->~((z&(w->~z))|T))',
-     {'p': '(x|y)', 'q': '(z&(w->~z))'}],
-    ['(~p->~(q|T))', '(~(x|y)->((z&(w->~z))|T))', None],
-    ['(~p->~(q|T))', '(~(x|y)->~((z&(w->~z))|F))', None]
-]
-
-if __name__ == '__main__':
-    for t in specializations:
-        print(t)
-        g = Formula.parse(t[0])
-        s = Formula.parse(t[1])
-        d = None if t[2] == None else {k: Formula.parse(t[2][k]) for k in t[2]}
-        # if debug:
-        #     print("Checking if and how formula", s, "is a special case of", g)
-        dd = InferenceRule._formula_specialization_map(g,s)
-        if dd != None:
-            for k in dd:
-                assert is_variable(k)
-                assert type(dd[k]) is Formula
-        assert dd == d, "expected " + str(d) + " got " + str(dd)
-
-
 
 
     def specialization_map(self, specialization: InferenceRule) -> \
@@ -261,6 +203,98 @@ if __name__ == '__main__':
             in fact not a specialization of the current rule.
         """
         # Task 4.5c
+        if len(self.assumptions) != len(specialization.assumptions):
+            return None
+        specialization_map = {}
+        if len(self.assumptions) > 0:
+            for assumption_gen, assumption_spec in zip(self.assumptions, specialization.assumptions):
+                map = InferenceRule._formula_specialization_map(assumption_gen, assumption_spec)
+                specialization_map = InferenceRule._merge_specialization_maps(specialization_map, map)
+                if specialization_map ==  None:
+                    return None
+        map = InferenceRule._formula_specialization_map(self.conclusion, specialization.conclusion)
+
+        return InferenceRule._merge_specialization_maps(specialization_map, map)
+
+#
+# rules = [
+#     ['(~p->~(q|T))', '(~(x|y)->~((z&(w->~z))|T))', [], [],
+#      {'p': '(x|y)', 'q': '(z&(w->~z))'}],
+#     ['(~p->~(q|T))', '(~(x|y)->((z&(w->~z))|T))', [], [], None],
+#     ['T', 'T', ['(~p->~(q|T))'], ['(~(x|y)->~((z&(w->~z))|T))'],
+#      {'p': '(x|y)', 'q': '(z&(w->~z))'}],
+#     ['T', 'T', ['(~p->~(q|T))'], [], None],
+#     ['T', 'T', [], ['(~(x|y)->~((z&(w->~z))|T))'], None],
+#     ['F', 'F', ['(~p->~(q|T))'], ['(~(x|y)->((z&(w->~z))|T))'], None],
+#     ['p', 'p', ['(p->q)'], ['(p->q)'], {'p': 'p', 'q': 'q'}],
+#     ['p', 'p', ['(p->q)'], ['(p->q)', '(p->q)'], None],
+#     ['p', 'p', ['(p->q)', '(p->q)'], ['(p->q)'], None],
+#     ['p', 'p', ['(p->q)', '(p->q)'], ['(p->q)', '(p->q)'], {'p': 'p', 'q': 'q'}],
+#     ['p', 'r', ['(p->q)'], ['(r->q)'], {'p': 'r', 'q': 'q'}],
+#     ['p', 'r', ['(p->q)'], ['(z->q)'], None],
+#     ['p', 'p1', ['(p->q)', '(p&p)'], ['(p1->r)', '(p1&p1)'],
+#      {'p': 'p1', 'q': 'r'}],
+#     ['p', 'p1', ['(p->q)', '(p&p)'], ['(p1->(r&~z))', '(p1&p1)'],
+#      {'p': 'p1', 'q': '(r&~z)'}],
+#     ['p', '~T', ['(p->q)', '(p&p)'], ['(~T->(r&~z))', '(~T&~T)'],
+#      {'p': '~T', 'q': '(r&~z)'}],
+#     ['p', 'T', ['(p->q)', '(p&p)'], ['(~T->(r&~z))', '(~T&~T)'], None],
+#     ['p', '~T', ['(p->q)', '(p&p)'], ['(~T->(r&~z))', '(~F&~F)'], None]
+# ]
+#
+# specializations = [
+#     ['p', 'p', {'p': 'p'}],
+#     ['(p->q)', '(p->q)', {'p': 'p', 'q': 'q'}],
+#     ['~x', '~x', {'x': 'x'}],
+#     ['p', 'p1', {'p': 'p1'}],
+#     ['(p->q)', '(p1->q)', {'p': 'p1', 'q': 'q'}],
+#     ['~p1', '~p1', {'p1': 'p1'}],
+#     ['(p&p)', '(p1&p1)', {'p': 'p1'}],
+#     ['(p->p1)', '(p1->p1)', {'p': 'p1', 'p1': 'p1'}],
+#     ['p', '(x|y)', {'p': '(x|y)'}],
+#     ['(p->q)', '((x|y)->q)', {'p': '(x|y)', 'q': 'q'}],
+#     ['~p', '~(x|y)', {'p': '(x|y)'}],
+#     ['(T&~p)', '(T&~(x|y))', {'p': '(x|y)'}],
+#     ['(p&p)', '((x|y)&(x|y))', {'p': '(x|y)'}],
+#     ['(p->q)', '((x|y)->~w)', {'p': '(x|y)', 'q': '~w'}],
+#     ['((p->q)->(~q->~p))', '(((x|y)->~w)->(~~w->~(x|y)))',
+#      {'p': '(x|y)', 'q': '~w'}],
+#     ['((x|x)&x)', '((F|F)&F)', {'x': 'F'}],
+#     ['x', 'T', {'x': 'T'}],
+#     ['y', '(x&~(y->z))', {'y': '(x&~(y->z))'}],
+#     ['T', 'T', {}],
+#     ['(F&T)', '(F&T)', {}],
+#     ['F', 'x', None],
+#     ['~F', 'x', None],
+#     ['~F', '~x', None],
+#     ['~F', '~T', None],
+#     ['F', '(x|y)', None],
+#     ['(x&y)', 'F', None],
+#     ['(x&y)', '(F&F)', {'x': 'F', 'y': 'F'}],
+#     ['(x&y)', '(F&~T)', {'x': 'F', 'y': '~T'}],
+#     ['(x&x)', '(F&T)', None],
+#     ['(F&F)', '(x&y)', None],
+#     ['(F&T)', '(F|T)', None],
+#     ['~F', '(F|T)', None],
+#     ['((x&y)->x)', '((F&F)->T)', None],
+#     ['((x&y)->x)', '((F&F)|F)', None],
+#     ['(~p->~(q|T))', '(~(x|y)->~((z&(w->~z))|T))',
+#      {'p': '(x|y)', 'q': '(z&(w->~z))'}],
+#     ['(~p->~(q|T))', '(~(x|y)->((z&(w->~z))|T))', None],
+#     ['(~p->~(q|T))', '(~(x|y)->~((z&(w->~z))|F))', None]
+# ]
+#
+# # if __name__ == '__main__':
+#     # for t in rules:
+#     #     print("rule = ", t)
+#     #     g = InferenceRule([Formula.parse(f) for f in t[2]], Formula.parse(t[0]))
+#     #     s = InferenceRule([Formula.parse(f) for f in t[3]], Formula.parse(t[1]))
+#     #     d = None if t[4] is None else {v: Formula.parse(t[4][v]) for v in t[4]}
+#     #     # if debug:
+#     #     #     print("Testing if and how rule ", s, "is a special case of", g)
+#     #     dd = g.specialization_map(s)
+#     #     assert d == dd, "expected " + str(d) + " got " + str(dd)
+
 
     def is_specialization_of(self, general: InferenceRule) -> bool:
         """Checks if the current inference rule is a specialization of the given
