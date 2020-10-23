@@ -112,6 +112,10 @@ class InferenceRule:
         for variable in specialization_map:
             assert is_variable(variable)
         # Task 4.4
+        assumptions = [assumption.substitute_variables(specialization_map) for assumption in self.assumptions]
+        conclusion = self.conclusion.substitute_variables(specialization_map)
+        return InferenceRule(assumptions, conclusion)
+
 
     @staticmethod
     def _merge_specialization_maps(
@@ -138,7 +142,19 @@ class InferenceRule:
             for variable in specialization_map2:
                 assert is_variable(variable)
         # Task 4.5a
-        
+        if specialization_map1 == None or specialization_map2 == None:
+            return None
+        for key in specialization_map1.keys():
+            if key in specialization_map2.keys():
+                if specialization_map2[key] != specialization_map1[key]:
+                    return None
+        return {**specialization_map1, **specialization_map2}
+
+if __name__ == '__main__':
+    d1 = {'s':1, 'b': 2}
+    d2 = {'s':1, 'x': 3}
+    print({**d1, **d2})
+
     @staticmethod
     def _formula_specialization_map(general: Formula, specialization: Formula) \
             -> Union[SpecializationMap, None]:
