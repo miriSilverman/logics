@@ -150,10 +150,6 @@ class InferenceRule:
                     return None
         return {**specialization_map1, **specialization_map2}
 
-if __name__ == '__main__':
-    d1 = {'s':1, 'b': 2}
-    d2 = {'s':1, 'x': 3}
-    print({**d1, **d2})
 
     @staticmethod
     def _formula_specialization_map(general: Formula, specialization: Formula) \
@@ -170,6 +166,26 @@ if __name__ == '__main__':
             in fact not a specialization of `general`.
         """
         # Task 4.5b
+
+        specialization_map = None
+        if is_variable(general.root):
+            cur_map = {general.root: specialization}
+            return InferenceRule._merge_specialization_maps(specialization_map, cur_map)
+        elif is_constant(general.root):
+            return specialization_map   ##todo: not sure
+        elif is_binary(general.root):
+            if general.root != specialization.root:
+                return None
+            first_map = InferenceRule._formula_specialization_map(general.first, specialization.first)
+            second_map = InferenceRule._formula_specialization_map(general.second, specialization.second)
+            merged_map = InferenceRule._merge_specialization_maps(first_map, second_map)
+            return InferenceRule._merge_specialization_maps(merged_map, specialization_map)
+        elif is_unary(general.root):
+            if general.root != specialization.root:
+                return None
+            map = InferenceRule._formula_specialization_map(general.first, specialization.first)
+            return InferenceRule._merge_specialization_maps(map, specialization_map)
+
 
     def specialization_map(self, specialization: InferenceRule) -> \
             Union[SpecializationMap, None]:
