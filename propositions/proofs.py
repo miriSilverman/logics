@@ -216,84 +216,6 @@ class InferenceRule:
 
         return InferenceRule._merge_specialization_maps(specialization_map, map)
 
-#
-# rules = [
-#     ['(~p->~(q|T))', '(~(x|y)->~((z&(w->~z))|T))', [], [],
-#      {'p': '(x|y)', 'q': '(z&(w->~z))'}],
-#     ['(~p->~(q|T))', '(~(x|y)->((z&(w->~z))|T))', [], [], None],
-#     ['T', 'T', ['(~p->~(q|T))'], ['(~(x|y)->~((z&(w->~z))|T))'],
-#      {'p': '(x|y)', 'q': '(z&(w->~z))'}],
-#     ['T', 'T', ['(~p->~(q|T))'], [], None],
-#     ['T', 'T', [], ['(~(x|y)->~((z&(w->~z))|T))'], None],
-#     ['F', 'F', ['(~p->~(q|T))'], ['(~(x|y)->((z&(w->~z))|T))'], None],
-#     ['p', 'p', ['(p->q)'], ['(p->q)'], {'p': 'p', 'q': 'q'}],
-#     ['p', 'p', ['(p->q)'], ['(p->q)', '(p->q)'], None],
-#     ['p', 'p', ['(p->q)', '(p->q)'], ['(p->q)'], None],
-#     ['p', 'p', ['(p->q)', '(p->q)'], ['(p->q)', '(p->q)'], {'p': 'p', 'q': 'q'}],
-#     ['p', 'r', ['(p->q)'], ['(r->q)'], {'p': 'r', 'q': 'q'}],
-#     ['p', 'r', ['(p->q)'], ['(z->q)'], None],
-#     ['p', 'p1', ['(p->q)', '(p&p)'], ['(p1->r)', '(p1&p1)'],
-#      {'p': 'p1', 'q': 'r'}],
-#     ['p', 'p1', ['(p->q)', '(p&p)'], ['(p1->(r&~z))', '(p1&p1)'],
-#      {'p': 'p1', 'q': '(r&~z)'}],
-#     ['p', '~T', ['(p->q)', '(p&p)'], ['(~T->(r&~z))', '(~T&~T)'],
-#      {'p': '~T', 'q': '(r&~z)'}],
-#     ['p', 'T', ['(p->q)', '(p&p)'], ['(~T->(r&~z))', '(~T&~T)'], None],
-#     ['p', '~T', ['(p->q)', '(p&p)'], ['(~T->(r&~z))', '(~F&~F)'], None]
-# ]
-#
-# specializations = [
-#     ['p', 'p', {'p': 'p'}],
-#     ['(p->q)', '(p->q)', {'p': 'p', 'q': 'q'}],
-#     ['~x', '~x', {'x': 'x'}],
-#     ['p', 'p1', {'p': 'p1'}],
-#     ['(p->q)', '(p1->q)', {'p': 'p1', 'q': 'q'}],
-#     ['~p1', '~p1', {'p1': 'p1'}],
-#     ['(p&p)', '(p1&p1)', {'p': 'p1'}],
-#     ['(p->p1)', '(p1->p1)', {'p': 'p1', 'p1': 'p1'}],
-#     ['p', '(x|y)', {'p': '(x|y)'}],
-#     ['(p->q)', '((x|y)->q)', {'p': '(x|y)', 'q': 'q'}],
-#     ['~p', '~(x|y)', {'p': '(x|y)'}],
-#     ['(T&~p)', '(T&~(x|y))', {'p': '(x|y)'}],
-#     ['(p&p)', '((x|y)&(x|y))', {'p': '(x|y)'}],
-#     ['(p->q)', '((x|y)->~w)', {'p': '(x|y)', 'q': '~w'}],
-#     ['((p->q)->(~q->~p))', '(((x|y)->~w)->(~~w->~(x|y)))',
-#      {'p': '(x|y)', 'q': '~w'}],
-#     ['((x|x)&x)', '((F|F)&F)', {'x': 'F'}],
-#     ['x', 'T', {'x': 'T'}],
-#     ['y', '(x&~(y->z))', {'y': '(x&~(y->z))'}],
-#     ['T', 'T', {}],
-#     ['(F&T)', '(F&T)', {}],
-#     ['F', 'x', None],
-#     ['~F', 'x', None],
-#     ['~F', '~x', None],
-#     ['~F', '~T', None],
-#     ['F', '(x|y)', None],
-#     ['(x&y)', 'F', None],
-#     ['(x&y)', '(F&F)', {'x': 'F', 'y': 'F'}],
-#     ['(x&y)', '(F&~T)', {'x': 'F', 'y': '~T'}],
-#     ['(x&x)', '(F&T)', None],
-#     ['(F&F)', '(x&y)', None],
-#     ['(F&T)', '(F|T)', None],
-#     ['~F', '(F|T)', None],
-#     ['((x&y)->x)', '((F&F)->T)', None],
-#     ['((x&y)->x)', '((F&F)|F)', None],
-#     ['(~p->~(q|T))', '(~(x|y)->~((z&(w->~z))|T))',
-#      {'p': '(x|y)', 'q': '(z&(w->~z))'}],
-#     ['(~p->~(q|T))', '(~(x|y)->((z&(w->~z))|T))', None],
-#     ['(~p->~(q|T))', '(~(x|y)->~((z&(w->~z))|F))', None]
-# ]
-#
-# # if __name__ == '__main__':
-#     # for t in rules:
-#     #     print("rule = ", t)
-#     #     g = InferenceRule([Formula.parse(f) for f in t[2]], Formula.parse(t[0]))
-#     #     s = InferenceRule([Formula.parse(f) for f in t[3]], Formula.parse(t[1]))
-#     #     d = None if t[4] is None else {v: Formula.parse(t[4][v]) for v in t[4]}
-#     #     # if debug:
-#     #     #     print("Testing if and how rule ", s, "is a special case of", g)
-#     #     dd = g.specialization_map(s)
-#     #     assert d == dd, "expected " + str(d) + " got " + str(dd)
 
 
     def is_specialization_of(self, general: InferenceRule) -> bool:
@@ -449,6 +371,21 @@ class Proof:
         """
         assert line_number < len(self.lines)
         # Task 4.6a
+        line = self.lines[line_number]
+        line_rule = line.rule
+        if line_rule == None:
+            return None
+
+        line_numbers = line.assumptions
+        if len(line_numbers) != len(line_rule.assumptions):
+            return  #todo: not sure
+        assumptions = []
+        for line_num in line_numbers:
+            f = self.lines[line_num].formula
+            assumptions.append(f)
+        rule = InferenceRule(assumptions, line.formula)
+        return rule
+
 
     def is_line_valid(self, line_number: int) -> bool:
         """Checks if the specified line validly follows from its justifications.
@@ -474,7 +411,28 @@ class Proof:
         """
         assert line_number < len(self.lines)
         # Task 4.6b
-        
+        line = self.lines[line_number]
+
+        if line.rule == None:       # the formula is an assumption
+            if line.formula in self.statement.assumptions:
+                return True
+            return False
+
+        if line.rule not in self.rules:     # rule not in the proofs rules
+            return False
+
+        for num in line.assumptions:        # based on lines that are after the current line
+            if num >= line_number:
+                return False
+
+        rule = self.rule_for_line(line_number)      # the combined rule from the lines
+        if rule == None:
+            return False
+        if rule.is_specialization_of(line.rule):
+            return True
+        return False
+
+
     def is_valid(self) -> bool:
         """Checks if the current proof is a valid proof of its claimed statement
         via its inference rules.
@@ -484,6 +442,17 @@ class Proof:
             statement via its inference rules, ``False`` otherwise.
         """
         # Task 4.6c
+        num_of_lines = len(self.lines)
+        if num_of_lines==0:
+            return False
+        for line in range(num_of_lines):
+            if not self.is_line_valid(line):
+                return False
+        last_line = self.lines[num_of_lines-1]
+        if last_line.formula == self.statement.conclusion:
+            return True
+        return False
+
 
 # Chapter 5 tasks
 
