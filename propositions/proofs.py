@@ -378,7 +378,7 @@ class Proof:
 
         line_numbers = line.assumptions
         if len(line_numbers) != len(line_rule.assumptions):
-            return  #todo: not sure
+            return
         assumptions = []
         for line_num in line_numbers:
             f = self.lines[line_num].formula

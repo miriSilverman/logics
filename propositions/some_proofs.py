@@ -30,6 +30,27 @@ def prove_and_commutativity() -> Proof:
         the inference rules `A_RULE`, `AE2_RULE`, and `AE1_RULE`.
     """
     # Task 4.7
+    lines = [None]*4
+    lines[0] = Proof.Line(Formula.parse('(p&q)'))
+    lines[1] = Proof.Line(Formula.parse('q'), AE1_RULE, [0])
+    lines[2] = Proof.Line(Formula.parse('p'), AE2_RULE, [0])
+    lines[3] = Proof.Line(Formula.parse('(q&p)'), A_RULE , [1, 2])
+    return Proof(InferenceRule([Formula.parse('(p&q)')], Formula.parse('(q&p)')), {A_RULE, AE1_RULE, AE2_RULE}, lines)
+
+def offending_line(proof):
+    """Finds the first invalid line in the given proof.
+
+    Parameters:
+        proof: proof to search.
+
+    Returns:
+        An error message containing the line number and string representation of
+        the first invalid line in the given proof, or ``None`` if all the lines
+        of the given proof are valid."""
+    for i in range(len(proof.lines)):
+        if not proof.is_line_valid(i):
+            return "Invalid Line " + str(i) + ": " + str(proof.lines[i])
+    return None
 
 def prove_I0() -> Proof:
     """Proves `~propositions.axiomatic_systems.I0` via
@@ -43,6 +64,10 @@ def prove_I0() -> Proof:
         `~propositions.axiomatic_systems.D`.
     """
     # Task 4.8
+    
+
+
+
 
 #: Hypothetical syllogism
 HS = InferenceRule([Formula.parse('(p->q)'), Formula.parse('(q->r)')],
