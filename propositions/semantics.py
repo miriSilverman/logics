@@ -395,6 +395,7 @@ def synthesize_cnf(variables: Sequence[str], values: Iterable[bool]) -> Formula:
     assert len(variables) > 0
     # Optional Task 2.9
     assignments = all_models(variables)
+    formula = None
     for var in variables:
         formula = Formula('|', Formula(var), Formula('~', Formula(var)))
         break
@@ -434,6 +435,14 @@ def evaluate_inference(rule: InferenceRule, model: Model) -> bool:
     """
     assert is_model(model)
     # Task 4.2
+    all_assumptions_true = True
+    for assumption in rule.assumptions:
+        if not evaluate(assumption, model):
+            all_assumptions_true = False
+    if all_assumptions_true:
+        return evaluate(rule.conclusion, model)
+    return  True
+
 
 def is_sound_inference(rule: InferenceRule) -> bool:
     """Checks if the given inference rule is sound, i.e., whether its
@@ -446,3 +455,11 @@ def is_sound_inference(rule: InferenceRule) -> bool:
         ``True`` if the given inference rule is sound, ``False`` otherwise.
     """
     # Task 4.3
+    vars = rule.variables()
+    models = all_models(list(vars))
+    for model in models:
+        if not evaluate_inference(rule, model):
+            return False
+    return True
+
+

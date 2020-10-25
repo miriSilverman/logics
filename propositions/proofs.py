@@ -90,6 +90,11 @@ class InferenceRule:
             conclusion of the current inference rule.
         """
         # Task 4.1
+        vars = self.conclusion.variables()
+        for assumption in self.assumptions:
+            vars = vars.union(assumption.variables())
+        return vars
+
 
     def specialize(self, specialization_map: SpecializationMap) -> \
             InferenceRule:
@@ -107,6 +112,10 @@ class InferenceRule:
         for variable in specialization_map:
             assert is_variable(variable)
         # Task 4.4
+        assumptions = [assumption.substitute_variables(specialization_map) for assumption in self.assumptions]
+        conclusion = self.conclusion.substitute_variables(specialization_map)
+        return InferenceRule(assumptions, conclusion)
+
 
     @staticmethod
     def _merge_specialization_maps(
@@ -133,7 +142,15 @@ class InferenceRule:
             for variable in specialization_map2:
                 assert is_variable(variable)
         # Task 4.5a
-        
+        if specialization_map1 == None or specialization_map2 == None:
+            return None
+        for key in specialization_map1.keys():
+            if key in specialization_map2.keys():
+                if specialization_map2[key] != specialization_map1[key]:
+                    return None
+        return {**specialization_map1, **specialization_map2}
+
+
     @staticmethod
     def _formula_specialization_map(general: Formula, specialization: Formula) \
             -> Union[SpecializationMap, None]:
@@ -149,6 +166,29 @@ class InferenceRule:
             in fact not a specialization of `general`.
         """
         # Task 4.5b
+        specialization_map = {}
+        if is_variable(general.root):
+            cur_map = {general.root: specialization}
+            return cur_map
+        elif is_constant(general.root):
+            if general.root == specialization.root:
+                return specialization_map
+            return None
+        elif is_binary(general.root):
+            if general.root != specialization.root:
+                return None
+            first_map = InferenceRule._formula_specialization_map(general.first, specialization.first)
+            second_map = InferenceRule._formula_specialization_map(general.second, specialization.second)
+            merged_map = InferenceRule._merge_specialization_maps(first_map, second_map)
+            return InferenceRule._merge_specialization_maps(merged_map, specialization_map)
+        elif is_unary(general.root):
+            if general.root != specialization.root:
+                return None
+            map = InferenceRule._formula_specialization_map(general.first, specialization.first)
+            return InferenceRule._merge_specialization_maps(map, specialization_map)
+
+
+
 
     def specialization_map(self, specialization: InferenceRule) -> \
             Union[SpecializationMap, None]:
@@ -163,6 +203,20 @@ class InferenceRule:
             in fact not a specialization of the current rule.
         """
         # Task 4.5c
+        if len(self.assumptions) != len(specialization.assumptions):
+            return None
+        specialization_map = {}
+        if len(self.assumptions) > 0:
+            for assumption_gen, assumption_spec in zip(self.assumptions, specialization.assumptions):
+                map = InferenceRule._formula_specialization_map(assumption_gen, assumption_spec)
+                specialization_map = InferenceRule._merge_specialization_maps(specialization_map, map)
+                if specialization_map ==  None:
+                    return None
+        map = InferenceRule._formula_specialization_map(self.conclusion, specialization.conclusion)
+
+        return InferenceRule._merge_specialization_maps(specialization_map, map)
+
+
 
     def is_specialization_of(self, general: InferenceRule) -> bool:
         """Checks if the current inference rule is a specialization of the given
@@ -317,6 +371,21 @@ class Proof:
         """
         assert line_number < len(self.lines)
         # Task 4.6a
+        line = self.lines[line_number]
+        line_rule = line.rule
+        if line_rule == None:
+            return None
+
+        line_numbers = line.assumptions
+        if len(line_numbers) != len(line_rule.assumptions):
+            return
+        assumptions = []
+        for line_num in line_numbers:
+            f = self.lines[line_num].formula
+            assumptions.append(f)
+        rule = InferenceRule(assumptions, line.formula)
+        return rule
+
 
     def is_line_valid(self, line_number: int) -> bool:
         """Checks if the specified line validly follows from its justifications.
@@ -342,7 +411,28 @@ class Proof:
         """
         assert line_number < len(self.lines)
         # Task 4.6b
-        
+        line = self.lines[line_number]
+
+        if line.rule == None:       # the formula is an assumption
+            if line.formula in self.statement.assumptions:
+                return True
+            return False
+
+        if line.rule not in self.rules:     # rule not in the proofs rules
+            return False
+
+        for num in line.assumptions:        # based on lines that are after the current line
+            if num >= line_number:
+                return False
+
+        rule = self.rule_for_line(line_number)      # the combined rule from the lines
+        if rule == None:
+            return False
+        if rule.is_specialization_of(line.rule):
+            return True
+        return False
+
+
     def is_valid(self) -> bool:
         """Checks if the current proof is a valid proof of its claimed statement
         via its inference rules.
@@ -352,6 +442,17 @@ class Proof:
             statement via its inference rules, ``False`` otherwise.
         """
         # Task 4.6c
+        num_of_lines = len(self.lines)
+        if num_of_lines==0:
+            return False
+        for line in range(num_of_lines):
+            if not self.is_line_valid(line):
+                return False
+        last_line = self.lines[num_of_lines-1]
+        if last_line.formula == self.statement.conclusion:
+            return True
+        return False
+
 
 # Chapter 5 tasks
 
@@ -418,3 +519,13 @@ def inline_proof(main_proof: Proof, lemma_proof: Proof) -> Proof:
         proved by `lemma_proof`.
     """
     # Task 5.2b
+#
+# if __name__ == '__main__':
+#     a1 = Formula.parse("(x&y)")
+#     a2 = Formula.parse("(x2<->x4)")
+#     c = Formula.parse("(p->q)")
+#     rule = InferenceRule([a1, a2], c)
+#     print(rule.variables())
+#     S1 = {7, 8}
+#     S2 = {2, 1}
+#     print(S1.union(S2))
