@@ -150,3 +150,8 @@ def test_ex4(debug=False):
     
 def test_all(debug=False):
     test_ex4(debug)
+
+if __name__ == '__main__':
+    # test_rule_nonsoundness_from_specialization_nonsoundness()
+    test_nonsound_rule_of_nonsound_proof()
+
