@@ -881,4 +881,4 @@ def test_all(debug=False):
     test_ex5(debug)
 
 if __name__ == '__main__':
-    test_prove_specialization()
+    test_inline_proof_once()

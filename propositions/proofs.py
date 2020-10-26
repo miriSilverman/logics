@@ -483,7 +483,6 @@ def prove_specialization(proof: Proof, specialization: InferenceRule) -> Proof:
             assumptions = line.assumptions
         lines[num] = Proof.Line(formula, rule, assumptions)
 
-
     new_proof = Proof(specialization, proof.rules, lines)
     return new_proof
 
@@ -517,6 +516,36 @@ def _inline_proof_once(main_proof: Proof, line_number: int, lemma_proof: Proof) 
     assert main_proof.lines[line_number].rule == lemma_proof.statement
     assert lemma_proof.is_valid()
     # Task 5.2a
+    lemma_as_a_rule = lemma_proof.statement
+    print(lemma_proof)
+    print("___________________________")
+    # print("main_proof: \n",main_proof)
+    print("___________________________")
+    lines = []
+    lines_gap = 0
+    current_line_num = 0
+    for line in main_proof.lines:
+        if line.rule == lemma_as_a_rule:
+            assumptions = [main_proof.lines[i].formula for i in line.assumptions]
+            rule = InferenceRule(assumptions, line.formula)
+            new_proof = prove_specialization(lemma_proof, rule)
+
+            print("new_proof: \n", new_proof)
+
+
+
+    rules = set()
+    for rule in main_proof.rules:
+        if rule != lemma_as_a_rule:
+            rules.add(rule)
+    rules = rules.union(lemma_proof.rules)
+
+    new_proof = Proof(main_proof.statement, rules. lines)
+    return new_proof
+
+
+
+
 
 def inline_proof(main_proof: Proof, lemma_proof: Proof) -> Proof:
     """Inlines the given proof of a "lemma" inference rule into the given proof
