@@ -471,6 +471,24 @@ def prove_specialization(proof: Proof, specialization: InferenceRule) -> Proof:
     assert proof.is_valid()
     assert specialization.is_specialization_of(proof.statement)
     # Task 5.1
+    map = proof.statement.specialization_map(specialization)
+    lines = [None]*len(proof.lines)
+    for num, line in enumerate(proof.lines):
+        formula = line.formula.substitute_variables(map)
+        if line.rule == None:
+            rule = None
+            assumptions = None
+        else:
+            rule = line.rule
+            assumptions = line.assumptions
+        lines[num] = Proof.Line(formula, rule, assumptions)
+
+
+    new_proof = Proof(specialization, proof.rules, lines)
+    return new_proof
+
+
+
 
 def _inline_proof_once(main_proof: Proof, line_number: int, lemma_proof: Proof) \
     -> Proof:
