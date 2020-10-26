@@ -8,7 +8,6 @@
 
 from typing import AbstractSet, Iterable, Iterator, Mapping, Sequence, Tuple, Dict
 import itertools
-from tabulate import tabulate
 
 from propositions.syntax import *
 from propositions.proofs import *

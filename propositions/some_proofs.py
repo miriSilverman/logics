@@ -64,10 +64,21 @@ def prove_I0() -> Proof:
         `~propositions.axiomatic_systems.D`.
     """
     # Task 4.8
-    
+    lines = [None] * 5
+    goal = "(p->p)"
+    psi = "(p->("+goal+"->p))"
+    phi = "(p->"+goal+")"
 
+    lines[0] = Proof.Line(Formula.parse(psi), I1, [])
+    lines[1] = Proof.Line(Formula.parse("("+psi+"->("+phi+"->"+goal+"))"), D, [])
+    lines[2] = Proof.Line(Formula.parse("("+phi+"->"+goal+")"), MP, [0,1])
+    lines[3] = Proof.Line(Formula.parse(phi), I1, [])
+    lines[4] = Proof.Line(Formula.parse(goal), MP, [3, 2])
+    return Proof(InferenceRule([], Formula.parse(goal)), {MP, I1, D}, lines)
 
-
+if __name__ == '__main__':
+    s = prove_I0()
+    print(s)
 
 #: Hypothetical syllogism
 HS = InferenceRule([Formula.parse('(p->q)'), Formula.parse('(q->r)')],

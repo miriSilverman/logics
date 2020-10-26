@@ -346,3 +346,6 @@ def test_all(debug=False):
     test_ex1(debug)
     # test_ex1_opt(debug)
     test_ex3(debug) 
+
+if __name__ == '__main__':
+    test_all()

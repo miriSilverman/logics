@@ -58,14 +58,15 @@ def test_task6c(debug=False):
 
 def test_task6d(debug=False):
     test_to_implies_false(debug)
+if __name__ == '__main__':
 
-test_before_tasks()
-test_task1()
-test_task2()
-test_task3()
-test_task4()
-test_task5()
-test_task6a()
-test_task6b()
-test_task6c()
-test_task6d()
+    test_before_tasks()
+    test_task1()
+    test_task2()
+    test_task3()
+    test_task4()
+    test_task5()
+    test_task6a()
+    test_task6b()
+    test_task6c()
+    test_task6d()

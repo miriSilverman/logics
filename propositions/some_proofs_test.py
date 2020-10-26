@@ -98,3 +98,6 @@ def test_all(debug=False):
     test_ex4(debug)
     test_ex5(debug)
     test_ex6_opt(debug)
+
+if __name__ == '__main__':
+    test_ex4(True)

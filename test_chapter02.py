@@ -42,14 +42,15 @@ def test_task9(debug=False):
 #     test_graph3coloring_to_formula(debug)
 #     test_assignment_to_3coloring(debug)
 #     test_tricolor_graph(debug)
+if __name__ == '__main__':
 
-test_task1(False)
-test_task2(False)
-test_task3(False)
-test_task4(False)
-test_task5(False)
-test_task6(False)
-test_task7(False)
-test_task8(False) # Optional
-test_task9(False) # Optional
+    test_task1(False)
+    test_task2(False)
+    test_task3(False)
+    test_task4(False)
+    test_task5(False)
+    test_task6(False)
+    test_task7(False)
+    test_task8(False) # Optional
+    test_task9(False) # Optional
 #test_task10(True) # Optional
