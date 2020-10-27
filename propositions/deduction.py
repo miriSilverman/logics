@@ -35,19 +35,14 @@ def prove_corollary(antecedent_proof: Proof, consequent: Formula,
                          Formula('->', antecedent_proof.statement.conclusion,
                                  consequent)).is_specialization_of(conditional)
     # Task 5.3a
-    print("proof: \n", antecedent_proof)
-    print("\n consequent: \n", consequent)
-    print("\n conditional: \n", conditional)
+
     rules = antecedent_proof.rules.union({conditional})
     lines = list(antecedent_proof.lines)
     formula = Formula.parse("("+str(antecedent_proof.statement.conclusion)+"->"+str(consequent)+")")
-    # lines.append(Proof.Line(formula, conditional, [len(lines)-1]))
     lines.append(Proof.Line(formula, conditional, []))
     lines.append(Proof.Line(Formula.parse(str(consequent)), MP, [len(lines)-2, len(lines)-1]))
 
-    p = Proof(InferenceRule(antecedent_proof.statement.assumptions, consequent), rules, lines)
-    print(p)
-    return p
+    return Proof(InferenceRule(antecedent_proof.statement.assumptions, consequent), rules, lines)
 
 
 
@@ -87,6 +82,29 @@ def combine_proofs(antecedent1_proof: Proof, antecedent2_proof: Proof,
         Formula('->', antecedent2_proof.statement.conclusion, consequent))
         ).is_specialization_of(double_conditional)
     # Task 5.3b
+    rules = antecedent1_proof.rules.union(antecedent2_proof.rules).union({double_conditional})
+
+    formula1 = Formula.parse("(" + str(antecedent2_proof.statement.conclusion) + "->" + str(consequent) + ")")
+    formula = Formula.parse("(" + str(antecedent1_proof.statement.conclusion) + "->" + str(formula1) + ")")
+
+    lines = list(antecedent1_proof.lines)       # lines of proof1
+    lines.append(Proof.Line(formula, double_conditional, []))       # imply
+    lines.append(Proof.Line(formula1, MP, [len(lines) - 2, len(lines) - 1]))    #conclusion 1
+    con_1_line_num = len(lines)  # line number of conclusion 1
+
+
+    for line in antecedent2_proof.lines:    # adding lines of proof 2
+        new_line = Proof.Line(line.formula)
+        if line.rule != None:
+            new_line = Proof.Line(line.formula, line.rule, [i + con_1_line_num for i in line.assumptions])
+        lines.append(new_line)
+    con_2_line_num = len(lines) - 1       # line number of conclusion 2
+
+    lines.append(Proof.Line(Formula.parse(str(consequent)), MP, [con_2_line_num, con_1_line_num - 1]))
+
+    return Proof(InferenceRule(antecedent1_proof.statement.assumptions, consequent), rules, lines)
+
+
 
 def remove_assumption(proof: Proof) -> Proof:
     """Converts the given proof of some `conclusion` formula, the last
