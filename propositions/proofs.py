@@ -516,59 +516,53 @@ def _inline_proof_once(main_proof: Proof, line_number: int, lemma_proof: Proof) 
     assert main_proof.lines[line_number].rule == lemma_proof.statement
     assert lemma_proof.is_valid()
     # Task 5.2a
-    lemma_as_a_rule = lemma_proof.statement
-    print("lemma_proof: ")
-    print(lemma_proof)
-    print("___________________________")
-    print("main_proof: \n",main_proof)
-    print("___________________________")
-    lines = []
-    lines_gap = 0
-    current_line_num = 0
+
+    lines = [line for line in main_proof.lines[:line_number]]   # lines before line_number
     len_of_lemma = len(lemma_proof.lines)
-    num_of_lemmas_until_now = 0
     lines_map = {}      # {old_num: new_num}
-    added_lines = []
-    for num, line in enumerate(main_proof.lines):
-        # print(line)
-        # print("line num = ", num)
-        # print("map: ", lines_map)
-        if line.rule == lemma_as_a_rule:
-            assumptions = [main_proof.lines[i].formula for i in line.assumptions]
-            rule = InferenceRule(assumptions, line.formula)
-            new_proof = prove_specialization(lemma_proof, rule)
-            for proof_line in new_proof.lines:
-                if proof_line.rule != None:
-                    # new_assumptions = [i + current_line_num for i in proof_line.assumptions]
-                    new_line = Proof.Line(proof_line.formula, proof_line.rule,
-                                          [i + current_line_num for i in proof_line.assumptions])
-                else:
-                    new_line = Proof.Line(proof_line.formula)
-                lines.append(new_line)
-            current_line_num += len_of_lemma
-            lines_map[num] = current_line_num - 1
-
-            # print("new_proof: \n", new_proof)
+    i = 0
+    while i < len(main_proof.lines):
+        if i < line_number:
+            lines_map[i] = i
         else:
-            if line.rule == None:
-                new_line =  Proof.Line(line.formula)
-            else:
-                new_line = Proof.Line(line.formula, line.rule, [lines_map[i] for i in line.assumptions])
-            lines.append(new_line)
-            lines_map[num] = current_line_num
-            current_line_num += 1
+            lines_map[i] = i + len_of_lemma - 1
+        i += 1
+    cur_line = main_proof.lines[line_number]
+    current_line_num = line_number
 
-    print("map ", lines_map)
+    assumptions = [main_proof.lines[i].formula for i in cur_line.assumptions]
+    rule = InferenceRule(assumptions, cur_line.formula)
+    new_proof = prove_specialization(lemma_proof, rule)
 
-    rules = set()
-    for rule in main_proof.rules:
-        if rule != lemma_as_a_rule:
-            rules.add(rule)
-    rules = rules.union(lemma_proof.rules)
+    for proof_line in new_proof.lines:
+        if proof_line.rule != None:
+            new_line = Proof.Line(proof_line.formula, proof_line.rule,
+                                  [i + current_line_num for i in proof_line.assumptions])
+        else:
+            new_line = Proof.Line(proof_line.formula)
 
-    new_proof = Proof(main_proof.statement, rules, lines)
-    print(new_proof)
+            for a_line in lines:        # case that the formula was in a prior line
+                if a_line.formula == proof_line.formula:
+                    new_line = a_line
+
+        lines.append(new_line)
+    current_line_num += len_of_lemma
+
+    for num, line in enumerate(main_proof.lines[line_number + 1:]):     # line after line_num
+        if line.rule == None:
+            new_line = Proof.Line(line.formula)
+        else:
+            new_line = Proof.Line(line.formula, line.rule, [lines_map[i] for i in line.assumptions])
+        lines.append(new_line)
+        current_line_num += 1
+
+
+    new_proof = Proof(main_proof.statement, main_proof.rules.union(lemma_proof.rules), lines)
     return new_proof
+
+
+
+
 
 
 
