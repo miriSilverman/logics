@@ -287,4 +287,4 @@ def test_all(debug=False):
     test_ex5(debug)
 
 if __name__ == '__main__':
-    test_combine_proofs()
+    test_remove_assumption()

@@ -82,6 +82,10 @@ def combine_proofs(antecedent1_proof: Proof, antecedent2_proof: Proof,
         Formula('->', antecedent2_proof.statement.conclusion, consequent))
         ).is_specialization_of(double_conditional)
     # Task 5.3b
+    print("antecedent1_proof:\n", antecedent1_proof)
+    print("antecedent2_proof:\n", antecedent2_proof)
+    print("con:\n", consequent)
+    print("double_conditional:\n", double_conditional)
     rules = antecedent1_proof.rules.union(antecedent2_proof.rules).union({double_conditional})
 
     formula1 = Formula.parse("(" + str(antecedent2_proof.statement.conclusion) + "->" + str(consequent) + ")")
@@ -131,6 +135,58 @@ def remove_assumption(proof: Proof) -> Proof:
     for rule in proof.rules:
         assert rule == MP or len(rule.assumptions) == 0
     # Task 5.4
+    print(proof)
+    print(proof.rules)
+    rules_without_assumptions = []
+    for rule in proof.rules:
+        if not rule.assumptions:
+            rules_without_assumptions.append(rule)
+
+    psi = proof.statement.assumptions[0]        #todo: not sure
+    lines = []
+    for line in proof.lines:
+        print("___")
+        formula = line.formula
+        print("formula", formula)
+        print("psi", psi)
+        print("rule ", line.rule)
+        if formula == psi:
+            print("1")
+            lines.append(Proof.Line(Formula.parse("("+str(formula)+"->"+str(formula)+")"), I0, []))
+        elif line.rule.is_specialization_of(I0) or line.rule.is_specialization_of(I1)\
+                or line.rule.is_specialization_of(D) or line.formula in proof.statement.assumptions\
+                or line.rule in rules_without_assumptions:
+            print("2")
+            lines.append(line)
+            lines.append(Proof.Line(Formula.parse("("+str(line.formula)+"->("+str(psi)+"->"+str(line.formula)+"))"),
+                                    I1, []))
+            lines.append(Proof.Line(Formula.parse("("+str(psi)+"->"+str(line.formula)+")"), MP,
+                                    [len(lines)-2, len(lines)-1]))
+        elif line.rule == MP:
+
+            print("3")
+            map = {'p': psi, 'q': proof.lines[line.assumptions[0]].formula,
+                   'r': proof.lines[line.assumptions[1]].formula}
+            mp_specialization = MP.specialize(map).assumptions
+            print("______")
+            print(MP.specialize(map).assumptions)
+            print(MP.specialize(map).assumptions[1].second)
+            print("______")
+            lines.append(Proof.Line(D.specialize(map).conclusion, D, []))
+            lines.append(Proof.Line(mp_specialization[1], MP, [len(lines)-2, len(lines)-1]))
+            lines.append(Proof.Line(mp_specialization[1].second, MP, [len(lines)-4, len(lines)-1]))
+
+
+    print("&&")
+    for n,l in enumerate(lines):
+        print(n, ")  ",l)
+
+    # p = Proof(InferenceRule())
+
+
+
+
+
 
 def prove_from_opposites(proof_of_affirmation: Proof,
                          proof_of_negation: Proof, conclusion: Formula) -> \
