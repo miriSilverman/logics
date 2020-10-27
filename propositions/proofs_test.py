@@ -638,9 +638,13 @@ def test_inline_proof_once(debug=False):
     if debug:
         print("\nGot:", inlined_proof)
     assert inlined_proof.statement == proof.statement
+    # print("me: -----> ", inlined_proof.rules)   #todo
+    # print("them: -----> ", proof.rules.union(lemma2_proof.rules))
     assert inlined_proof.rules == proof.rules.union(lemma2_proof.rules)
     newuse = uses_of_rule(inlined_proof, rule)
     olduse = uses_of_rule(proof, rule)
+    print("new: ", newuse, " old: ", olduse)
+
     assert newuse == olduse - 1, \
            "Uses of rule went from " + str(olduse)+ " to " + str(newuse)
     assert inlined_proof.is_valid(), offending_line(inlined_proof)
@@ -662,6 +666,7 @@ def test_inline_proof_once(debug=False):
     assert inlined_proof.rules == proof.rules.union(lemma2_proof.rules)
     newuse = uses_of_rule(inlined_proof, rule)
     olduse = uses_of_rule(proof, rule)
+    # print("new: ", newuse, " old: ", olduse)
     assert newuse == olduse - 1, \
            "Uses of rule went from " + str(olduse)+ " to " + str(newuse)
     assert inlined_proof.is_valid(), offending_line(inlined_proof)
