@@ -285,3 +285,6 @@ def test_ex5(debug=False):
 def test_all(debug=False):
     test_prove_from_encoding(debug)
     test_ex5(debug)
+
+if __name__ == '__main__':
+    test_prove_corollary()
