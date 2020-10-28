@@ -135,7 +135,7 @@ def remove_assumption(proof: Proof) -> Proof:
     for rule in proof.rules:
         assert rule == MP or len(rule.assumptions) == 0
     # Task 5.4
-    print(proof)
+    # print(proof)
     rules_without_assumptions = []
     for rule in proof.rules:
         if not rule.assumptions:
@@ -147,20 +147,17 @@ def remove_assumption(proof: Proof) -> Proof:
     for num, line in enumerate(proof.lines):
         formula = line.formula
         if formula == psi:
-            # print("1")
             lines.append(Proof.Line(Formula.parse("("+str(formula)+"->"+str(formula)+")"), I0, []))
-        elif line.rule.is_specialization_of(I0) or line.rule.is_specialization_of(I1)\
-                or line.rule.is_specialization_of(D) or line.formula in proof.statement.assumptions\
-                or line.rule in rules_without_assumptions:
-            # print("2")
+        elif line.formula in proof.statement.assumptions or line.rule in rules_without_assumptions:
+            # elif line.rule.is_specialization_of(I0) or line.rule.is_specialization_of(I1)\
+            #     or line.rule.is_specialization_of(D) or line.formula in proof.statement.assumptions\
+            #     or line.rule in rules_without_assumptions:
             lines.append(line)
             lines.append(Proof.Line(Formula.parse("("+str(line.formula)+"->("+str(psi)+"->"+str(line.formula)+"))"),
                                     I1, []))
             lines.append(Proof.Line(Formula.parse("("+str(psi)+"->"+str(line.formula)+")"), MP,
                                     [len(lines)-2, len(lines)-1]))
         elif line.rule == MP:
-
-            # print("3")
             map = {'p': psi, 'q': proof.lines[line.assumptions[0]].formula,
                    'r': line.formula}
             # print("______")
@@ -173,7 +170,7 @@ def remove_assumption(proof: Proof) -> Proof:
             # print("______")
             d = D.specialize(map).conclusion
             lines.append(Proof.Line(d, D, []))
-            lines.append(Proof.Line(d.second, MP, [len(lines)-2, len(lines)-1]))
+            lines.append(Proof.Line(d.second, MP, [lines_map[proof.lines[num].assumptions[1]], len(lines)-1]))
             # print(lines_map)
             # first = lines_map[num-2]
             first = lines_map[proof.lines[num].assumptions[0]]
@@ -198,10 +195,10 @@ def remove_assumption(proof: Proof) -> Proof:
         # print("&&")
         # for n,l in enumerate(lines):
         #     print(n, ")  ",l)
-    statement = InferenceRule([], Formula.parse("("+str(proof.statement.assumptions[-1])+"->"+
+    statement = InferenceRule(proof.statement.assumptions[:-1], Formula.parse("("+str(proof.statement.assumptions[-1])+"->"+
                                                str(proof.statement.conclusion)+")"))
     p = Proof(statement, proof.rules.union({I0,I1, D, MP}), lines)
-    print(p)
+    # print(p)
     return p
 
 
