@@ -136,27 +136,23 @@ def remove_assumption(proof: Proof) -> Proof:
         assert rule == MP or len(rule.assumptions) == 0
     # Task 5.4
     print(proof)
-    print(proof.rules)
     rules_without_assumptions = []
     for rule in proof.rules:
         if not rule.assumptions:
             rules_without_assumptions.append(rule)
 
-    psi = proof.statement.assumptions[0]        #todo: not sure
+    psi = proof.statement.assumptions[-1]        #todo: not sure
+    lines_map = {}      # {old_line_num: new_line_num}
     lines = []
-    for line in proof.lines:
-        print("___")
+    for num, line in enumerate(proof.lines):
         formula = line.formula
-        print("formula", formula)
-        print("psi", psi)
-        print("rule ", line.rule)
         if formula == psi:
-            print("1")
+            # print("1")
             lines.append(Proof.Line(Formula.parse("("+str(formula)+"->"+str(formula)+")"), I0, []))
         elif line.rule.is_specialization_of(I0) or line.rule.is_specialization_of(I1)\
                 or line.rule.is_specialization_of(D) or line.formula in proof.statement.assumptions\
                 or line.rule in rules_without_assumptions:
-            print("2")
+            # print("2")
             lines.append(line)
             lines.append(Proof.Line(Formula.parse("("+str(line.formula)+"->("+str(psi)+"->"+str(line.formula)+"))"),
                                     I1, []))
@@ -164,24 +160,49 @@ def remove_assumption(proof: Proof) -> Proof:
                                     [len(lines)-2, len(lines)-1]))
         elif line.rule == MP:
 
-            print("3")
+            # print("3")
             map = {'p': psi, 'q': proof.lines[line.assumptions[0]].formula,
-                   'r': proof.lines[line.assumptions[1]].formula}
-            mp_specialization = MP.specialize(map).assumptions
-            print("______")
-            print(MP.specialize(map).assumptions)
-            print(MP.specialize(map).assumptions[1].second)
-            print("______")
-            lines.append(Proof.Line(D.specialize(map).conclusion, D, []))
-            lines.append(Proof.Line(mp_specialization[1], MP, [len(lines)-2, len(lines)-1]))
-            lines.append(Proof.Line(mp_specialization[1].second, MP, [len(lines)-4, len(lines)-1]))
+                   'r': line.formula}
+            # print("______")
+            # print(D.specialize(map).variables())
+            # print(D.specialize(map).assumptions)
+            # print(D.specialize(map).conclusion)
+            # print("p:  ", map['p'])
+            # print("alph:  ", map['q'])
+            # print("beta", map['r'])
+            # print("______")
+            d = D.specialize(map).conclusion
+            lines.append(Proof.Line(d, D, []))
+            lines.append(Proof.Line(d.second, MP, [len(lines)-2, len(lines)-1]))
+            # print(lines_map)
+            # first = lines_map[num-2]
+            first = lines_map[proof.lines[num].assumptions[0]]
+            # second = lines_map[proof.lines[num].assumptions[1]]
+            second = len(lines)-1
+            # print("______")
+            # print(lines[first])
+            # print(lines[second])
+            # print(d.second.second)
+            # print()
+            # print(proof.lines[num-2])
+            # print(proof.lines[num-1])
+            # print(proof.lines[num])
+
+            # print()      # 2
+            # print(proof.lines[num].assumptions[1])      # 4
+            # print("______")
+            lines.append(Proof.Line(d.second.second, MP, [first, second]))
+        lines_map[num] = len(lines) - 1
 
 
-    print("&&")
-    for n,l in enumerate(lines):
-        print(n, ")  ",l)
-
-    # p = Proof(InferenceRule())
+        # print("&&")
+        # for n,l in enumerate(lines):
+        #     print(n, ")  ",l)
+    statement = InferenceRule([], Formula.parse("("+str(proof.statement.assumptions[-1])+"->"+
+                                               str(proof.statement.conclusion)+")"))
+    p = Proof(statement, proof.rules.union({I0,I1, D, MP}), lines)
+    print(p)
+    return p
 
 
 
