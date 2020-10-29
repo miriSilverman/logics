@@ -87,11 +87,8 @@ def prove_in_model(formula: Formula, model:Model) -> Proof:
     assert formula.operators().issubset({'->', '~'})
     assert is_model(model)
     # Task 6.1b
-    # print("formula:\n", formula)
-    # print("model:\n", model)
     vars = formulas_capturing_model(model)
     evaluation = evaluate(formula, model)
-    conclusion = None
     if evaluation:
         conclusion = formula
     else:
@@ -101,7 +98,14 @@ def prove_in_model(formula: Formula, model:Model) -> Proof:
     prove_in_model_helper(formula, model, lines)
     return Proof(InferenceRule(vars, conclusion), AXIOMATIC_SYSTEM, lines)
 
+
 def prove_in_model_helper(formula, model, lines):
+    """
+    adds the proof lines to the lines list
+    :param formula: the formula
+    :param model: the model
+    :param lines: array of the proof lines
+    """
     p = formula.root
     eval = evaluate(formula, model)
     if is_variable(p):
@@ -110,38 +114,82 @@ def prove_in_model_helper(formula, model, lines):
         else:
             lines.append(Proof.Line(Formula('~',formula)))
     elif is_unary(p):
-        eval = evaluate(formula, model)
-        if not eval:
-            prove_in_model_helper(formula.first, model, lines)
-            f = Formula.parse("("+str(formula.first)+ "->~~"+ str(formula.first)+")")
-            lines.append(Proof.Line(f, NN, []))
-            lines.append(Proof.Line(f.second, MP, [len(lines)-2, len(lines)-1]))
-
-        else:
-            prove_in_model_helper(formula.first, model, lines)
+        unary_case(eval, formula, lines, model)
     elif is_binary(p):
-        phi = formula.first
-        psi = formula.second
-        if eval:
-            if not evaluate(phi, model):
-                prove_in_model_helper(phi, model, lines)
-                form = Formula.parse("(~"+str(phi)+"->("+str(phi)+"->"+str(psi)+"))")
-                lines.append(Proof.Line(form, I2, []))
-            else:
-                prove_in_model_helper(psi, model, lines)
-                form = Formula.parse("("+str(psi)+"->("+str(phi)+"->"+str(psi)+"))")
-                lines.append(Proof.Line(form, I1, []))
-            lines.append(Proof.Line(form.second, MP, [len(lines) - 2, len(lines) - 1]))
-        else:
-            prove_in_model_helper(phi, model, lines)
-            phi_line_num = len(lines)-1
-            prove_in_model_helper(psi, model, lines)
-            minus_psi_line = len(lines)-1
-            form = Formula.parse("(" + str(phi) + "->(~" + str(psi) + "->~(" +str(phi)+"->"+ str(psi) + ")))")
-            lines.append(Proof.Line(form, NI, []))
-            ni_line = len(lines)-1
-            lines.append(Proof.Line(form.second, MP, [phi_line_num, ni_line]))
-            lines.append(Proof.Line(form.second.second, MP, [minus_psi_line, len(lines)-1]))
+        binary_case(eval, formula, lines, model)
+
+
+def binary_case(eval, formula, lines, model):
+    """
+    adds the necessary lines to the proofs in the binary case
+    :param eval: the evaluation of the formula
+    :param formula: the formula
+    :param lines: array of the proof lines
+    :param model: the model
+    """
+    phi = formula.first
+    psi = formula.second
+    if eval:
+        positive_case(lines, model, phi, psi)
+    else:
+        negative_case(lines, model, phi, psi)
+
+
+
+def negative_case(lines, model, phi, psi):
+    """
+    case that the evaluation of the formula is false
+    :param lines: array of the proof lines
+    :param model: the model
+    :param phi: formula.first
+    :param psi: formula.second
+    """
+    prove_in_model_helper(phi, model, lines)
+    phi_line_num = len(lines) - 1
+    prove_in_model_helper(psi, model, lines)
+    minus_psi_line = len(lines) - 1
+    form = Formula.parse("(" + str(phi) + "->(~" + str(psi) + "->~(" + str(phi) + "->" + str(psi) + ")))")
+    lines.append(Proof.Line(form, NI, []))
+    ni_line = len(lines) - 1
+    lines.append(Proof.Line(form.second, MP, [phi_line_num, ni_line]))
+    lines.append(Proof.Line(form.second.second, MP, [minus_psi_line, len(lines) - 1]))
+
+
+def positive_case(lines, model, phi, psi):
+    """
+    case that the evaluation of the formula is true
+    :param lines: array of the proof lines
+    :param model: the model
+    :param phi: formula.first
+    :param psi: formula.second
+    """
+    if not evaluate(phi, model):
+        prove_in_model_helper(phi, model, lines)
+        form = Formula.parse("(~" + str(phi) + "->(" + str(phi) + "->" + str(psi) + "))")
+        lines.append(Proof.Line(form, I2, []))
+    else:
+        prove_in_model_helper(psi, model, lines)
+        form = Formula.parse("(" + str(psi) + "->(" + str(phi) + "->" + str(psi) + "))")
+        lines.append(Proof.Line(form, I1, []))
+    lines.append(Proof.Line(form.second, MP, [len(lines) - 2, len(lines) - 1]))
+
+
+def unary_case(eval, formula, lines, model):
+    """
+    adds the necessary lines to the proofs in the unary case
+    :param eval: the evaluation of the formula
+    :param formula: the formula
+    :param lines: array of the proof lines
+    :param model: the model
+    """
+    if not eval:
+        prove_in_model_helper(formula.first, model, lines)
+        f = Formula.parse("(" + str(formula.first) + "->~~" + str(formula.first) + ")")
+        lines.append(Proof.Line(f, NN, []))
+        lines.append(Proof.Line(f.second, MP, [len(lines) - 2, len(lines) - 1]))
+
+    else:
+        prove_in_model_helper(formula.first, model, lines)
 
 
 def reduce_assumption(proof_from_affirmation: Proof,

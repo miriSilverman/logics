@@ -16,6 +16,8 @@ from propositions.tautology import *
 
 from propositions.proofs_test import offending_line
 
+
+
 def test_formulas_capturing_model(debug=False):
     for q,a in [({'p':True},['p']),
                 ({'q7':False}, ['~q7']),
