@@ -135,7 +135,6 @@ def test_parse(debug=False):
         ff = Formula.parse(s)
         assert type(ff) is Formula
         assert str(ff) == f
-
 # Tests for optional tasks in Chapter 1
 
 def test_polish(debug=False):

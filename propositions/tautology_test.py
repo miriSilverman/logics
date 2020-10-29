@@ -24,6 +24,8 @@ def test_formulas_capturing_model(debug=False):
         if debug:
             print("Testing formulas_capturing_model on", q)
         aa = [Formula.parse(f) for f in a]
+        # print(formulas_capturing_model(frozendict(q)))
+        # print(aa)
         assert formulas_capturing_model(frozendict(q)) == aa
 
 def test_prove_in_model(debug=False):
@@ -265,3 +267,6 @@ def test_ex6_opt(debug=False):
 def test_all(debug=False):
     test_ex6(debug)
     test_ex6_opt(debug)
+
+if __name__ == '__main__':
+    test_formulas_capturing_model()

@@ -35,6 +35,14 @@ def formulas_capturing_model(model: Model) -> List[Formula]:
     """
     assert is_model(model)
     # Task 6.1a
+    arr = [None]*len(model)
+    for num, var in enumerate(sorted(model.keys())):
+        if model[var]:
+            arr[num] = Formula.parse(var)
+        else:
+            arr[num] = Formula.parse("~"+var)
+    return arr
+
 
 def prove_in_model(formula: Formula, model:Model) -> Proof:
     """Either proves the given formula or proves its negation, from the formulas
@@ -79,6 +87,47 @@ def prove_in_model(formula: Formula, model:Model) -> Proof:
     assert formula.operators().issubset({'->', '~'})
     assert is_model(model)
     # Task 6.1b
+    vars = formulas_capturing_model(model)
+    evaluation = evaluate(formula, model)
+    conclusion = None
+    if evaluation:
+        conclusion = formula
+    else:
+        conclusion = Formula('~', formula)
+    lines = []
+
+    prove_in_model_helper(formula, model, vars, lines)
+
+
+
+    return Proof(InferenceRule(vars, conclusion), AXIOMATIC_SYSTEM, lines)
+
+
+def prove_in_model_helper(formula, model, lines):
+    p = formula.root
+    eval = evaluate(formula, model)
+    if is_variable(p):
+        if model[p]:
+            lines.append(Proof.Line(formula))
+        else:
+            lines.append(Proof.Line(Formula('~',formula)))
+    elif is_unary(p):
+        if model[p]:
+            prove_in_model_helper(formula.first, model, lines)
+            f = Formula.parse("("+str(formula.first)+ "->~~"+ str(formula.first)+")")
+            lines.append(Proof.Line(f, NN, []))
+            lines.append(Proof.Line(f.second, MP, [len(lines)-2, len(lines)-1]))
+
+        else:
+            prove_in_model_helper(Formula('~', formula), model, lines)
+    elif is_binary(p):
+        phi = formula.first
+        psi = formula.second
+        if eval:
+            if not evaluate(phi, model):
+                prove_in_model_helper(Formula('~', phi), model, lines)
+                lines.append(Proof.Line(Formula.parse("(~"+str(phi)+"->("+str(phi)+"->"+str(psi)+"))"), I2, []))
+
 
 def reduce_assumption(proof_from_affirmation: Proof,
                       proof_from_negation: Proof) -> Proof:
@@ -283,3 +332,8 @@ def prove_in_model_full(formula: Formula, model: Model) -> Proof:
     assert formula.operators().issubset({'T', 'F', '->', '~', '&', '|'})
     assert is_model(model)
     # Optional Task 6.6
+#
+# if __name__ == '__main__':
+#     m = {"kjd":55}
+#     m.pop("kjd")
+#     print(m)
