@@ -76,9 +76,6 @@ def prove_I0() -> Proof:
     lines[4] = Proof.Line(Formula.parse(goal), MP, [3, 2])
     return Proof(InferenceRule([], Formula.parse(goal)), {MP, I1, D}, lines)
 
-if __name__ == '__main__':
-    s = prove_I0()
-    print(s)
 
 #: Hypothetical syllogism
 HS = InferenceRule([Formula.parse('(p->q)'), Formula.parse('(q->r)')],
@@ -97,6 +94,17 @@ def prove_hypothetical_syllogism() -> Proof:
         `~propositions.axiomatic_systems.D`.
     """
     # Task 5.5
+    lines = [None]*5
+    lines[0] = Proof.Line(Formula.parse("p"))
+    lines[1] = Proof.Line(Formula.parse("(p->q)"))
+    lines[2] = Proof.Line(Formula.parse("q"), MP, [0,1])
+    lines[3] = Proof.Line(Formula.parse("(q->r)"))
+    lines[4] = Proof.Line(Formula.parse("r"), MP, [2,3])
+
+    p =Proof(InferenceRule([Formula.parse('(p->q)'), Formula.parse('(q->r)'), Formula.parse('p')], Formula.parse('r')),
+             {MP, I0, I1, D}, lines)
+    return remove_assumption(p)
+
 
 def prove_I2() -> Proof:
     """Proves `~propositions.axiomatic_systems.I2` via
