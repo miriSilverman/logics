@@ -82,10 +82,6 @@ def combine_proofs(antecedent1_proof: Proof, antecedent2_proof: Proof,
         Formula('->', antecedent2_proof.statement.conclusion, consequent))
         ).is_specialization_of(double_conditional)
     # Task 5.3b
-    print("antecedent1_proof:\n", antecedent1_proof)
-    print("antecedent2_proof:\n", antecedent2_proof)
-    print("con:\n", consequent)
-    print("double_conditional:\n", double_conditional)
     rules = antecedent1_proof.rules.union(antecedent2_proof.rules).union({double_conditional})
 
     formula1 = Formula.parse("(" + str(antecedent2_proof.statement.conclusion) + "->" + str(consequent) + ")")
@@ -199,6 +195,28 @@ def prove_from_opposites(proof_of_affirmation: Proof,
            proof_of_negation.statement.conclusion
     assert proof_of_affirmation.rules == proof_of_negation.rules
     # Task 5.6
+    lines = [line for line in proof_of_negation.lines]      # lines of proof_of_negation
+    negate_line_mum = len(lines) - 1
+    statement = InferenceRule(proof_of_affirmation.statement.assumptions, conclusion)
+    rules = proof_of_negation.rules.union(proof_of_affirmation.rules).union({MP, I2})
+
+    for line in proof_of_affirmation.lines:     # lines of proof_of_affirmation
+        new_line = Proof.Line(line.formula)
+        if line.rule != None:
+            new_line = Proof.Line(line.formula, line.rule, [i+1+ negate_line_mum for i in line.assumptions])
+        lines.append(new_line)
+    affirm_line_num = len(lines) - 1
+
+    i_2_formula = Formula.parse("("+str(proof_of_negation.statement.conclusion) +
+                                          "->("+str(proof_of_affirmation.statement.conclusion)+
+                                          "->"+str(conclusion)+"))")
+
+    lines.append(Proof.Line(i_2_formula, I2, []))
+    lines.append(Proof.Line(i_2_formula.second, MP, [negate_line_mum, len(lines) - 1]))
+    lines.append(Proof.Line(conclusion, MP, [affirm_line_num, len(lines) - 1]))
+
+    return Proof(statement, rules, lines)
+
 
 def prove_by_way_of_contradiction(proof: Proof) -> Proof:
     """Converts the given proof of ``'~(p->p)'``, the last assumption of which
@@ -227,3 +245,26 @@ def prove_by_way_of_contradiction(proof: Proof) -> Proof:
     for rule in proof.rules:
         assert rule == MP or len(rule.assumptions) == 0
     # Task 5.7
+    proof_as_deduction = remove_assumption(proof)
+
+    p_implies_p_formula = proof_as_deduction.statement.conclusion.second.first
+    psi_formula = proof_as_deduction.statement.conclusion.first.first
+
+    lines = [line for line in proof_as_deduction.lines]     # lines of deduction
+    line_of_deduction_conclusion = len(lines)-1
+
+    formula = Formula.parse("("+str(proof_as_deduction.statement.conclusion) +"->("+
+                            str(p_implies_p_formula) +"->"+ str(psi_formula)+"))")
+
+    lines.append(Proof.Line(formula, N, []))
+    line_of_n = len(lines)-1
+    lines.append(Proof.Line(p_implies_p_formula, I0, []))
+    line_of_p_implies_p = len(lines)-1
+    lines.append(Proof.Line(formula.second, MP, [line_of_deduction_conclusion, line_of_n]))
+    lines.append(Proof.Line(psi_formula, MP, [line_of_p_implies_p, len(lines)-1]))
+
+
+    return Proof(InferenceRule(proof.statement.assumptions[:-1], psi_formula), proof.rules.union({I0, I1,D,N}), lines)
+
+
+
