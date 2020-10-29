@@ -131,10 +131,7 @@ def remove_assumption(proof: Proof) -> Proof:
     for rule in proof.rules:
         assert rule == MP or len(rule.assumptions) == 0
     # Task 5.4
-    rules_without_assumptions = []
-    for rule in proof.rules:
-        if not rule.assumptions:
-            rules_without_assumptions.append(rule)
+    rules_without_assumptions = rules_with_no_assumptions(proof)
 
     psi = proof.statement.assumptions[-1]
     lines_map = {}      # {old_line_num: new_line_num}
@@ -144,20 +141,9 @@ def remove_assumption(proof: Proof) -> Proof:
         if formula == psi:
             lines.append(Proof.Line(Formula.parse("("+str(formula)+"->"+str(formula)+")"), I0, []))
         elif line.formula in proof.statement.assumptions or line.rule in rules_without_assumptions:
-            lines.append(line)
-            lines.append(Proof.Line(Formula.parse("("+str(line.formula)+"->("+str(psi)+"->"+str(line.formula)+"))"),
-                                    I1, []))
-            lines.append(Proof.Line(Formula.parse("("+str(psi)+"->"+str(line.formula)+")"), MP,
-                                    [len(lines)-2, len(lines)-1]))
+            add_lines_case_2(line, lines, psi)
         elif line.rule == MP:
-            map = {'p': psi, 'q': proof.lines[line.assumptions[0]].formula,
-                   'r': line.formula}
-            d = D.specialize(map).conclusion
-            lines.append(Proof.Line(d, D, []))
-            lines.append(Proof.Line(d.second, MP, [lines_map[proof.lines[num].assumptions[1]], len(lines)-1]))
-            first = lines_map[proof.lines[num].assumptions[0]]
-            second = len(lines)-1
-            lines.append(Proof.Line(d.second.second, MP, [first, second]))
+            add_lines_case_3(line, lines, lines_map, num, proof, psi)
         lines_map[num] = len(lines) - 1
 
     statement = InferenceRule(proof.statement.assumptions[:-1],
@@ -168,6 +154,52 @@ def remove_assumption(proof: Proof) -> Proof:
 
 
 
+def add_lines_case_3(line, lines, lines_map, num, proof, psi):
+    """
+    adds the necessary lines to the current proof in order to convert the line 'line'
+    in the old proof to a line '(psi->line)'
+    :param line: current line in the old proof
+    :param lines: the list of all lines of the new proof
+    :param lines_map: {num_of_line_in_the_old_proof: num_of_ the converted_line(psi->line)_in_the_new_proof}
+    :param num: num of this current line in the old proof
+    :param proof:the old proof
+    :param psi: the last assumption of the old proof
+    """
+    map = {'p': psi, 'q': proof.lines[line.assumptions[0]].formula,
+           'r': line.formula}
+    d = D.specialize(map).conclusion
+    lines.append(Proof.Line(d, D, []))
+    lines.append(Proof.Line(d.second, MP, [lines_map[proof.lines[num].assumptions[1]], len(lines) - 1]))
+    first = lines_map[proof.lines[num].assumptions[0]]
+    second = len(lines) - 1
+    lines.append(Proof.Line(d.second.second, MP, [first, second]))
+
+
+def add_lines_case_2(line, lines, psi):
+    """
+    adds the necessary lines to the current proof in order to convert the line 'line'
+    in the old proof to a line '(psi->line)'
+    :param line: current line in the old proof
+    :param lines: the list of all lines of the new proof
+    :param psi: the last assumption of the old proof
+    """
+    lines.append(line)
+    lines.append(Proof.Line(Formula.parse("(" + str(line.formula) + "->(" + str(psi) + "->" + str(line.formula) + "))"),
+                            I1, []))
+    lines.append(Proof.Line(Formula.parse("(" + str(psi) + "->" + str(line.formula) + ")"), MP,
+                            [len(lines) - 2, len(lines) - 1]))
+
+
+def rules_with_no_assumptions(proof):
+    """
+    :param proof: a proof
+    :return: the rules from the proofs rules that have no assumptions
+    """
+    rules_without_assumptions = []
+    for rule in proof.rules:
+        if not rule.assumptions:
+            rules_without_assumptions.append(rule)
+    return rules_without_assumptions
 
 
 def prove_from_opposites(proof_of_affirmation: Proof,
