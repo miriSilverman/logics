@@ -235,6 +235,30 @@ def reduce_assumption(proof_from_affirmation: Proof,
            proof_from_negation.statement.assumptions[-1]
     assert proof_from_affirmation.rules == proof_from_negation.rules
     # Task 6.2
+    affirmation_proof = remove_assumption(proof_from_affirmation)
+    lines = [line for line in affirmation_proof.lines]
+    affirm_line_num  = len(lines)-1
+    negation_proof =remove_assumption(proof_from_negation)
+    for line in negation_proof.lines:
+        new_line = Proof.Line(line.formula)
+        if line.rule != None:
+            new_line = Proof.Line(line.formula, line.rule, [i + affirm_line_num + 1 for i in line.assumptions])
+        lines.append(new_line)
+    neg_line_num = len(lines)-1
+    map = {'q': affirmation_proof.statement.conclusion.first, 'p': affirmation_proof.statement.conclusion.second}
+    formula = R.specialize(map).conclusion
+    lines.append(Proof.Line(formula, R, []))
+    r_line = len(lines)-1
+    lines.append(Proof.Line(formula.second, MP, [affirm_line_num, r_line]))
+    lines.append(Proof.Line(formula.second.second, MP, [neg_line_num, len(lines)-1]))
+
+    return Proof(InferenceRule(proof_from_affirmation.statement.assumptions[:-1],
+                               proof_from_affirmation.statement.conclusion),
+                 proof_from_affirmation.rules.union({MP, I0, I1, D, R}), lines)
+
+
+
+
 
 def prove_tautology(tautology: Formula, model: Model = frozendict()) -> Proof:
     """Proves the given tautology from the formulas that capture the given
