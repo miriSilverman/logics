@@ -271,4 +271,4 @@ def test_all(debug=False):
     test_ex6_opt(debug)
 
 if __name__ == '__main__':
-    test_reduce_assumption()
+    test_prove_tautology()

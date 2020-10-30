@@ -304,6 +304,30 @@ def prove_tautology(tautology: Formula, model: Model = frozendict()) -> Proof:
     assert is_model(model)
     assert sorted(tautology.variables())[:len(model)] == sorted(model.keys())
     # Task 6.3a
+    vars = sorted(tautology.variables())
+    if len(model) == len(vars):
+        proof = prove_in_model(tautology, model)
+    else:
+        pos_model = {}
+        neg_model = {}
+        for key in sorted(model.keys()):
+            pos_model[key] = model[key]
+            neg_model[key] = model[key]
+
+        for var in vars:
+            if var not in model:
+                pos_model[var] = True
+                neg_model[var] = False
+                break
+
+        p1 = prove_tautology(tautology, pos_model)
+        p2 = prove_tautology(tautology, neg_model)
+        proof = reduce_assumption(p1, p2)
+    return proof
+
+
+
+
 
 def proof_or_counterexample(formula: Formula) -> Union[Proof, Model]:
     """Either proves the given formula or finds a model in which it does not
@@ -320,6 +344,42 @@ def proof_or_counterexample(formula: Formula) -> Union[Proof, Model]:
     """
     assert formula.operators().issubset({'->', '~'})
     # Task 6.3b
+
+
+    # print("tautology:  ",tautology)
+    # print("model:  ",model)
+    # if model:
+    #     vars = list(variables(model))
+    #     last_var = vars[-1]
+    #     second_model = {}
+    #     for key in model:
+    #         second_model[key] = model[key]
+    #     second_model[last_var] = not model[last_var]
+    #     proof1 = prove_in_model(tautology, model)
+    #     proof2 = prove_in_model(tautology, second_model)
+    #     # lines = [line for line in proof1.lines]
+    #     # p1_conclusion_line = len(lines)-1
+    #     # for line in proof2.lines:
+    #     #     new_line = Proof.Line(line.formula)
+    #     #     if line.rule != None:
+    #     #         new_line = Proof.Line(line.formula, line.rule, [i + p1_conclusion_line+1 for i in line.assumptions])
+    #     #     lines.append(new_line)
+    #     # p2_conclusion_line = len(lines)-1
+    #     if model[last_var]:
+    #         proof = reduce_assumption(proof1, proof2)
+    #     else:
+    #         proof = reduce_assumption(proof2, proof1)
+    #     print(proof)
+    #
+    # if not model:
+    #     vars = list(tautology.variables())
+    #     last_var = vars[-1]
+    #     pos_model = {last_var: True}
+    #     neg_model = {last_var: False}
+    #     proof = prove_tautology(tautology, pos_model)
+    #     # p2 = prove_tautology(tautology, neg_model)
+    # return Proof(InferenceRule(formulas_capturing_model(model), tautology), AXIOMATIC_SYSTEM, proof.lines)
+
 
 def encode_as_formula(rule: InferenceRule) -> Formula:
     """Encodes the given inference rule as a formula consisting of a chain of
