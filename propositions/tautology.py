@@ -412,7 +412,6 @@ def mp_lines(formula, rule, lines):
     :param rule: sound inference rule whose assumptions and conclusion contain no
             constants or operators beyond ``'->'`` and ``'~'``, to prove.
     :param lines: the list of all the proofs lines
-    :return:
     """
     if formula != rule.conclusion:      # todo: takes a long time to run
         lines.append(Proof.Line(formula.first))
@@ -433,9 +432,26 @@ def model_or_inconsistency(formulas: Sequence[Formula]) -> Union[Model, Proof]:
         otherwise a valid proof of ``'~(p->p)'`` from the given formulas via
         `~propositions.axiomatic_systems.AXIOMATIC_SYSTEM`.
     """
-    for formula in formulas:
+    for formula in formulas: # todo: takes a long time to run
         assert formula.operators().issubset({'->', '~'})
     # Task 6.5
+    vars = set()
+    for formula in formulas:
+        v = formula.variables()
+        vars = vars.union(v)
+
+    models = all_models(list(vars))
+    for model in models:
+        for num, formula in enumerate(formulas):
+            if not evaluate(formula, model):
+                break
+            else:
+                if num == len(formulas)-1:
+                    return model
+
+    rule = InferenceRule(formulas, Formula.parse("~(p->p)"))
+    p = prove_sound_inference(rule)
+    return p
 
 def prove_in_model_full(formula: Formula, model: Model) -> Proof:
     """Either proves the given formula or proves its negation, from the formulas

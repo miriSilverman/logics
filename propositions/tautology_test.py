@@ -271,4 +271,4 @@ def test_all(debug=False):
     test_ex6_opt(debug)
 
 if __name__ == '__main__':
-    test_prove_sound_inference()
+    test_model_or_inconsistency()
