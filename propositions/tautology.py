@@ -256,10 +256,6 @@ def reduce_assumption(proof_from_affirmation: Proof,
                                proof_from_affirmation.statement.conclusion),
                  proof_from_affirmation.rules.union({MP, I0, I1, D, R}), lines)
 
-
-
-
-
 def prove_tautology(tautology: Formula, model: Model = frozendict()) -> Proof:
     """Proves the given tautology from the formulas that capture the given
     model.
@@ -327,8 +323,6 @@ def prove_tautology(tautology: Formula, model: Model = frozendict()) -> Proof:
 
 
 
-
-
 def proof_or_counterexample(formula: Formula) -> Union[Proof, Model]:
     """Either proves the given formula or finds a model in which it does not
     hold.
@@ -344,42 +338,13 @@ def proof_or_counterexample(formula: Formula) -> Union[Proof, Model]:
     """
     assert formula.operators().issubset({'->', '~'})
     # Task 6.3b
-
-
-    # print("tautology:  ",tautology)
-    # print("model:  ",model)
-    # if model:
-    #     vars = list(variables(model))
-    #     last_var = vars[-1]
-    #     second_model = {}
-    #     for key in model:
-    #         second_model[key] = model[key]
-    #     second_model[last_var] = not model[last_var]
-    #     proof1 = prove_in_model(tautology, model)
-    #     proof2 = prove_in_model(tautology, second_model)
-    #     # lines = [line for line in proof1.lines]
-    #     # p1_conclusion_line = len(lines)-1
-    #     # for line in proof2.lines:
-    #     #     new_line = Proof.Line(line.formula)
-    #     #     if line.rule != None:
-    #     #         new_line = Proof.Line(line.formula, line.rule, [i + p1_conclusion_line+1 for i in line.assumptions])
-    #     #     lines.append(new_line)
-    #     # p2_conclusion_line = len(lines)-1
-    #     if model[last_var]:
-    #         proof = reduce_assumption(proof1, proof2)
-    #     else:
-    #         proof = reduce_assumption(proof2, proof1)
-    #     print(proof)
-    #
-    # if not model:
-    #     vars = list(tautology.variables())
-    #     last_var = vars[-1]
-    #     pos_model = {last_var: True}
-    #     neg_model = {last_var: False}
-    #     proof = prove_tautology(tautology, pos_model)
-    #     # p2 = prove_tautology(tautology, neg_model)
-    # return Proof(InferenceRule(formulas_capturing_model(model), tautology), AXIOMATIC_SYSTEM, proof.lines)
-
+    vars = list(formula.variables())        #todo: takes too long to run!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    models = all_models(vars)
+    for model in models:
+        if not evaluate(formula, model):
+            return model
+    p =  prove_tautology(formula, {})
+    return p
 
 def encode_as_formula(rule: InferenceRule) -> Formula:
     """Encodes the given inference rule as a formula consisting of a chain of
@@ -401,6 +366,22 @@ def encode_as_formula(rule: InferenceRule) -> Formula:
         q
     """
     # Task 6.4a
+    return encode_as_formula_helper(rule, 0)
+
+
+def encode_as_formula_helper(rule, i):
+    """
+    :param rule: inference rule to encode.
+    :param i: index of current assumption in rule
+    :return: formula of kind "(assumption[i] -> assumption[i+1]...-> conclusion)"
+    """
+    if i == len(rule.assumptions):
+        return rule.conclusion
+    return Formula("->", rule.assumptions[i], encode_as_formula_helper(rule, i+1))
+
+
+
+
 
 def prove_sound_inference(rule: InferenceRule) -> Proof:
     """Proves the given sound inference rule.
@@ -417,6 +398,27 @@ def prove_sound_inference(rule: InferenceRule) -> Proof:
     for formula in rule.assumptions + (rule.conclusion,):
         assert formula.operators().issubset({'->', '~'})
     # Task 6.4b
+    tautology_formula = encode_as_formula(rule)
+    p = prove_tautology(tautology_formula)
+    lines = [line for line in p.lines]
+    mp_lines(tautology_formula, rule, lines)
+    return Proof(rule, AXIOMATIC_SYSTEM, lines)
+
+
+def mp_lines(formula, rule, lines):
+    """
+    adds all the lines of the MP to the proof
+    :param formula: current formula of kind: (x1->x2->x3->....->conclusion) where x_i is an assumption
+    :param rule: sound inference rule whose assumptions and conclusion contain no
+            constants or operators beyond ``'->'`` and ``'~'``, to prove.
+    :param lines: the list of all the proofs lines
+    :return:
+    """
+    if formula != rule.conclusion:      # todo: takes a long time to run
+        lines.append(Proof.Line(formula.first))
+        lines.append(Proof.Line(formula.second, MP, [len(lines) - 1, len(lines) - 2]))
+        mp_lines(formula.second, rule, lines)
+
 
 def model_or_inconsistency(formulas: Sequence[Formula]) -> Union[Model, Proof]:
     """Either finds a model in which all the given formulas hold, or proves
