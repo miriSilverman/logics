@@ -121,6 +121,21 @@ def prove_I2() -> Proof:
         `~propositions.axiomatic_systems.N`.
     """
     # Optional Task 6.7a
+    lines = [None] * 5
+    lines[0] = Proof.Line(Formula.parse("~p"))
+    lines[1] = Proof.Line(Formula.parse("(~p->(~q->~p))"), I1, [])
+    lines[2] = Proof.Line(Formula.parse("(~q->~p)"), MP, [0,1])
+    lines[3] = Proof.Line(Formula.parse("((~q->~p)->(p->q))"), N, [])
+    lines[4] = Proof.Line(Formula.parse("(p->q)"), MP, [2,3])
+    p =Proof(InferenceRule([Formula.parse('(~p->(~q->~p))'), Formula.parse('((~q->~p)->(p->q))'), Formula.parse('~p')],
+                           Formula.parse('(p->q)')), {MP, I0, I1, N, D}, lines)
+    p = remove_assumption(p)
+    return Proof(InferenceRule([], p.statement.conclusion), {MP, I0, I1, N, D}, p.lines)
+
+
+
+
+
 
 #: Double-negation elimination
 _NNE = InferenceRule([], Formula.parse('(~~p->p)'))

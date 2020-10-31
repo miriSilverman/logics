@@ -100,4 +100,4 @@ def test_all(debug=False):
     test_ex6_opt(debug)
 
 if __name__ == '__main__':
-    test_ex5()
+    test_prove_I2()
