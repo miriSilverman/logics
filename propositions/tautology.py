@@ -381,8 +381,6 @@ def encode_as_formula_helper(rule, i):
 
 
 
-
-
 def prove_sound_inference(rule: InferenceRule) -> Proof:
     """Proves the given sound inference rule.
 
@@ -497,6 +495,126 @@ def prove_in_model_full(formula: Formula, model: Model) -> Proof:
     assert formula.operators().issubset({'T', 'F', '->', '~', '&', '|'})
     assert is_model(model)
     # Optional Task 6.6
+    vars = formulas_capturing_model(model)
+    evaluation = evaluate(formula, model)
+    if evaluation:
+        conclusion = formula
+    else:
+        conclusion = Formula('~', formula)
+    lines = []
+
+    prove_in_model_helper2(formula, model, lines)
+    return Proof(InferenceRule(vars, conclusion), AXIOMATIC_SYSTEM, lines)
+
+
+
+def prove_in_model_helper2(formula, model, lines):
+    """
+    adds the proof lines to the lines list
+    :param formula: the formula
+    :param model: the model
+    :param lines: array of the proof lines
+    """
+    p = formula.root
+    eval = evaluate(formula, model)
+    if is_variable(p):
+        if model[p]:
+            lines.append(Proof.Line(formula))
+        else:
+            lines.append(Proof.Line(Formula('~',formula)))
+    elif is_constant(p):
+        if p == 'T':
+            lines.append(Proof.Line(formula, T, []))
+        else:
+            lines.append(Proof.Line(Formula('~', formula), NF, []))
+    elif is_unary(p):
+        unary_case2(eval, formula, lines, model)
+    elif is_binary(p):
+        binary_case2(eval, formula, lines, model)
+
+
+def binary_case2(eval, formula, lines, model):
+    """
+    adds the necessary lines to the proofs in the binary case
+    :param eval: the evaluation of the formula
+    :param formula: the formula
+    :param lines: array of the proof lines
+    :param model: the model
+    """
+    phi = formula.first
+    psi = formula.second
+    binary_op = formula.root
+    if binary_op == '->':
+        if eval:
+            positive_case(lines, model, phi, psi)
+        else:
+            negative_case(lines, model, phi, psi)
+    elif binary_op == '&':
+        if eval:
+            positive_case2(lines, model, phi, psi)
+        else:
+            negative_case2(lines, model, phi, psi)
+
+
+def negative_case2(lines, model, phi, psi):
+    """
+    case that the evaluation of the formula is false
+    :param lines: array of the proof lines
+    :param model: the model
+    :param phi: formula.first
+    :param psi: formula.second
+    """
+    if not evaluate(phi, model):
+        prove_in_model_helper2(Formula('~', phi), model, lines)
+        formula = Formula('->', Formula('~', phi), Formula('~', Formula('&', phi, psi)))
+        lines.append(Proof.Line(formula, NA2, []))
+    elif not evaluate(psi, model):
+        prove_in_model_helper2(Formula('~', psi), model, lines)
+        formula = Formula('->', Formula('~', psi), Formula('~', Formula('&', phi, psi)))
+        lines.append(Proof.Line(formula, NA1, []))
+    lines.append(Proof.Line(formula.second, MP, [len(lines)-2, len(lines)-1]))
+
+
+
+def positive_case2(lines, model, phi, psi):
+    """
+    case that the evaluation of the formula is true
+    :param lines: array of the proof lines
+    :param model: the model
+    :param phi: formula.first
+    :param psi: formula.second
+    """
+    prove_in_model_helper2(phi, model, lines)
+    phi_line_num = len(lines) - 1
+    prove_in_model_helper2(psi, model, lines)
+    psi_line_num = len(lines) - 1
+    formula = Formula('->', phi, Formula('->', psi, Formula('&', phi, psi)))
+    lines.append(Proof.Line(formula, A, []))
+    lines.append(Proof.Line(formula.second, MP, [phi_line_num, len(lines)-1]))
+    lines.append(Proof.Line(formula.second.second, MP, [psi_line_num, len(lines)-1]))
+
+
+
+
+def unary_case2(eval, formula, lines, model):
+    """
+    adds the necessary lines to the proofs in the unary case
+    :param eval: the evaluation of the formula
+    :param formula: the formula
+    :param lines: array of the proof lines
+    :param model: the model
+    """
+    if not eval:
+        prove_in_model_helper2(formula.first, model, lines)
+        f = Formula.parse("(" + str(formula.first) + "->~~" + str(formula.first) + ")")
+        lines.append(Proof.Line(f, NN, []))
+        lines.append(Proof.Line(f.second, MP, [len(lines) - 2, len(lines) - 1]))
+
+    else:
+        prove_in_model_helper2(formula.first, model, lines)
+
+
+
 #
 # if __name__ == '__main__':
 #     m = {"kjd":55}
