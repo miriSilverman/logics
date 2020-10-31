@@ -503,12 +503,11 @@ def prove_in_model_full(formula: Formula, model: Model) -> Proof:
         conclusion = Formula('~', formula)
     lines = []
 
-    prove_in_model_helper2(formula, model, lines)
-    return Proof(InferenceRule(vars, conclusion), AXIOMATIC_SYSTEM, lines)
+    prove_in_model_full_helper(formula, model, lines)
+    return Proof(InferenceRule(vars, conclusion), AXIOMATIC_SYSTEM_FULL, lines)
 
 
-
-def prove_in_model_helper2(formula, model, lines):
+def prove_in_model_full_helper(formula, model, lines):
     """
     adds the proof lines to the lines list
     :param formula: the formula
@@ -528,12 +527,12 @@ def prove_in_model_helper2(formula, model, lines):
         else:
             lines.append(Proof.Line(Formula('~', formula), NF, []))
     elif is_unary(p):
-        unary_case2(eval, formula, lines, model)
+        unary_case_full(eval, formula, lines, model)
     elif is_binary(p):
-        binary_case2(eval, formula, lines, model)
+        binary_case_full(eval, formula, lines, model)
 
 
-def binary_case2(eval, formula, lines, model):
+def binary_case_full(eval, formula, lines, model):
     """
     adds the necessary lines to the proofs in the binary case
     :param eval: the evaluation of the formula
@@ -546,17 +545,56 @@ def binary_case2(eval, formula, lines, model):
     binary_op = formula.root
     if binary_op == '->':
         if eval:
-            positive_case(lines, model, phi, psi)
+            positive_case_implies(lines, model, phi, psi)
         else:
-            negative_case(lines, model, phi, psi)
+            negative_case_implies(lines, model, phi, psi)
     elif binary_op == '&':
         if eval:
-            positive_case2(lines, model, phi, psi)
+            positive_case_and(lines, model, phi, psi)
         else:
-            negative_case2(lines, model, phi, psi)
+            negative_case_and(lines, model, phi, psi)
+    elif binary_op == '|':
+        if eval:
+            positive_case_or(lines, model, phi, psi)
+        else:
+            negative_case_or(lines, model, phi, psi)
 
+def positive_case_or(lines, model, phi, psi):
+    """
+    case that the evaluation of the formula is true
+    :param lines: array of the proof lines
+    :param model: the model
+    :param phi: formula.first
+    :param psi: formula.second
+    """
+    if evaluate(phi, model):
+        prove_in_model_full_helper(phi, model, lines)
+        formula = Formula('->', phi, Formula('|', phi, psi))
+        lines.append(Proof.Line(formula, O2, []))
+    elif evaluate(psi, model):
+        prove_in_model_full_helper(psi, model, lines)
+        formula = Formula('->', psi, Formula('|', phi, psi))
+        lines.append(Proof.Line(formula, O1, []))
+    lines.append(Proof.Line(formula.second, MP, [len(lines)-2, len(lines)-1]))
 
-def negative_case2(lines, model, phi, psi):
+def negative_case_or(lines, model, phi, psi):
+    """
+    case that the evaluation of the formula is true
+    :param lines: array of the proof lines
+    :param model: the model
+    :param phi: formula.first
+    :param psi: formula.second
+    """
+    prove_in_model_full_helper(Formula('~', phi), model, lines)
+    phi_line_num = len(lines) - 1
+    prove_in_model_full_helper(Formula('~', psi), model, lines)
+    psi_line_num = len(lines) - 1
+    formula = Formula('->', Formula('~', phi), Formula('->', Formula('~', psi), Formula('~', Formula('|', phi, psi))))
+    lines.append(Proof.Line(formula, NO, []))
+    lines.append(Proof.Line(formula.second, MP, [phi_line_num, len(lines)-1]))
+    lines.append(Proof.Line(formula.second.second, MP, [psi_line_num, len(lines)-1]))
+
+def negative_case_and(lines, model, phi, psi):
     """
     case that the evaluation of the formula is false
     :param lines: array of the proof lines
@@ -565,18 +603,16 @@ def negative_case2(lines, model, phi, psi):
     :param psi: formula.second
     """
     if not evaluate(phi, model):
-        prove_in_model_helper2(Formula('~', phi), model, lines)
+        prove_in_model_full_helper(phi, model, lines)
         formula = Formula('->', Formula('~', phi), Formula('~', Formula('&', phi, psi)))
         lines.append(Proof.Line(formula, NA2, []))
     elif not evaluate(psi, model):
-        prove_in_model_helper2(Formula('~', psi), model, lines)
+        prove_in_model_full_helper(psi, model, lines)
         formula = Formula('->', Formula('~', psi), Formula('~', Formula('&', phi, psi)))
         lines.append(Proof.Line(formula, NA1, []))
     lines.append(Proof.Line(formula.second, MP, [len(lines)-2, len(lines)-1]))
 
-
-
-def positive_case2(lines, model, phi, psi):
+def positive_case_and(lines, model, phi, psi):
     """
     case that the evaluation of the formula is true
     :param lines: array of the proof lines
@@ -584,19 +620,16 @@ def positive_case2(lines, model, phi, psi):
     :param phi: formula.first
     :param psi: formula.second
     """
-    prove_in_model_helper2(phi, model, lines)
+    prove_in_model_full_helper(phi, model, lines)
     phi_line_num = len(lines) - 1
-    prove_in_model_helper2(psi, model, lines)
+    prove_in_model_full_helper(psi, model, lines)
     psi_line_num = len(lines) - 1
     formula = Formula('->', phi, Formula('->', psi, Formula('&', phi, psi)))
     lines.append(Proof.Line(formula, A, []))
     lines.append(Proof.Line(formula.second, MP, [phi_line_num, len(lines)-1]))
     lines.append(Proof.Line(formula.second.second, MP, [psi_line_num, len(lines)-1]))
 
-
-
-
-def unary_case2(eval, formula, lines, model):
+def unary_case_full(eval, formula, lines, model):
     """
     adds the necessary lines to the proofs in the unary case
     :param eval: the evaluation of the formula
@@ -605,18 +638,50 @@ def unary_case2(eval, formula, lines, model):
     :param model: the model
     """
     if not eval:
-        prove_in_model_helper2(formula.first, model, lines)
+        prove_in_model_full_helper(formula.first, model, lines)
         f = Formula.parse("(" + str(formula.first) + "->~~" + str(formula.first) + ")")
         lines.append(Proof.Line(f, NN, []))
         lines.append(Proof.Line(f.second, MP, [len(lines) - 2, len(lines) - 1]))
 
     else:
-        prove_in_model_helper2(formula.first, model, lines)
+        prove_in_model_full_helper(formula.first, model, lines)
 
 
+def negative_case_implies(lines, model, phi, psi):
+    """
+    case that the evaluation of the formula is false
+    :param lines: array of the proof lines
+    :param model: the model
+    :param phi: formula.first
+    :param psi: formula.second
+    """
+    prove_in_model_full_helper(phi, model, lines)
+    phi_line_num = len(lines) - 1
+    prove_in_model_full_helper(psi, model, lines)
+    minus_psi_line = len(lines) - 1
+    form = Formula.parse("(" + str(phi) + "->(~" + str(psi) + "->~(" + str(phi) + "->" + str(psi) + ")))")
+    lines.append(Proof.Line(form, NI, []))
+    ni_line = len(lines) - 1
+    lines.append(Proof.Line(form.second, MP, [phi_line_num, ni_line]))
+    lines.append(Proof.Line(form.second.second, MP, [minus_psi_line, len(lines) - 1]))
 
-#
-# if __name__ == '__main__':
-#     m = {"kjd":55}
-#     m.pop("kjd")
-#     print(m)
+
+def positive_case_implies(lines, model, phi, psi):
+    """
+    case that the evaluation of the formula is true
+    :param lines: array of the proof lines
+    :param model: the model
+    :param phi: formula.first
+    :param psi: formula.second
+    """
+    if not evaluate(phi, model):
+        prove_in_model_full_helper(phi, model, lines)
+        form = Formula.parse("(~" + str(phi) + "->(" + str(phi) + "->" + str(psi) + "))")
+        lines.append(Proof.Line(form, I2, []))
+    else:
+        prove_in_model_full_helper(psi, model, lines)
+        form = Formula.parse("(" + str(psi) + "->(" + str(phi) + "->" + str(psi) + "))")
+        lines.append(Proof.Line(form, I1, []))
+    lines.append(Proof.Line(form.second, MP, [len(lines) - 2, len(lines) - 1]))
+
+
