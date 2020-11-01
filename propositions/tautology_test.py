@@ -26,8 +26,6 @@ def test_formulas_capturing_model(debug=False):
         if debug:
             print("Testing formulas_capturing_model on", q)
         aa = [Formula.parse(f) for f in a]
-        # print(formulas_capturing_model(frozendict(q)))
-        # print(aa)
         assert formulas_capturing_model(frozendict(q)) == aa
 
 def test_prove_in_model(debug=False):
@@ -105,9 +103,9 @@ def test_prove_tautology(debug=False):
 
     for t in [ '((~q->~p)->(p->q))', '(~~p->p)', '(p->~~p)',
                '((~p->~q)->((p->~q)->~q))',
-               # '((p1->(p2->(p3->p4)))->(p3->(p2->(p1->p4))))',
+               '((p1->(p2->(p3->p4)))->(p3->(p2->(p1->p4))))',
                '((p2->(p3->p4))->(p3->(p2->p4)))',
-               # '(((((p->q)->(~r->~s))->r)->t)->((t->p)->(s->p)))',
+               '(((((p->q)->(~r->~s))->r)->t)->((t->p)->(s->p)))',
                '(((((r->q)->(~r->~q))->r)->t)->((t->r)->(q->r)))',
                '(~~~~x13->~~x13)']:
         t = Formula.parse(t)
@@ -271,4 +269,4 @@ def test_all(debug=False):
     test_ex6_opt(debug)
 
 if __name__ == '__main__':
-    test_reduce_assumption()
+    test_all()

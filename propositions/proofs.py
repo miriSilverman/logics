@@ -142,13 +142,28 @@ class InferenceRule:
             for variable in specialization_map2:
                 assert is_variable(variable)
         # Task 4.5a
+
+
         if specialization_map1 == None or specialization_map2 == None:
             return None
-        for key in specialization_map1.keys():
-            if key in specialization_map2.keys():
-                if specialization_map2[key] != specialization_map1[key]:
-                    return None
-        return {**specialization_map1, **specialization_map2}
+
+
+        map1 = dict(specialization_map1)
+        map2 = dict(specialization_map2)
+        map1.update(map2)
+        map2.update(specialization_map1)
+
+        if map1 ==  map2 :
+            return map1
+        else:
+            return None
+        # if specialization_map1 == None or specialization_map2 == None:
+        #     return None
+        # for key in specialization_map1.keys():
+        #     if key in specialization_map2.keys():
+        #         if specialization_map2[key] != specialization_map1[key]:
+        #             return None
+        # return {**specialization_map1, **specialization_map2}
 
 
     @staticmethod
