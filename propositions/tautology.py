@@ -38,9 +38,11 @@ def formulas_capturing_model(model: Model) -> List[Formula]:
     arr = [None]*len(model)
     for num, var in enumerate(sorted(model.keys())):
         if model[var]:
-            arr[num] = Formula.parse(var)
+            # arr[num] = Formula.parse(var)
+            arr[num] = Formula(var)
         else:
-            arr[num] = Formula.parse("~"+var)
+            # arr[num] = Formula.parse("~"+var)
+            arr[num] = Formula('~', Formula(var))
     return arr
 
 
@@ -148,7 +150,8 @@ def negative_case(lines, model, phi, psi):
     phi_line_num = len(lines) - 1
     prove_in_model_helper(psi, model, lines)
     minus_psi_line = len(lines) - 1
-    form = Formula.parse("(" + str(phi) + "->(~" + str(psi) + "->~(" + str(phi) + "->" + str(psi) + ")))")
+    form = Formula('->', phi, Formula('->', Formula('~', psi), Formula('~', Formula('->', phi, psi))))
+    # form = Formula.parse("(" + str(phi) + "->(~" + str(psi) + "->~(" + str(phi) + "->" + str(psi) + ")))")
     lines.append(Proof.Line(form, NI, []))
     ni_line = len(lines) - 1
     lines.append(Proof.Line(form.second, MP, [phi_line_num, ni_line]))
@@ -165,11 +168,13 @@ def positive_case(lines, model, phi, psi):
     """
     if not evaluate(phi, model):
         prove_in_model_helper(phi, model, lines)
-        form = Formula.parse("(~" + str(phi) + "->(" + str(phi) + "->" + str(psi) + "))")
+        form = Formula('->', Formula('~', phi), Formula('->', phi, psi))
+        # form = Formula.parse("(~" + str(phi) + "->(" + str(phi) + "->" + str(psi) + "))")
         lines.append(Proof.Line(form, I2, []))
     else:
         prove_in_model_helper(psi, model, lines)
-        form = Formula.parse("(" + str(psi) + "->(" + str(phi) + "->" + str(psi) + "))")
+        form = Formula('->', psi, Formula('->', phi,psi))
+        # form = Formula.parse("(" + str(psi) + "->(" + str(phi) + "->" + str(psi) + "))")
         lines.append(Proof.Line(form, I1, []))
     lines.append(Proof.Line(form.second, MP, [len(lines) - 2, len(lines) - 1]))
 
@@ -184,7 +189,8 @@ def unary_case(eval, formula, lines, model):
     """
     if not eval:
         prove_in_model_helper(formula.first, model, lines)
-        f = Formula.parse("(" + str(formula.first) + "->~~" + str(formula.first) + ")")
+        f = Formula('->', formula.first, Formula('~', Formula('~', formula.first)))
+        # f = Formula.parse("(" + str(formula.first) + "->~~" + str(formula.first) + ")")
         lines.append(Proof.Line(f, NN, []))
         lines.append(Proof.Line(f.second, MP, [len(lines) - 2, len(lines) - 1]))
 
@@ -639,7 +645,8 @@ def unary_case_full(eval, formula, lines, model):
     """
     if not eval:
         prove_in_model_full_helper(formula.first, model, lines)
-        f = Formula.parse("(" + str(formula.first) + "->~~" + str(formula.first) + ")")
+        f = Formula('->', formula.first, Formula('~', Formula('~', formula.first)))
+        # f = Formula.parse("(" + str(formula.first) + "->~~" + str(formula.first) + ")")
         lines.append(Proof.Line(f, NN, []))
         lines.append(Proof.Line(f.second, MP, [len(lines) - 2, len(lines) - 1]))
 
@@ -659,7 +666,8 @@ def negative_case_implies(lines, model, phi, psi):
     phi_line_num = len(lines) - 1
     prove_in_model_full_helper(psi, model, lines)
     minus_psi_line = len(lines) - 1
-    form = Formula.parse("(" + str(phi) + "->(~" + str(psi) + "->~(" + str(phi) + "->" + str(psi) + ")))")
+    form = Formula('->', phi, Formula('->', Formula('~', psi), Formula('~', Formula('->', phi, psi))))
+    # form = Formula.parse("(" + str(phi) + "->(~" + str(psi) + "->~(" + str(phi) + "->" + str(psi) + ")))")
     lines.append(Proof.Line(form, NI, []))
     ni_line = len(lines) - 1
     lines.append(Proof.Line(form.second, MP, [phi_line_num, ni_line]))
@@ -676,11 +684,13 @@ def positive_case_implies(lines, model, phi, psi):
     """
     if not evaluate(phi, model):
         prove_in_model_full_helper(phi, model, lines)
-        form = Formula.parse("(~" + str(phi) + "->(" + str(phi) + "->" + str(psi) + "))")
+        form = Formula('->', Formula('~', phi), Formula('->', phi, psi))
+        # form = Formula.parse("(~" + str(phi) + "->(" + str(phi) + "->" + str(psi) + "))")
         lines.append(Proof.Line(form, I2, []))
     else:
         prove_in_model_full_helper(psi, model, lines)
-        form = Formula.parse("(" + str(psi) + "->(" + str(phi) + "->" + str(psi) + "))")
+        form = Formula('->', psi, Formula('->', phi, psi))
+        # form = Formula.parse("(" + str(psi) + "->(" + str(phi) + "->" + str(psi) + "))")
         lines.append(Proof.Line(form, I1, []))
     lines.append(Proof.Line(form.second, MP, [len(lines) - 2, len(lines) - 1]))
 

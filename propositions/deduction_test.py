@@ -287,12 +287,6 @@ def test_all(debug=False):
     test_ex5(debug)
 
 
-def miri(x):
-    x=x+1
-    return "miri"
 
 if __name__ == '__main__':
-    # test_remove_assumption()
-    x = 5
-    miri(x)
-    print(x)
+    test_all()

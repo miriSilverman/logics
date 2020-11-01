@@ -105,10 +105,10 @@ def test_prove_tautology(debug=False):
 
     for t in [ '((~q->~p)->(p->q))', '(~~p->p)', '(p->~~p)',
                '((~p->~q)->((p->~q)->~q))',
-               #'((p1->(p2->(p3->p4)))->(p3->(p2->(p1->p4))))',  
+               # '((p1->(p2->(p3->p4)))->(p3->(p2->(p1->p4))))',
                '((p2->(p3->p4))->(p3->(p2->p4)))',
-               #'(((((p->q)->(~r->~s))->r)->t)->((t->p)->(s->p)))',   
-               #'(((((r->q)->(~r->~q))->r)->t)->((t->r)->(q->r)))',    
+               # '(((((p->q)->(~r->~s))->r)->t)->((t->p)->(s->p)))',
+               '(((((r->q)->(~r->~q))->r)->t)->((t->r)->(q->r)))',
                '(~~~~x13->~~x13)']:
         t = Formula.parse(t)
         if debug:
@@ -169,7 +169,7 @@ def test_prove_sound_inference(debug=False):
                  (['(p->q)'], '(~q->~p)'),
                  (['p', 'q'], '~(p->~q)'),
                  (['(p->q)', '(q->r)'], '(p->r)'),
-                 #(['p','(p->q)', '(q->r)', '~r'],'x'),
+                 (['p','(p->q)', '(q->r)', '~r'],'x'),
                  (['p', '~p'], 'q')]:
         r = InferenceRule((Formula.parse(f) for f in a), Formula.parse(c))
         if debug:
@@ -271,4 +271,4 @@ def test_all(debug=False):
     test_ex6_opt(debug)
 
 if __name__ == '__main__':
-    test_ex6_opt()
+    test_reduce_assumption()

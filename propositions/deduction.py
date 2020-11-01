@@ -84,8 +84,10 @@ def combine_proofs(antecedent1_proof: Proof, antecedent2_proof: Proof,
     # Task 5.3b
     rules = antecedent1_proof.rules.union(antecedent2_proof.rules).union({double_conditional})
 
-    formula1 = Formula.parse("(" + str(antecedent2_proof.statement.conclusion) + "->" + str(consequent) + ")")
-    formula = Formula.parse("(" + str(antecedent1_proof.statement.conclusion) + "->" + str(formula1) + ")")
+    formula1 = Formula('->', antecedent2_proof.statement.conclusion, consequent)
+    formula = Formula('->', antecedent1_proof.statement.conclusion, formula1)
+    # formula1 = Formula.parse("(" + str(antecedent2_proof.statement.conclusion) + "->" + str(consequent) + ")")
+    # formula = Formula.parse("(" + str(antecedent1_proof.statement.conclusion) + "->" + str(formula1) + ")")
 
     lines = list(antecedent1_proof.lines)       # lines of proof1
     lines.append(Proof.Line(formula, double_conditional, []))       # imply
@@ -139,16 +141,17 @@ def remove_assumption(proof: Proof) -> Proof:
     for num, line in enumerate(proof.lines):
         formula = line.formula
         if formula == psi:
-            lines.append(Proof.Line(Formula.parse("("+str(formula)+"->"+str(formula)+")"), I0, []))
+            f = Formula('->', formula, formula)
+            lines.append(Proof.Line(f, I0, []))
+            # lines.append(Proof.Line(Formula.parse("("+str(formula)+"->"+str(formula)+")"), I0, []))
         elif line.formula in proof.statement.assumptions or line.rule in rules_without_assumptions:
             add_lines_case_2(line, lines, psi)
         elif line.rule == MP:
             add_lines_case_3(line, lines, lines_map, num, proof, psi)
         lines_map[num] = len(lines) - 1
-
-    statement = InferenceRule(proof.statement.assumptions[:-1],
-                              Formula.parse("("+str(proof.statement.assumptions[-1])+"->"+
-                                            str(proof.statement.conclusion)+")"))
+    f = Formula('->', proof.statement.assumptions[-1], proof.statement.conclusion)
+    # f = Formula.parse("("+str(proof.statement.assumptions[-1])+"->"+ str(proof.statement.conclusion)+")")
+    statement = InferenceRule(proof.statement.assumptions[:-1], f)
     return Proof(statement, proof.rules.union({I0,I1, D, MP}), lines)
 
 
@@ -184,10 +187,12 @@ def add_lines_case_2(line, lines, psi):
     :param psi: the last assumption of the old proof
     """
     lines.append(line)
-    lines.append(Proof.Line(Formula.parse("(" + str(line.formula) + "->(" + str(psi) + "->" + str(line.formula) + "))"),
-                            I1, []))
-    lines.append(Proof.Line(Formula.parse("(" + str(psi) + "->" + str(line.formula) + ")"), MP,
-                            [len(lines) - 2, len(lines) - 1]))
+    f = Formula('->', line.formula, Formula('->', psi, line.formula))
+    # lines.append(Proof.Line(Formula.parse("(" + str(line.formula) + "->(" + str(psi) + "->" + str(line.formula) + "))"),
+    lines.append(Proof.Line(f, I1, []))
+    form = Formula('->', psi, line.formula)
+    # lines.append(Proof.Line(Formula.parse("(" + str(psi) + "->" + str(line.formula) + ")"), MP,
+    lines.append(Proof.Line(form, MP, [len(lines) - 2, len(lines) - 1]))
 
 
 def rules_with_no_assumptions(proof):
@@ -239,9 +244,11 @@ def prove_from_opposites(proof_of_affirmation: Proof,
         lines.append(new_line)
     affirm_line_num = len(lines) - 1
 
-    i_2_formula = Formula.parse("("+str(proof_of_negation.statement.conclusion) +
-                                          "->("+str(proof_of_affirmation.statement.conclusion)+
-                                          "->"+str(conclusion)+"))")
+    i_2_formula = Formula('->', proof_of_negation.statement.conclusion, Formula('->', proof_of_affirmation.statement.conclusion,
+                                                                      conclusion))
+    # i_2_formula = Formula.parse("("+str(proof_of_negation.statement.conclusion) +
+    #                                       "->("+str(proof_of_affirmation.statement.conclusion)+
+    #                                       "->"+str(conclusion)+"))")
 
     lines.append(Proof.Line(i_2_formula, I2, []))
     lines.append(Proof.Line(i_2_formula.second, MP, [negate_line_mum, len(lines) - 1]))
@@ -285,8 +292,9 @@ def prove_by_way_of_contradiction(proof: Proof) -> Proof:
     lines = [line for line in proof_as_deduction.lines]     # lines of deduction
     line_of_deduction_conclusion = len(lines)-1
 
-    formula = Formula.parse("("+str(proof_as_deduction.statement.conclusion) +"->("+
-                            str(p_implies_p_formula) +"->"+ str(psi_formula)+"))")
+    formula = Formula('->', proof_as_deduction.statement.conclusion, Formula('->', p_implies_p_formula, psi_formula))
+    # formula = Formula.parse("("+str(proof_as_deduction.statement.conclusion) +"->("+
+    #                         str(p_implies_p_formula) +"->"+ str(psi_formula)+"))")
 
     lines.append(Proof.Line(formula, N, []))
     line_of_n = len(lines)-1
