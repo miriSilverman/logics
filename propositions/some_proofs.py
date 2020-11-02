@@ -207,8 +207,6 @@ def prove_NN() -> Proof:
 
 
 
-
-
 #: Contraposition
 _CP = InferenceRule([], Formula.parse('((p->q)->(~q->~p))'))
 
@@ -227,6 +225,85 @@ def _prove_CP() -> Proof:
         `~propositions.axiomatic_systems.N`.
     """
     # Optional Task 6.7d
+    p = _prove_NNE()
+    # print(p)        # V
+    lines = [line for line in p.lines]
+    con1_line = len(lines)-1        # (~~p->p)
+    form1_line = lines[-1]
+    p = prove_specialization(prove_NN(), InferenceRule([], Formula.parse("(q->~~q)")))
+    # print(p)  # V
+    add_lines_of_proof(con1_line, lines, p)
+    con2_line = len(lines)-1        # (q->~~q)
+    form2_line = lines[-1]
+    lines.append(Proof.Line(Formula.parse('(p->q)')))
+    con3_line = len(lines)-1        # (p->q)
+
+    p = prove_specialization(prove_hypothetical_syllogism(), InferenceRule([Formula.parse("(~~p->p)"),
+                                                                            Formula.parse("(p->q)")],
+                                                                           Formula.parse("(~~p->q)")))
+    for line in p.lines:
+        new_line = Proof.Line(line.formula)
+        if line.rule != None:
+            new_line = Proof.Line(line.formula, line.rule, [i + con3_line + 1 for i in line.assumptions])
+        if line.formula == Formula.parse("(~~p->p)"):
+            new_line = form1_line
+        lines.append(new_line)
+    # print(p)
+    # print_lines(lines)
+
+    # add_lines_of_proof(con3_line, lines, p)
+    con4_line = len(lines)-1        # (~~p->q)
+    form4_line = lines[-1]
+
+    p = prove_specialization(prove_hypothetical_syllogism(), InferenceRule([Formula.parse("(~~p->q)"),
+                                                                            Formula.parse("(q->~~q)")],
+                                                                           Formula.parse("(~~p->~~q)")))
+    for line in p.lines:
+        new_line = Proof.Line(line.formula)
+        if line.rule != None:
+            new_line = Proof.Line(line.formula, line.rule, [i + con3_line + 1 for i in line.assumptions])
+        if line.formula == Formula.parse("(~~p->q)"):
+            new_line = form4_line
+        elif line.formula == Formula.parse("(q->~~q)"):
+            new_line = form2_line
+        lines.append(new_line)
+    # print(p)
+    print_lines(lines)
+    # add_lines_of_proof(con1_line, lines, p)
+    con5_line = len(lines)-1        # (~~p->~~q)
+
+    p = Proof(InferenceRule([Formula.parse('(p->q)')], Formula.parse('(~~p->~~q)')),
+              {MP, I0, I1, D, N}, lines)
+    print(p)
+    p = remove_assumption(p)
+    print(p)
+    lines = [line for line in p.lines]
+    con6_line = len(lines)-1  # ((p->q)->(~~p->~~q))
+    lines.append(Proof.Line(Formula.parse("((~~p->~~q)->(~q->~p))"), N, []))
+    con7_line = len(lines)-1  # ((~~p->~~q)->(~q->~p))
+    p = prove_specialization(prove_hypothetical_syllogism(), InferenceRule([Formula.parse("((p->q)->(~~p->~~q))"),
+                                           Formula.parse("((~~p->~~q)->(~q->~p))")],
+                                          Formula.parse("((p->q)->(~q->~p))")))
+    print(p)
+    add_lines_of_proof(con7_line, lines, p)
+
+    p = Proof(InferenceRule([], Formula.parse("((p->q)->(~q->~p))")), {MP, I0, I1, D, N}, lines)
+    print(p)
+    return p
+
+
+def print_lines(lines):
+    for i, line in enumerate(lines):
+        print(i, ") ", line)
+
+
+def add_lines_of_proof(con1_line, lines, p):
+    for line in p.lines:
+        new_line = Proof.Line(line.formula)
+        if line.rule != None:
+            new_line = Proof.Line(line.formula, line.rule, [i + con1_line + 1 for i in line.assumptions])
+        lines.append(new_line)
+
 
 def prove_NI() -> Proof:
     """Proves `~propositions.axiomatic_systems.NI` via
