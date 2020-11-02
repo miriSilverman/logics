@@ -51,13 +51,19 @@ def test_task9(debug=False):
     test_prove_NA2(debug)
     test_prove_NO(debug)
 
-pretest_validity(False)
-test_task1(True)
-test_task2(True)
-test_task3(True)
-test_task4(True)
-test_task5(True)
-#test_task6(True) # Optional
-#test_task7(True) # Optional
-#test_task8(True) # Optional
-#test_task9(True) # Optional
+if __name__ == '__main__':
+
+    pretest_validity(False)
+    test_task1()
+    test_task2()
+    test_task3()
+    test_task4()
+    test_task5()
+    test_task6() # Optional
+    #test_task7(True) # Optional
+    #test_task8(True) # Optional
+    #test_task9(True) # Optional
+    test_prove_I2()
+    test_prove_NNE()
+    test_prove_NN()
+    test_prove_CP()
