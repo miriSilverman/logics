@@ -335,6 +335,9 @@ def prove_NI() -> Proof:
     """
     # Optional Task 6.7e
 
+
+
+
 #: Consequentia mirabilis
 _CM = InferenceRule([Formula.parse('(~p->p)')], Formula.parse('p'))
 
