@@ -235,16 +235,19 @@ def _prove_CP() -> Proof:
     add_lines_of_proof(con1_line, lines, p)
     con2_line = len(lines)-1        # (q->~~q)
     form2_line = lines[-1]
-    lines.append(Proof.Line(Formula.parse('(p->q)')))
-    con3_line = len(lines)-1        # (p->q)
+    # lines.append(Proof.Line(Formula.parse('(p->q)')))
+    # con3_line = len(lines)-1        # (p->q)
 
     p = prove_specialization(prove_hypothetical_syllogism(), InferenceRule([Formula.parse("(~~p->p)"),
                                                                             Formula.parse("(p->q)")],
                                                                            Formula.parse("(~~p->q)")))
+    # print("############################")
+    # print(p)
+    # print("############################")
     for line in p.lines:
         new_line = Proof.Line(line.formula)
         if line.rule != None:
-            new_line = Proof.Line(line.formula, line.rule, [i + con3_line + 1 for i in line.assumptions])
+            new_line = Proof.Line(line.formula, line.rule, [i + con2_line + 1 for i in line.assumptions])
         if line.formula == Formula.parse("(~~p->p)"):
             new_line = form1_line
         lines.append(new_line)
@@ -261,39 +264,56 @@ def _prove_CP() -> Proof:
     for line in p.lines:
         new_line = Proof.Line(line.formula)
         if line.rule != None:
-            new_line = Proof.Line(line.formula, line.rule, [i + con3_line + 1 for i in line.assumptions])
+            new_line = Proof.Line(line.formula, line.rule, [i + con4_line + 1 for i in line.assumptions])
         if line.formula == Formula.parse("(~~p->q)"):
             new_line = form4_line
-        elif line.formula == Formula.parse("(q->~~q)"):
+        if line.formula == Formula.parse("(q->~~q)"):
             new_line = form2_line
         lines.append(new_line)
     # print(p)
-    print_lines(lines)
+    # print_lines(lines)
     # add_lines_of_proof(con1_line, lines, p)
     con5_line = len(lines)-1        # (~~p->~~q)
 
     p = Proof(InferenceRule([Formula.parse('(p->q)')], Formula.parse('(~~p->~~q)')),
               {MP, I0, I1, D, N}, lines)
-    print(p)
+    # print(p)
     p = remove_assumption(p)
-    print(p)
+    # print(p)
     lines = [line for line in p.lines]
     con6_line = len(lines)-1  # ((p->q)->(~~p->~~q))
+    form6_line = lines[-1]
     lines.append(Proof.Line(Formula.parse("((~~p->~~q)->(~q->~p))"), N, []))
     con7_line = len(lines)-1  # ((~~p->~~q)->(~q->~p))
+    form7_line = lines[-1]
     p = prove_specialization(prove_hypothetical_syllogism(), InferenceRule([Formula.parse("((p->q)->(~~p->~~q))"),
                                            Formula.parse("((~~p->~~q)->(~q->~p))")],
                                           Formula.parse("((p->q)->(~q->~p))")))
-    print(p)
-    add_lines_of_proof(con7_line, lines, p)
+    # print(p)
+    for line in p.lines:
+        new_line = Proof.Line(line.formula)
+        if line.rule != None:
+            new_line = Proof.Line(line.formula, line.rule, [i + con7_line + 1 for i in line.assumptions])
+        if line.formula == Formula.parse("(~~p->q)"):
+            new_line = form4_line
+        if line.formula == Formula.parse("(q->~~q)"):
+            new_line = form2_line
+        if line.formula == Formula.parse("((p->q)->(~~p->~~q))"):
+            new_line = form6_line
+        if line.formula == Formula.parse("((~~p->~~q)->(~q->~p))"):
+            new_line = form7_line
+        lines.append(new_line)
+    # add_lines_of_proof(con7_line, lines, p)
 
     p = Proof(InferenceRule([], Formula.parse("((p->q)->(~q->~p))")), {MP, I0, I1, D, N}, lines)
-    print(p)
+    # print(p)
     return p
 
 
 def print_lines(lines):
     for i, line in enumerate(lines):
+        if i in {22, 46}:
+            print()
         print(i, ") ", line)
 
 
