@@ -185,6 +185,29 @@ def prove_NN() -> Proof:
         `~propositions.axiomatic_systems.N`.
     """
     # Optional Task 6.7c
+    lines = []
+    lines.append(Proof.Line(Formula.parse("~~~p")))
+    lines.append(Proof.Line(Formula.parse("(~~~p->(~~~~~p->~~~p))"), I1, []))
+    lines.append(Proof.Line(Formula.parse("(~~~~~p->~~~p)"), MP, [0, 1]))
+    lines.append(Proof.Line(Formula.parse("((~~~~~p->~~~p)->(~~p->~~~~p))"), N, []))
+    lines.append(Proof.Line(Formula.parse("(~~p->~~~~p)"), MP, [2, 3]))
+    lines.append(Proof.Line(Formula.parse("((~~p->~~~~p)->(~~~p->~p))"), N, []))
+    lines.append(Proof.Line(Formula.parse("(~~~p->~p)"), MP, [4, 5]))
+    lines.append(Proof.Line(Formula.parse("~p"), MP, [0, 6]))
+
+    p = Proof(InferenceRule([Formula.parse('~~~p')], Formula.parse('~p')),
+              {MP, I0, I1, D, N}, lines)
+    p = remove_assumption(p)
+    lines = [line for line in p.lines]
+
+    lines.append(Proof.Line(Formula.parse("((~~~p->~p)->(p->~~p))"), N, []))
+    lines.append(Proof.Line(Formula.parse("(p->~~p)"), MP, [len(lines)-2, len(lines)-1]))
+    return Proof(InferenceRule([], Formula.parse('(p->~~p)')), {MP, I0, I1, D, N}, lines)
+
+
+
+
+
 
 #: Contraposition
 _CP = InferenceRule([], Formula.parse('((p->q)->(~q->~p))'))
