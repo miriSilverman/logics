@@ -155,6 +155,20 @@ def _prove_NNE() -> Proof:
         `~propositions.axiomatic_systems.N`.
     """
     # Optional Task 6.7b
+    lines = [None] * 8
+    lines[0] = Proof.Line(Formula.parse("~~p"))
+    lines[1] = Proof.Line(Formula.parse("(~~p->(~~~~p->~~p))"), I1, [])
+    lines[2] = Proof.Line(Formula.parse("(~~~~p->~~p)"), MP, [0, 1])
+    lines[3] = Proof.Line(Formula.parse("((~~~~p->~~p)->(~p->~~~p))"), N, [])
+    lines[4] = Proof.Line(Formula.parse("(~p->~~~p)"), MP, [2, 3])
+    lines[5] = Proof.Line(Formula.parse("((~p->~~~p)->(~~p->p))"), N, [])
+    lines[6] = Proof.Line(Formula.parse("(~~p->p)"), MP, [4, 5])
+    lines[7] = Proof.Line(Formula.parse("p"), MP, [0, 6])
+
+    p = Proof(InferenceRule([Formula.parse('~~p')], Formula.parse('p')),
+              {MP, I0, I1, D, N}, lines)
+    return remove_assumption(p)
+
 
 def prove_NN() -> Proof:
     """Proves `~propositions.axiomatic_systems.NN` via
