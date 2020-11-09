@@ -7,6 +7,7 @@
 """Syntactic handling of predicate-logic expressions."""
 
 from __future__ import annotations
+import re
 
 from functools import lru_cache
 from typing import AbstractSet, Mapping, Optional, Sequence, Set, Tuple, Union
@@ -173,6 +174,57 @@ class Term:
             that entire name (and not just a part of it, such as ``'x1'``).
         """
         # Task 7.3.1
+        print("string:  ", string)
+        if is_variable(string[0]):
+            var = re.compile("(.[0-9]*)(.*)")
+            m = var.match(string)
+            return Term(m.group(1)), m.group(2)
+        elif is_constant(string[0]):
+            if string[0] == '_':
+                return Term('_'), string[1:]
+            var = re.compile("([\d\w]*)(.*)")
+            m = var.match(string)
+            return Term(m.group(1)), m.group(2)
+
+
+        if is_function(string[0]):
+            args = []
+            # func = re.compile("(.*)\(")
+            func = re.compile("(.*)\((.*)\)(.*)")
+            m = func.match(string)
+            print("end ", m.end(1))
+            if m:
+                func_name = m.group(1)
+                func_body = m.group(2)
+                start_body_idx = m.start(2)
+                rest = m.group(3)
+
+                print("func_name ", func_name)
+                print("func_body ", func_body)
+                print("rest ", rest)
+
+                if (not is_function(func_name)):
+                    return Term(""), string
+
+                term, rest = Term._parse_prefix(string[start_body_idx:])
+                args.append(term)
+
+                if rest[0] == ',':
+                    term, rest = Term._parse_prefix(rest[1:])
+                    args.append(term)
+
+                if rest[0] == ')':
+                    rest = rest[1:] if len(rest) > 1 else ''
+                    return Term(func_name, tuple(args)), rest
+
+
+
+
+
+
+
+
+
 
     @staticmethod
     def parse(string: str) -> Term:
@@ -379,7 +431,7 @@ class Formula:
             assert isinstance(arguments_or_first_or_variable, Formula) and \
                    second_or_predicate is not None
             self.root, self.first, self.second = \
-                root, arguments_or_first_or_variable, second_or_predicate           
+                root, arguments_or_first_or_variable, second_or_predicate
         else:
             assert is_quantifier(root)
             # Populate self.variable and self.predicate
@@ -438,7 +490,7 @@ class Formula:
             current formula, ``False`` otherwise.
         """
         return isinstance(other, Formula) and str(self) == str(other)
-        
+
     def __ne__(self, other: object) -> bool:
         """Compares the current formula with the given one.
 

@@ -24,7 +24,9 @@ def test_term_parse_prefix(debug=False):
         term, remainder = Term._parse_prefix(s)
         if debug:
             print('... and got', term, 'with unparsed remainder', remainder)
-        assert str(term)+remainder == s 
+        print("term:  ", str(term), "    reminder:  ", remainder)
+        print("___")
+        assert str(term)+remainder == s
 
     s = 'x12'
     if debug:
@@ -395,3 +397,4 @@ def test_all(debug=False):
 if __name__ == '__main__':
     test_term_repr()
     test_formula_repr()
+    test_term_parse_prefix()
