@@ -116,6 +116,16 @@ class Term:
             The standard string representation of the current term.
         """
         # Task 7.1
+        if is_variable(self.root) or is_constant(self.root):
+            return self.root
+        elif is_function(self.root):
+            s = self.root+"("
+            for num, arg in enumerate(self.arguments):
+                s += str(arg)
+                if num < len(self.arguments) - 1:
+                    s += ","
+            s += ")"
+            return s
 
     def __eq__(self, other: object) -> bool:
         """Compares the current term with the given one.
@@ -128,7 +138,7 @@ class Term:
             current term, ``False`` otherwise.
         """
         return isinstance(other, Term) and str(self) == str(other)
-        
+
     def __ne__(self, other: object) -> bool:
         """Compares the current term with the given one.
 

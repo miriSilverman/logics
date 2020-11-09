@@ -390,3 +390,7 @@ def test_ex9(debug=False):
 def test_all(debug=False):
     test_ex7(debug)
     test_ex9(debug)
+
+
+if __name__ == '__main__':
+    test_term_repr()
