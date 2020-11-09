@@ -31,11 +31,13 @@ def prove_and_commutativity() -> Proof:
     """
     # Task 4.7
     lines = [None]*4
-    lines[0] = Proof.Line(Formula.parse('(p&q)'))
-    lines[1] = Proof.Line(Formula.parse('q'), AE1_RULE, [0])
-    lines[2] = Proof.Line(Formula.parse('p'), AE2_RULE, [0])
-    lines[3] = Proof.Line(Formula.parse('(q&p)'), A_RULE , [1, 2])
-    return Proof(InferenceRule([Formula.parse('(p&q)')], Formula.parse('(q&p)')), {A_RULE, AE1_RULE, AE2_RULE}, lines)
+    p = Formula('p')
+    q = Formula('q')
+    lines[0] = Proof.Line(Formula('&', p, q))
+    lines[1] = Proof.Line(q, AE1_RULE, [0])
+    lines[2] = Proof.Line(p, AE2_RULE, [0])
+    lines[3] = Proof.Line(Formula('&', q, p), A_RULE , [1, 2])
+    return Proof(InferenceRule([lines[0].formula], lines[3].formula), {A_RULE, AE1_RULE, AE2_RULE}, lines)
 
 def offending_line(proof):
     """Finds the first invalid line in the given proof.
@@ -65,16 +67,17 @@ def prove_I0() -> Proof:
     """
     # Task 4.8
     lines = [None] * 5
-    goal = "(p->p)"
-    psi = "(p->("+goal+"->p))"
-    phi = "(p->"+goal+")"
+    goal = Formula('->', Formula('p'), Formula('p'))
+    psi =Formula('->', Formula('p'), Formula('->', goal, Formula('p')))
+    phi = Formula('->', Formula('p'), goal)
 
-    lines[0] = Proof.Line(Formula.parse(psi), I1, [])
-    lines[1] = Proof.Line(Formula.parse("("+psi+"->("+phi+"->"+goal+"))"), D, [])
-    lines[2] = Proof.Line(Formula.parse("("+phi+"->"+goal+")"), MP, [0,1])
-    lines[3] = Proof.Line(Formula.parse(phi), I1, [])
-    lines[4] = Proof.Line(Formula.parse(goal), MP, [3, 2])
-    return Proof(InferenceRule([], Formula.parse(goal)), {MP, I1, D}, lines)
+    lines[0] = Proof.Line(psi, I1, [])
+    lines[1] = Proof.Line(Formula('->', psi, Formula('->', phi, goal)), D, [])
+    lines[2] = Proof.Line(Formula('->', phi, goal), MP, [0,1])
+    lines[3] = Proof.Line(phi, I1, [])
+    lines[4] = Proof.Line(goal, MP, [3, 2])
+
+    return Proof(InferenceRule([], goal), {MP, I1, D}, lines)
 
 
 #: Hypothetical syllogism
@@ -95,13 +98,16 @@ def prove_hypothetical_syllogism() -> Proof:
     """
     # Task 5.5
     lines = [None]*5
-    lines[0] = Proof.Line(Formula.parse("p"))
-    lines[1] = Proof.Line(Formula.parse("(p->q)"))
-    lines[2] = Proof.Line(Formula.parse("q"), MP, [0,1])
-    lines[3] = Proof.Line(Formula.parse("(q->r)"))
-    lines[4] = Proof.Line(Formula.parse("r"), MP, [2,3])
+    p = Formula('p')
+    q = Formula('q')
+    r = Formula('r')
+    lines[0] = Proof.Line(p)
+    lines[1] = Proof.Line(Formula('->', p, q))
+    lines[2] = Proof.Line(q, MP, [0,1])
+    lines[3] = Proof.Line(Formula('->', q, r))
+    lines[4] = Proof.Line(r, MP, [2,3])
 
-    p =Proof(InferenceRule([Formula.parse('(p->q)'), Formula.parse('(q->r)'), Formula.parse('p')], Formula.parse('r')),
+    p = Proof(InferenceRule([lines[1].formula, lines[3].formula, p], r),
              {MP, I0, I1, D}, lines)
     return remove_assumption(p)
 
@@ -131,10 +137,6 @@ def prove_I2() -> Proof:
                            Formula.parse('(p->q)')), {MP, I0, I1, N, D}, lines)
     p = remove_assumption(p)
     return Proof(InferenceRule([], p.statement.conclusion), {MP, I0, I1, N, D}, p.lines)
-
-
-
-
 
 
 #: Double-negation elimination

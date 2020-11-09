@@ -28,10 +28,6 @@ def to_not_and_or(formula: Formula) -> Formula:
                'T': Formula.parse("(p|~p)")}
     return formula.substitute_operators(sub_map)
 
-if __name__ == '__main__':
-    f = Formula.parse("(q<->(x1<->x2))")
-    f = to_not_and_or(f)
-    print(f)
 def to_not_and(formula: Formula) -> Formula:
     """Syntactically converts the given formula to an equivalent formula that
     contains no constants or operators beyond ``'~'`` and ``'&'``.
