@@ -394,3 +394,4 @@ def test_all(debug=False):
 
 if __name__ == '__main__':
     test_term_repr()
+    test_formula_repr()

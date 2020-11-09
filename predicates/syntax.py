@@ -119,13 +119,17 @@ class Term:
         if is_variable(self.root) or is_constant(self.root):
             return self.root
         elif is_function(self.root):
-            s = self.root+"("
-            for num, arg in enumerate(self.arguments):
-                s += str(arg)
-                if num < len(self.arguments) - 1:
-                    s += ","
-            s += ")"
-            return s
+            return self.repr_parameters()
+
+
+    def repr_parameters(self):
+        s = self.root + "("
+        for num, arg in enumerate(self.arguments):
+            s += str(arg)
+            if num < len(self.arguments) - 1:
+                s += ","
+        s += ")"
+        return s
 
     def __eq__(self, other: object) -> bool:
         """Compares the current term with the given one.
@@ -393,6 +397,27 @@ class Formula:
             The standard string representation of the current formula.
         """
         # Task 7.2
+        if is_unary(self.root):
+            return '~' + str(self.first)
+        elif is_binary(self.root):
+            return "("+str(self.first)+self.root+str(self.second)+")"
+        elif is_relation(self.root):
+            return self.repr_parameters()
+        elif is_quantifier(self.root):
+            return self.root + self.variable + '[' + str(self.predicate) + ']'
+        elif is_equality(self.root):
+            return str(self.arguments[0]) + '=' + str(self.arguments[1])
+
+    def repr_parameters(self):
+        s = self.root + "("
+        for num, arg in enumerate(self.arguments):
+            s += str(arg)
+            if num < len(self.arguments) - 1:
+                s += ","
+        s += ")"
+        return s
+
+
 
 
 
