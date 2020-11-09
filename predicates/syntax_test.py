@@ -24,8 +24,6 @@ def test_term_parse_prefix(debug=False):
         term, remainder = Term._parse_prefix(s)
         if debug:
             print('... and got', term, 'with unparsed remainder', remainder)
-        print("term:  ", str(term), "    reminder:  ", remainder)
-        print("___")
         assert str(term)+remainder == s
 
     s = 'x12'

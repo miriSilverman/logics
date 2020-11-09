@@ -174,7 +174,6 @@ class Term:
             that entire name (and not just a part of it, such as ``'x1'``).
         """
         # Task 7.3.1
-        print("string:  ", string)
         if is_variable(string[0]):
             var = re.compile("(.[0-9]*)(.*)")
             m = var.match(string)
@@ -189,25 +188,22 @@ class Term:
 
         if is_function(string[0]):
             args = []
-            # func = re.compile("(.*)\(")
-            func = re.compile("(.*)\((.*)\)(.*)")
+            func = re.compile("([^(]*)\(([^)].*)\).*")
             m = func.match(string)
-            print("end ", m.end(1))
             if m:
                 func_name = m.group(1)
-                func_body = m.group(2)
                 start_body_idx = m.start(2)
-                rest = m.group(3)
-
-                print("func_name ", func_name)
-                print("func_body ", func_body)
-                print("rest ", rest)
 
                 if (not is_function(func_name)):
-                    return Term(""), string
+                    return None, string
 
                 term, rest = Term._parse_prefix(string[start_body_idx:])
                 args.append(term)
+
+
+                if len(rest) == 0 or (rest[0] not in {',', ')'}):
+                    return None, string
+
 
                 if rest[0] == ',':
                     term, rest = Term._parse_prefix(rest[1:])
@@ -216,10 +212,21 @@ class Term:
                 if rest[0] == ')':
                     rest = rest[1:] if len(rest) > 1 else ''
                     return Term(func_name, tuple(args)), rest
+                else:
+                    return None, string
+            else:
+                return None, string
 
 
-
-
+if __name__ == '__main__':
+    # formula = "func(x"
+    # formula = "func(fun))"
+    # formula = "fu(f())"
+    formula = "fu(c, f(x)"
+    print("formula is: ", formula)
+    term, rest = Term._parse_prefix(formula)
+    print("term ",term)
+    print("rest", rest)
 
 
 
