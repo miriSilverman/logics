@@ -178,6 +178,7 @@ class Term:
             var = re.compile("(.[0-9]*)(.*)")
             m = var.match(string)
             return Term(m.group(1)), m.group(2)
+
         elif is_constant(string[0]):
             if string[0] == '_':
                 return Term('_'), string[1:]
@@ -186,9 +187,9 @@ class Term:
             return Term(m.group(1)), m.group(2)
 
 
-        if is_function(string[0]):
+        elif is_function(string[0]):
             args = []
-            func = re.compile("([^(]*)\(([^)].*)\).*")
+            func = re.compile("([^(]*)\(([^)^,^(].*)\).*")
             m = func.match(string)
             if m:
                 func_name = m.group(1)
@@ -207,27 +208,21 @@ class Term:
 
                 if rest[0] == ',':
                     term, rest = Term._parse_prefix(rest[1:])
+                    if term == None:
+                        return None, string
                     args.append(term)
 
                 if rest[0] == ')':
                     rest = rest[1:] if len(rest) > 1 else ''
                     return Term(func_name, tuple(args)), rest
                 else:
+                    print("here")
                     return None, string
             else:
                 return None, string
 
-
-if __name__ == '__main__':
-    # formula = "func(x"
-    # formula = "func(fun))"
-    # formula = "fu(f())"
-    formula = "fu(c, f(x)"
-    print("formula is: ", formula)
-    term, rest = Term._parse_prefix(formula)
-    print("term ",term)
-    print("rest", rest)
-
+        else:
+            return None, string
 
 
 

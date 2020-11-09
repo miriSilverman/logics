@@ -369,6 +369,7 @@ def test_ex7(debug=False):
     test_term_repr(debug) 
     test_formula_repr(debug)
     test_term_parse_prefix(debug)
+    extraTestsForTermPrefix() # todo: my own --> delete
     test_term_parse(debug)
     test_formula_parse_prefix(debug)
     test_formula_parse(debug)
@@ -391,8 +392,26 @@ def test_all(debug=False):
     test_ex7(debug)
     test_ex9(debug)
 
+def extraTestsForTermPrefix():
+    formula = [None]*7
+    formula[0] = "func(x"
+    formula[1] = "func(fun))"
+    formula[2] = "fu(f())"
+    formula[3] = "fu(c, f(x)"
+    formula[4] = " f(x)"
+    formula[5] = "f(g(s,))"
+    formula[6] = "f(g(x,f(a(x)))),y"
+    for f in formula:
+        # print("formula is: ", f)
+        term, rest = Term._parse_prefix(f)
+        assert term == None and rest==f
+
+        # print("term ",term)
+        # print("rest", rest)
+        # print("________________")
 
 if __name__ == '__main__':
     test_term_repr()
     test_formula_repr()
     test_term_parse_prefix()
+    extraTestsForTermPrefix()
