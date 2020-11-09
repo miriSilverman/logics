@@ -269,4 +269,4 @@ def test_all(debug=False):
     test_ex6_opt(debug)
 
 if __name__ == '__main__':
-    test_all()
+    test_prove_sound_inference()

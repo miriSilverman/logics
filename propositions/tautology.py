@@ -338,7 +338,7 @@ def proof_or_counterexample(formula: Formula) -> Union[Proof, Model]:
     """
     assert formula.operators().issubset({'->', '~'})
     # Task 6.3b
-    vars = list(formula.variables())        #todo: takes too long to run!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    vars = list(formula.variables())
     models = all_models(vars)
     for model in models:
         if not evaluate(formula, model):
@@ -411,7 +411,7 @@ def mp_lines(formula, rule, lines):
             constants or operators beyond ``'->'`` and ``'~'``, to prove.
     :param lines: the list of all the proofs lines
     """
-    if formula != rule.conclusion:      # todo: takes a long time to run
+    if formula != rule.conclusion:
         lines.append(Proof.Line(formula.first))
         lines.append(Proof.Line(formula.second, MP, [len(lines) - 1, len(lines) - 2]))
         mp_lines(formula.second, rule, lines)
@@ -430,7 +430,7 @@ def model_or_inconsistency(formulas: Sequence[Formula]) -> Union[Model, Proof]:
         otherwise a valid proof of ``'~(p->p)'`` from the given formulas via
         `~propositions.axiomatic_systems.AXIOMATIC_SYSTEM`.
     """
-    for formula in formulas: # todo: takes a long time to run
+    for formula in formulas:
         assert formula.operators().issubset({'->', '~'})
     # Task 6.5
     vars = set()
