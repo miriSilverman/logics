@@ -47,7 +47,7 @@ def test_task10(debug=False):
     test_nonsound_rule_of_nonsound_proof(debug)
 if __name__ == '__main__':
 
-    test_task1()
+    test_task1(True)
     test_task2()
     test_task3()
     test_task4()
