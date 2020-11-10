@@ -532,14 +532,22 @@ class Formula:
             first_formula, rest = Formula._parse_prefix(string[1:])
 
             # cases of missing operator or a one of the args
-            if first_formula == None or len(rest) < 3 or not is_binary(rest[0]):
+            if first_formula == None or len(rest) < 3:
                 return None, string
 
-            operator = rest[0]
-            second_formula, rest = Formula._parse_prefix(rest[1:])
+            if not is_binary(rest[0]):
+                operator = rest[0:2]
+                second_formula_idx = 2
+                if not is_binary(operator):
+                    return None, string
+            else:
+                operator = rest[0]
+                second_formula_idx = 1
+
+            second_formula, rest = Formula._parse_prefix(rest[second_formula_idx:])
 
             # case of missing second arg or missing closing parenthesis
-            if second_formula == None or rest[0] != ')':
+            if second_formula == None or len(rest) < 1 or rest[0] != ')':
                 return None, string
 
             return Formula(operator, first_formula, second_formula), rest[1:]
@@ -617,8 +625,9 @@ class Formula:
             return None, string
 
 if __name__ == '__main__':
-    bad_formulas = ["x= x3", "x =x", "~x = x", "~x==x"]
-    good_formulas = ["x=x*", '~x=x']
+    bad_formulas = ["x= x3", "x =x", "~x = x", "~x==x", "(x=x&x=x", "((x=x&x=x", "(x=x&x=)x",
+                    "(x=&x=x)"]
+    good_formulas = ["x=x&x=x","x=x&x=x)", "x=x*", '~x=x', "(x=x&x=x)", "(x=x->x=x)"]
 
     # d =Formula('=', [Term('x'), Term('x')])
     # print("d: ", d)
