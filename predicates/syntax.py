@@ -239,6 +239,7 @@ class Term:
             A term whose standard string representation is the given string.
         """
         # Task 7.3.2
+        return Term._parse_prefix(string)[0]
 
     @memoized_parameterless_method
     def constants(self) -> Set[str]:
@@ -472,15 +473,6 @@ class Formula:
         return s
 
 
-
-
-
-
-
-
-
-
-
     def __eq__(self, other: object) -> bool:
         """Compares the current formula with the given one.
 
@@ -524,6 +516,50 @@ class Formula:
             name (and not just a part of it, such as ``'x1'``).
         """
         # Task 7.4.1
+        first_char = string[0]
+
+        if is_unary(first_char):
+            if len(string) < 2:
+                return None, string
+
+            formula, rest = Formula._parse_prefix(string[1:])
+            return Formula('~', formula), rest
+
+        elif first_char == '(':     # binary case
+            first_formula, rest = Formula._parse_prefix(string[1:])
+
+            # cases of missing operator or a one of the args
+            if first_formula == None or len(rest) < 3 or not is_binary(rest[0]):
+                return None, string
+
+            operator = rest[0]
+            second_formula, rest = Formula._parse_prefix(rest[1:])
+
+            # case of missing second arg or missing closing parenthesis
+            if second_formula == None or rest[0] != ')':
+                return None, string
+
+            return Formula(operator, first_formula, second_formula), rest[1:]
+
+
+        elif first_char <='T' and first_char >= 'F':     # relation case
+            
+
+
+        elif is_quantifier(first_char):
+
+        elif is_equality(first_char):
+
+
+
+
+    # @staticmethod
+    # def binary_case(string):
+    #     par_counter = 0
+    #     i = 0
+    #     while i < len(string):
+    #
+
 
     @staticmethod
     def parse(string: str) -> Formula:

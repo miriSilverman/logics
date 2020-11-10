@@ -409,3 +409,4 @@ if __name__ == '__main__':
     test_formula_repr()
     test_term_parse_prefix()
     extraTestsForTermPrefix()
+    test_term_parse()
