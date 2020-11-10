@@ -524,6 +524,8 @@ class Formula:
                 return None, string
 
             formula, rest = Formula._parse_prefix(string[1:])
+            if formula == None:
+                return None, string
             return Formula('~', formula), rest
 
         elif first_char == '(':     # binary case
@@ -597,19 +599,44 @@ class Formula:
         elif is_variable(first_char) or is_constant(first_char) or is_function(first_char):   # equality case
 
             first_term, rest = Term._parse_prefix(string)
-
+            # print("first_term: ", first_term)
             if first_term == None or len(rest) < 2 or rest[0] != '=':
                 return None, string
 
             second_term, rest = Term._parse_prefix(rest[1:])
             if second_term == None:
                 return None, string
+            # print("second_term: ", second_term)
 
-            return Formula('=', (first_term, second_term)), rest
+            f = Formula('=', (first_term, second_term)), rest
+            # print("f ", f)
+            return f
 
 
         else:
             return None, string
+
+if __name__ == '__main__':
+    bad_formulas = ["x= x3", "x =x", "~x = x", "~x==x"]
+    good_formulas = ["x=x*", '~x=x']
+
+    # d =Formula('=', [Term('x'), Term('x')])
+    # print("d: ", d)
+    print("              bad:")
+    for f in bad_formulas:
+        print("f is: ", f)
+        formula, rest = Formula._parse_prefix(f)
+        print("formula: ", formula)
+        print("rest: ", rest)
+        print("_______")
+
+    print("***********************\n              good:")
+    for f in good_formulas:
+        print("f is: ", f)
+        formula, rest = Formula._parse_prefix(f)
+        print("formula: ", formula)
+        print("rest: ", rest)
+        print("_______")
 
 
     @staticmethod
