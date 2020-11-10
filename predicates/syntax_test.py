@@ -399,7 +399,8 @@ def extraTestsForTermPrefix():
         # print("formula is: ", f)
         term, rest = Term._parse_prefix(f)
         assert term == None and rest==f
-
+    f = "func(f(x),g(x,x),f(x,x,x))"
+    assert str(Term._parse_prefix(f)[0]) == f
         # print("term ",term)
         # print("rest", rest)
         # print("________________")

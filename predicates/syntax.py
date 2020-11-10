@@ -207,7 +207,7 @@ class Term:
                     return None, string
 
 
-                if rest[0] == ',':
+                while rest[0] == ',':
                     term, rest = Term._parse_prefix(rest[1:])
                     if term == None:        # case of no arg after comma
                         return None, string
@@ -565,11 +565,11 @@ class Formula:
                 args = []
                 arg, rest = Term._parse_prefix(string[relation_body_start_idx:])
 
-                if arg == None or rest[0] not in {',', ')'}:
+                if arg == None or len(rest) < 1 or rest[0] not in {',', ')'}:
                     return None, string
                 args.append(arg)
 
-                if rest[0] == ',':
+                while rest[0] == ',':
                     if len(rest) < 3:   # no arg after comma or missing closing parenthesis
                         return None, string
                     arg, rest = Term._parse_prefix(rest[1:])
@@ -626,15 +626,16 @@ class Formula:
 
 if __name__ == '__main__':
     bad_formulas = ["x= x3", "x =x", "~x = x", "~x==x", "(x=x&x=x", "((x=x&x=x", "(x=x&x=)x",
-                    "(x=&x=x)"]
-    good_formulas = ["x=x&x=x","x=x&x=x)", "x=x*", '~x=x', "(x=x&x=x)", "(x=x->x=x)"]
+                    "(x=->x=x)", "(x=x-x=x)", "F(x=x)", "F(x", "F)", "F", "F()", "F(x&x)",
+                    "F)", ""]
+    good_formulas = ["x=x&x=x","x=x&x=x)", "x=x*", '~x=x', "(x=x&x=x)", "(x=x->x=x)",
+                     "F(x)", "F(x,func(x),x)"]
 
-    # d =Formula('=', [Term('x'), Term('x')])
-    # print("d: ", d)
     print("              bad:")
     for f in bad_formulas:
         print("f is: ", f)
         formula, rest = Formula._parse_prefix(f)
+        assert formula == None and rest == f
         print("formula: ", formula)
         print("rest: ", rest)
         print("_______")
