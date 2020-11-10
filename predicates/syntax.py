@@ -591,13 +591,11 @@ class Formula:
             m = quantifier.match(string[1:])
             if m:
                 var_name = m.group(1)
-                print(var_name)
-                if not is_variable(var_name[1:]):   # var name is not in the right format
-                    print("lk")
+                if not is_variable(var_name):   # var name is not in the right format
                     return None, string
-                quantifier_body_start_idx = m.start(2)
-                formula, rest = Formula._parse_prefix(string[quantifier_body_start_idx:])
 
+                quantifier_body_start_idx = m.start(2) + 1
+                formula, rest = Formula._parse_prefix(string[quantifier_body_start_idx:])
                 if formula == None or len(rest) < 1 or rest[0] != ']':
                     return None, string
 
@@ -629,9 +627,9 @@ class Formula:
 if __name__ == '__main__':
     bad_formulas = ["x= x3", "x =x", "~x = x", "~x==x", "(x=x&x=x", "((x=x&x=x", "(x=x&x=)x",
                     "(x=->x=x)", "(x=x-x=x)", "F(x=x)", "F(x", "F)", "F", "F()", "F(x&x)",
-                    "F)", "F(,)"]
+                    "F)", "F(,)",]
     good_formulas = ["x=x&x=x","x=x&x=x)", "x=x*", '~x=x', "(x=x&x=x)", "(x=x->x=x)",
-                     "F(x)", "F(x,func(x),x)","F(x))", "Ax[x=x]"]
+                     "F(x)", "F(x,func(x),x)","F(x))", "Ax[Ey[x=y]]"]
 
     print("              bad:")
     for f in bad_formulas:
