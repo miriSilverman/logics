@@ -585,11 +585,15 @@ class Formula:
                 return None, string
 
         elif is_quantifier(first_char):     # quantifier case
+            if len(string) < 5:
+                return None, string
             quantifier = re.compile("([^\[]+)\[(.*)\](.*)")
-            m = quantifier.match(string)
+            m = quantifier.match(string[1:])
             if m:
                 var_name = m.group(1)
-                if not is_variable(var_name):   # var name is not in the right format
+                print(var_name)
+                if not is_variable(var_name[1:]):   # var name is not in the right format
+                    print("lk")
                     return None, string
                 quantifier_body_start_idx = m.start(2)
                 formula, rest = Formula._parse_prefix(string[quantifier_body_start_idx:])
@@ -607,14 +611,12 @@ class Formula:
         elif is_variable(first_char) or is_constant(first_char) or is_function(first_char):   # equality case
 
             first_term, rest = Term._parse_prefix(string)
-            # print("first_term: ", first_term)
             if first_term == None or len(rest) < 2 or rest[0] != '=':
                 return None, string
 
             second_term, rest = Term._parse_prefix(rest[1:])
             if second_term == None:
                 return None, string
-            # print("second_term: ", second_term)
 
             f = Formula('=', (first_term, second_term)), rest
             # print("f ", f)
@@ -627,26 +629,28 @@ class Formula:
 if __name__ == '__main__':
     bad_formulas = ["x= x3", "x =x", "~x = x", "~x==x", "(x=x&x=x", "((x=x&x=x", "(x=x&x=)x",
                     "(x=->x=x)", "(x=x-x=x)", "F(x=x)", "F(x", "F)", "F", "F()", "F(x&x)",
-                    "F)", ""]
+                    "F)", "F(,)"]
     good_formulas = ["x=x&x=x","x=x&x=x)", "x=x*", '~x=x', "(x=x&x=x)", "(x=x->x=x)",
-                     "F(x)", "F(x,func(x),x)"]
+                     "F(x)", "F(x,func(x),x)","F(x))", "Ax[x=x]"]
 
     print("              bad:")
     for f in bad_formulas:
         print("f is: ", f)
         formula, rest = Formula._parse_prefix(f)
-        assert formula == None and rest == f
         print("formula: ", formula)
         print("rest: ", rest)
+        assert formula == None and rest == f
         print("_______")
 
     print("***********************\n              good:")
     for f in good_formulas:
         print("f is: ", f)
         formula, rest = Formula._parse_prefix(f)
+
         print("formula: ", formula)
         print("rest: ", rest)
         print("_______")
+        assert formula != None
 
 
     @staticmethod
