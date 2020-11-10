@@ -554,7 +554,7 @@ class Formula:
 
 
         elif first_char <='T' and first_char >= 'F':     # relation case
-            relation = re.compile("([^(]*)\((.*)")
+            relation = re.compile("([^(]*)\((.*)\)(.*)")
             m = relation.match(string)
             if m:
                 relation_name = m.group(1)
@@ -564,6 +564,9 @@ class Formula:
 
                 args = []
                 arg, rest = Term._parse_prefix(string[relation_body_start_idx:])
+                if arg == None and rest[0] == ')':
+                    rest = rest[1:] if len(rest) > 1 else ''
+                    return Formula(relation_name, args), rest
 
                 if arg == None or len(rest) < 1 or rest[0] not in {',', ')'}:
                     return None, string
@@ -587,7 +590,7 @@ class Formula:
         elif is_quantifier(first_char):     # quantifier case
             if len(string) < 5:
                 return None, string
-            quantifier = re.compile("([^\[]+)\[(.*)\](.*)")
+            quantifier = re.compile("([^\[]+)\[(.+)\](.*)")
             m = quantifier.match(string[1:])
             if m:
                 var_name = m.group(1)
@@ -596,6 +599,7 @@ class Formula:
 
                 quantifier_body_start_idx = m.start(2) + 1
                 formula, rest = Formula._parse_prefix(string[quantifier_body_start_idx:])
+
                 if formula == None or len(rest) < 1 or rest[0] != ']':
                     return None, string
 
@@ -624,31 +628,6 @@ class Formula:
         else:
             return None, string
 
-if __name__ == '__main__':
-    bad_formulas = ["x= x3", "x =x", "~x = x", "~x==x", "(x=x&x=x", "((x=x&x=x", "(x=x&x=)x",
-                    "(x=->x=x)", "(x=x-x=x)", "F(x=x)", "F(x", "F)", "F", "F()", "F(x&x)",
-                    "F)", "F(,)",]
-    good_formulas = ["x=x&x=x","x=x&x=x)", "x=x*", '~x=x', "(x=x&x=x)", "(x=x->x=x)",
-                     "F(x)", "F(x,func(x),x)","F(x))", "Ax[Ey[x=y]]"]
-
-    print("              bad:")
-    for f in bad_formulas:
-        print("f is: ", f)
-        formula, rest = Formula._parse_prefix(f)
-        print("formula: ", formula)
-        print("rest: ", rest)
-        assert formula == None and rest == f
-        print("_______")
-
-    print("***********************\n              good:")
-    for f in good_formulas:
-        print("f is: ", f)
-        formula, rest = Formula._parse_prefix(f)
-
-        print("formula: ", formula)
-        print("rest: ", rest)
-        print("_______")
-        assert formula != None
 
 
     @staticmethod
@@ -662,6 +641,7 @@ if __name__ == '__main__':
             A formula whose standard string representation is the given string.
         """
         # Task 7.4.2
+        return Formula._parse_prefix(string)[0]
 
     @memoized_parameterless_method
     def constants(self) -> Set[str]:

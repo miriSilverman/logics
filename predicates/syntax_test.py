@@ -405,9 +405,41 @@ def extraTestsForTermPrefix():
         # print("rest", rest)
         # print("________________")
 
+
+def extra_formula_parse():
+    bad_formulas = ["x= x3", "x =x", "~x = x", "~x==x", "(x=x&x=x", "((x=x&x=x", "(x=x&x=)x",
+                    "(x=->x=x)", "(x=x-x=x)", "F(x=x)", "F(x", "F)", "F", "F(x&x)",
+                    "F)", "F(,)","R(x,y]", "Ax[R(x,y]", "Ax[Ey[R(x,y]]", "Ax[Ey[R(x,y)]",
+                    "AAx[Ey[R(x,y)]]"]
+    good_formulas = ["x=x&x=x","x=x&x=x)", "x=x*", '~x=x', "(x=x&x=x)", "(x=x->x=x)",
+                     "F(x)", "F(x,func(x),x)","F(x,y))", "Ax[Ey[x=y]]", "Ax[Ey[R(x,y)]]",
+                     "Ax[R(x,y)]", "Ay[R(x,y)]]]", "Q()&R(x))", "F()"]
+
+    # print("              bad:")
+    for f in bad_formulas:
+        # print("f is: ", f)
+        formula, rest = Formula._parse_prefix(f)
+        # print("formula: ", formula)
+        # print("rest: ", rest)
+        assert formula == None and rest == f
+        # print("_______")
+
+    # print("***********************\n              good:")
+    for f in good_formulas:
+        # print("f is: ", f)
+        formula, rest = Formula._parse_prefix(f)
+
+        # print("formula: ", formula)
+        # print("rest: ", rest)
+        # print("_______")
+        assert formula != None
+
 if __name__ == '__main__':
     test_term_repr()
     test_formula_repr()
     test_term_parse_prefix()
     extraTestsForTermPrefix()
     test_term_parse()
+    test_formula_parse_prefix()
+    extra_formula_parse()
+    test_formula_parse()
