@@ -393,14 +393,8 @@ def test_all(debug=False):
     test_ex9(debug)
 
 def extraTestsForTermPrefix():
-    formula = [None]*7
-    formula[0] = "func(x"
-    formula[1] = "func(fun))"
-    formula[2] = "fu(f())"
-    formula[3] = "fu(c, f(x)"
-    formula[4] = " f(x)"
-    formula[5] = "f(g(s,))"
-    formula[6] = "f(g(x,f(a(x)))),y"
+    formula = ["func(x","func(fun))","fu(f())","fu(c, f(x)"," f(x)","f(g(s,))", "f(g(x,f(a(x)))),y",
+               ",f", "f(-)", "f)"]
     for f in formula:
         # print("formula is: ", f)
         term, rest = Term._parse_prefix(f)

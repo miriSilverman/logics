@@ -193,35 +193,35 @@ class Term:
             m = func.match(string)
             if m:
                 func_name = m.group(1)
-                start_body_idx = m.start(2)
+                start_func_body_idx = m.start(2)
 
-                if (not is_function(func_name)):
+                if (not is_function(func_name)):    # the part before the parenthesis is not a valid func name
                     return None, string
 
-                term, rest = Term._parse_prefix(string[start_body_idx:])
+                # parsing the content of the function (including the parenthesis and the rest)
+                term, rest = Term._parse_prefix(string[start_func_body_idx:])
                 args.append(term)
 
-
+                # case of no closing parenthesis or illegal pattern
                 if len(rest) == 0 or (rest[0] not in {',', ')'}):
                     return None, string
 
 
                 if rest[0] == ',':
                     term, rest = Term._parse_prefix(rest[1:])
-                    if term == None:
+                    if term == None:        # case of no arg after comma
                         return None, string
                     args.append(term)
 
                 if rest[0] == ')':
                     rest = rest[1:] if len(rest) > 1 else ''
                     return Term(func_name, tuple(args)), rest
-                else:
-                    print("here")
-                    return None, string
-            else:
+
+
+            else:   # the string doesnt is not in the right format of a function
                 return None, string
 
-        else:
+        else:   # string[0] is a char that doesnt correspond to any pattern
             return None, string
 
 
