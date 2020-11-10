@@ -594,17 +594,22 @@ class Formula:
                 return None, string
 
 
-        elif is_equality(first_char):
+        elif is_variable(first_char) or is_constant(first_char) or is_function(first_char):   # equality case
+
+            first_term, rest = Term._parse_prefix(string)
+
+            if first_term == None or len(rest) < 2 or rest[0] != '=':
+                return None, string
+
+            second_term, rest = Term._parse_prefix(rest[1:])
+            if second_term == None:
+                return None, string
+
+            return Formula('=', (first_term, second_term)), rest
 
 
-
-
-    # @staticmethod
-    # def binary_case(string):
-    #     par_counter = 0
-    #     i = 0
-    #     while i < len(string):
-    #
+        else:
+            return None, string
 
 
     @staticmethod
