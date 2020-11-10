@@ -500,6 +500,7 @@ class Formula:
     def __hash__(self) -> int:
         return hash(str(self))
 
+
     @staticmethod
     def _parse_prefix(string: str) -> Tuple[Formula, str]:
         """Parses a prefix of the given string into a formula.
@@ -547,9 +548,10 @@ class Formula:
             m = relation.match(string)
             if m:
                 relation_name = m.group(1)
-                relation_body_start_idx = m.start(2)
                 if not is_relation(relation_name):
                     return None, string
+                relation_body_start_idx = m.start(2)
+
                 args = []
                 arg, rest = Term._parse_prefix(string[relation_body_start_idx:])
 
@@ -572,7 +574,25 @@ class Formula:
             else:   # no open parenthesis case
                 return None, string
 
-        elif is_quantifier(first_char):
+        elif is_quantifier(first_char):     # quantifier case
+            quantifier = re.compile("([^\[]+)\[(.*)\](.*)")
+            m = quantifier.match(string)
+            if m:
+                var_name = m.group(1)
+                if not is_variable(var_name):   # var name is not in the right format
+                    return None, string
+                quantifier_body_start_idx = m.start(2)
+                formula, rest = Formula._parse_prefix(string[quantifier_body_start_idx:])
+
+                if formula == None or len(rest) < 1 or rest[0] != ']':
+                    return None, string
+
+                rest = rest[1:] if len(rest) > 1 else ''
+                return Formula(first_char, var_name, formula), rest
+
+            else:       # not the right pattern of  quantifier
+                return None, string
+
 
         elif is_equality(first_char):
 
