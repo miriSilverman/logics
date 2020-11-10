@@ -551,7 +551,7 @@ class Formula:
                 if not is_relation(relation_name):
                     return None, string
                 args = []
-                arg, rest = Formula._parse_prefix(string[relation_body_start_idx:])
+                arg, rest = Term._parse_prefix(string[relation_body_start_idx:])
 
                 if arg == None or rest[0] not in {',', ')'}:
                     return None, string
@@ -560,13 +560,17 @@ class Formula:
                 if rest[0] == ',':
                     if len(rest) < 3:   # no arg after comma or missing closing parenthesis
                         return None, string
-                    arg, rest = Formula._parse_prefix(rest[1:])
+                    arg, rest = Term._parse_prefix(rest[1:])
+                    if arg == None or len(rest) < 1:        # no arg after comma or missing closing parenthesis
+                        return None, string
+                    args.append(arg)
 
-
+                if rest[0] == ')':
+                    rest = rest[1:] if len(rest) > 1 else ''
+                    return Formula(relation_name, args), rest
 
             else:   # no open parenthesis case
                 return None, string
-
 
         elif is_quantifier(first_char):
 
