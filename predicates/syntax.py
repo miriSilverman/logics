@@ -555,37 +555,10 @@ class Formula:
         first_char = string[0]
 
         if is_unary(first_char):
-            if len(string) < 2:
-                return None, string
-
-            formula, rest = Formula._parse_prefix(string[1:])
-            if formula == None:
-                return None, string
-            return Formula('~', formula), rest
+            return Formula.unary_case(string)
 
         elif first_char == '(':     # binary case
-            first_formula, rest = Formula._parse_prefix(string[1:])
-
-            # cases of missing operator or a one of the args
-            if first_formula == None or len(rest) < 3:
-                return None, string
-
-            if not is_binary(rest[0]):
-                operator = rest[0:2]
-                second_formula_idx = 2
-                if not is_binary(operator):
-                    return None, string
-            else:
-                operator = rest[0]
-                second_formula_idx = 1
-
-            second_formula, rest = Formula._parse_prefix(rest[second_formula_idx:])
-
-            # case of missing second arg or missing closing parenthesis
-            if second_formula == None or len(rest) < 1 or rest[0] != ')':
-                return None, string
-
-            return Formula(operator, first_formula, second_formula), rest[1:]
+            return Formula.binary_case(string)
 
 
         elif first_char <='T' and first_char >= 'F':     # relation case
@@ -623,47 +596,97 @@ class Formula:
                 return None, string
 
         elif is_quantifier(first_char):     # quantifier case
-            if len(string) < 5:
-                return None, string
-            quantifier = re.compile("([^\[]+)\[(.+)\](.*)")
-            m = quantifier.match(string[1:])
-            if m:
-                var_name = m.group(1)
-                if not is_variable(var_name):   # var name is not in the right format
-                    return None, string
-
-                quantifier_body_start_idx = m.start(2) + 1
-                formula, rest = Formula._parse_prefix(string[quantifier_body_start_idx:])
-
-                if formula == None or len(rest) < 1 or rest[0] != ']':
-                    return None, string
-
-                rest = rest[1:] if len(rest) > 1 else ''
-                return Formula(first_char, var_name, formula), rest
-
-            else:       # not the right pattern of  quantifier
-                return None, string
-
+            return Formula.quantifier_case(string)
 
         elif is_variable(first_char) or is_constant(first_char) or is_function(first_char):   # equality case
-
-            first_term, rest = Term._parse_prefix(string)
-            if first_term == None or len(rest) < 2 or rest[0] != '=':
-                return None, string
-
-            second_term, rest = Term._parse_prefix(rest[1:])
-            if second_term == None:
-                return None, string
-
-            f = Formula('=', (first_term, second_term)), rest
-            # print("f ", f)
-            return f
-
+            return Formula.equality_case(string)
 
         else:
             return None, string
 
 
+    @staticmethod
+    def binary_case(string):
+        """
+        :param string: string to parse, which has a prefix that is a valid
+                representation of a formula.
+        :return: A pair of the parsed formula and the unparsed suffix of the string.
+        """
+        first_formula, rest = Formula._parse_prefix(string[1:])
+        # cases of missing operator or a one of the args
+        if first_formula == None or len(rest) < 3:
+            return None, string
+        if not is_binary(rest[0]):
+            operator = rest[0:2]
+            second_formula_idx = 2
+            if not is_binary(operator):
+                return None, string
+        else:
+            operator = rest[0]
+            second_formula_idx = 1
+        second_formula, rest = Formula._parse_prefix(rest[second_formula_idx:])
+        # case of missing second arg or missing closing parenthesis
+        if second_formula == None or len(rest) < 1 or rest[0] != ')':
+            return None, string
+        return Formula(operator, first_formula, second_formula), rest[1:]
+
+    @staticmethod
+    def unary_case(string):
+        """
+        :param string: string to parse, which has a prefix that is a valid
+                representation of a formula.
+        :return: A pair of the parsed formula and the unparsed suffix of the string.
+        """
+        if len(string) < 2:
+            return None, string
+        formula, rest = Formula._parse_prefix(string[1:])
+        if formula == None:
+            return None, string
+        return Formula('~', formula), rest
+
+
+    @staticmethod
+    def quantifier_case(string):
+        """
+        :param string: string to parse, which has a prefix that is a valid
+                representation of a formula.
+        :return: A pair of the parsed formula and the unparsed suffix of the string.
+        """
+        if len(string) < 5:
+            return None, string
+        quantifier = re.compile("([^\[]+)\[(.+)\](.*)")
+        m = quantifier.match(string[1:])
+        if m:
+            var_name = m.group(1)
+            if not is_variable(var_name):  # var name is not in the right format
+                return None, string
+
+            quantifier_body_start_idx = m.start(2) + 1
+            formula, rest = Formula._parse_prefix(string[quantifier_body_start_idx:])
+
+            if formula == None or len(rest) < 1 or rest[0] != ']':
+                return None, string
+
+            rest = rest[1:] if len(rest) > 1 else ''
+            return Formula(string[0], var_name, formula), rest
+
+        else:  # not the right pattern of  quantifier
+            return None, string
+
+    @staticmethod
+    def equality_case(string):
+        """
+        :param string: string to parse, which has a prefix that is a valid
+                representation of a formula.
+        :return: A pair of the parsed formula and the unparsed suffix of the string.
+        """
+        first_term, rest = Term._parse_prefix(string)
+        if first_term == None or len(rest) < 2 or rest[0] != '=':
+            return None, string
+        second_term, rest = Term._parse_prefix(rest[1:])
+        if second_term == None:
+            return None, string
+        return Formula('=', (first_term, second_term)), rest
 
     @staticmethod
     def parse(string: str) -> Formula:

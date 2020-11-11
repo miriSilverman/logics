@@ -456,3 +456,4 @@ if __name__ == '__main__':
     test_free_variables()
     test_formula_functions()
     test_relations()
+    test_ex7()
