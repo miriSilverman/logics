@@ -75,6 +75,7 @@ def test_term_variables(debug=False):
             ['0', set()], ['x', {'x'}], ['s(s(x27))', {'x27'}],
             ['f(x,g(y,x,0),1)', {'x', 'y'}],
             ['s(plus(times(zz,x),times(x,s(s(0)))))', {'x', 'zz'}]]:
+        # print("s is: ",s,  Term.parse(s))
         variables = Term.parse(s).variables()
         if debug:
             print('The variables in', s, 'are', variables)
@@ -400,10 +401,14 @@ def extraTestsForTermPrefix():
         term, rest = Term._parse_prefix(f)
         assert term == None and rest==f
     f = "func(f(x),g(x,x),f(x,x,x))"
+
     assert str(Term._parse_prefix(f)[0]) == f
-        # print("term ",term)
-        # print("rest", rest)
-        # print("________________")
+    # ff = 's(zz,x)'
+    ff = 's(plus(times(zz,x),times(x,s(s(0)))))'
+    term, rest = Term._parse_prefix(ff)
+    # print("term ",term)
+    # print("rest", rest)
+    # print("________________")
 
 
 def extra_formula_parse():
@@ -443,3 +448,6 @@ if __name__ == '__main__':
     test_formula_parse_prefix()
     extra_formula_parse()
     test_formula_parse()
+    test_term_constants()
+    test_term_variables()
+    test_term_functions()

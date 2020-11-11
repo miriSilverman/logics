@@ -175,7 +175,7 @@ class Term:
         """
         # Task 7.3.1
         if is_variable(string[0]):
-            var = re.compile("(.[0-9]*)(.*)")
+            var = re.compile("(.[a-zA-Z0-9]*)(.*)")
             m = var.match(string)
             return Term(m.group(1)), m.group(2)
 
@@ -241,6 +241,22 @@ class Term:
         # Task 7.3.2
         return Term._parse_prefix(string)[0]
 
+
+    def extraction_helper(self, set: Set[str], task):
+        if is_constant(self.root) and task == 1:
+            set.add(self.root)
+        elif is_variable(self.root) and task == 2:
+            set.add(self.root)
+        elif is_function(self.root):
+            if task == 3:
+                set.add((self.root, len(self.arguments)))
+            for arg in self.arguments:
+                arg.extraction_helper(set, task)
+
+
+
+
+
     @memoized_parameterless_method
     def constants(self) -> Set[str]:
         """Finds all constant names in the current term.
@@ -249,6 +265,13 @@ class Term:
             A set of all constant names used in the current term.
         """
         # Task 7.5.1
+        consts = set()
+        self.extraction_helper(consts, 1)
+        return consts
+
+
+
+
 
     @memoized_parameterless_method
     def variables(self) -> Set[str]:
@@ -258,6 +281,10 @@ class Term:
             A set of all variable names used in the current term.
         """
         # Task 7.5.2
+        vars = set()
+        self.extraction_helper(vars, 2)
+        return vars
+
 
     @memoized_parameterless_method
     def functions(self) -> Set[Tuple[str, int]]:
@@ -269,6 +296,10 @@ class Term:
             all function names used in the current term.
         """
         # Task 7.5.3
+        funcs = set()
+        self.extraction_helper(funcs, 3)
+        return funcs
+
 
     def substitute(self, substitution_map: Mapping[str, Term],
                    forbidden_variables: AbstractSet[str] = frozenset()) -> Term:
