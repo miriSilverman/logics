@@ -184,6 +184,25 @@ class Model(Generic[T]):
             assert relation in self.relation_meanings and \
                    self.relation_arities[relation] in {-1, arity}
         # Task 7.8
+        if is_equality(formula.root):
+            eval_of_first = self.evaluate_term(formula.arguments[0])
+            eval_of_second = self.evaluate_term(formula.arguments[1])
+            return eval_of_first == eval_of_second
+
+        elif is_relation(formula.root):
+            relation_set = self.relation_meanings[formula.root]
+            for term in formula.arguments:
+                if self.evaluate_term(term) not in relation_set:
+                    return False
+            return True
+
+        elif is_unary(formula.root):
+            return not self.evaluate_formula()
+
+
+
+
+
 
     def is_model_of(self, formulas: AbstractSet[Formula]) -> bool:
         """Checks if the current model is a model for the given formulas.
