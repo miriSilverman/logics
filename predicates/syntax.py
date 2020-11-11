@@ -159,6 +159,7 @@ class Term:
     def __hash__(self) -> int:
         return hash(str(self))
 
+
     @staticmethod
     def _parse_prefix(string: str) -> Tuple[Term, str]:
         """Parses a prefix of the given string into a term.
@@ -175,56 +176,83 @@ class Term:
         """
         # Task 7.3.1
         if is_variable(string[0]):
-            var = re.compile("(.[a-zA-Z0-9]*)(.*)")
-            m = var.match(string)
-            return Term(m.group(1)), m.group(2)
+            return Term.variable_case(string)
 
         elif is_constant(string[0]):
-            if string[0] == '_':
-                return Term('_'), string[1:]
-            var = re.compile("([\d\w]*)(.*)")
-            m = var.match(string)
-            return Term(m.group(1)), m.group(2)
-
+            return Term.constant_case(string)
 
         elif is_function(string[0]):
-            args = []
-            func = re.compile("([^(]*)\(([^)^,^(].*)\).*")
-            m = func.match(string)
-            if m:
-                func_name = m.group(1)
-                start_func_body_idx = m.start(2)
-
-                if (not is_function(func_name)):    # the part before the parenthesis is not a valid func name
-                    return None, string
-
-                # parsing the content of the function (including the parenthesis and the rest)
-                term, rest = Term._parse_prefix(string[start_func_body_idx:])
-                args.append(term)
-
-                # case of no closing parenthesis or illegal pattern
-                if len(rest) == 0 or (rest[0] not in {',', ')'}):
-                    return None, string
-
-
-                while rest[0] == ',':
-                    term, rest = Term._parse_prefix(rest[1:])
-                    if term == None:        # case of no arg after comma
-                        return None, string
-                    args.append(term)
-
-                if rest[0] == ')':
-                    rest = rest[1:] if len(rest) > 1 else ''
-                    return Term(func_name, tuple(args)), rest
-
-
-            else:   # the string doesnt is not in the right format of a function
-                return None, string
+            return Term.function_case(string)
 
         else:   # string[0] is a char that doesnt correspond to any pattern
             return None, string
 
 
+
+    @staticmethod
+    def constant_case(string):
+        """
+        :param string: string to parse, which has a prefix that is a valid
+                representation of a term.
+        :return: A pair of the parsed term and the unparsed suffix of the string.
+        """
+        if string[0] == '_':
+            return Term('_'), string[1:]
+        var = re.compile("([\d\w]*)(.*)")
+        m = var.match(string)
+        return Term(m.group(1)), m.group(2)
+
+
+    @staticmethod
+    def variable_case(string):
+        """
+        :param string: string to parse, which has a prefix that is a valid
+                representation of a term.
+        :return: A pair of the parsed term and the unparsed suffix of the string.
+        """
+        var = re.compile("(.[a-zA-Z0-9]*)(.*)")
+        m = var.match(string)
+        return Term(m.group(1)), m.group(2)
+
+
+    @staticmethod
+    def function_case(string):
+        """
+        :param string: string to parse, which has a prefix that is a valid
+                representation of a term.
+        :return: A pair of the parsed term and the unparsed suffix of the string.
+        """
+        args = []
+        func = re.compile("([^(]*)\(([^)^,^(].*)\).*")
+        m = func.match(string)
+        if m:
+            func_name = m.group(1)
+            start_func_body_idx = m.start(2)
+
+            if (not is_function(func_name)):  # the part before the parenthesis is not a valid func name
+                return None, string
+
+            # parsing the content of the function (including the parenthesis and the rest)
+            term, rest = Term._parse_prefix(string[start_func_body_idx:])
+            args.append(term)
+
+            # case of no closing parenthesis or illegal pattern
+            if len(rest) == 0 or (rest[0] not in {',', ')'}):
+                return None, string
+
+            while rest[0] == ',':
+                term, rest = Term._parse_prefix(rest[1:])
+                if term == None:  # case of no arg after comma
+                    return None, string
+                args.append(term)
+
+            if rest[0] == ')':
+                rest = rest[1:] if len(rest) > 1 else ''
+                return Term(func_name, tuple(args)), rest
+
+
+        else:  # the string doesnt is not in the right format of a function
+            return None, string
 
 
 
@@ -243,6 +271,12 @@ class Term:
 
 
     def extraction_helper(self, set: Set[str], task, vars: Set = None):
+        """
+        adds to the set the relevant parameters according to the task
+        :param set: set to add the relevant variables
+        :param task: 1: constants, 2: variables, 3: functions, 4:free variables
+        :param vars: set of all the variables the are not free
+        """
         if is_constant(self.root) and task == 1:
             set.add(self.root)
         elif is_variable(self.root):
@@ -554,46 +588,14 @@ class Formula:
         # Task 7.4.1
         first_char = string[0]
 
-        if is_unary(first_char):
+        if is_unary(first_char):        # unary case
             return Formula.unary_case(string)
 
         elif first_char == '(':     # binary case
             return Formula.binary_case(string)
 
-
         elif first_char <='T' and first_char >= 'F':     # relation case
-            relation = re.compile("([^(]*)\((.*)\)(.*)")
-            m = relation.match(string)
-            if m:
-                relation_name = m.group(1)
-                if not is_relation(relation_name):
-                    return None, string
-                relation_body_start_idx = m.start(2)
-
-                args = []
-                arg, rest = Term._parse_prefix(string[relation_body_start_idx:])
-                if arg == None and rest[0] == ')':
-                    rest = rest[1:] if len(rest) > 1 else ''
-                    return Formula(relation_name, args), rest
-
-                if arg == None or len(rest) < 1 or rest[0] not in {',', ')'}:
-                    return None, string
-                args.append(arg)
-
-                while rest[0] == ',':
-                    if len(rest) < 3:   # no arg after comma or missing closing parenthesis
-                        return None, string
-                    arg, rest = Term._parse_prefix(rest[1:])
-                    if arg == None or len(rest) < 1:        # no arg after comma or missing closing parenthesis
-                        return None, string
-                    args.append(arg)
-
-                if rest[0] == ')':
-                    rest = rest[1:] if len(rest) > 1 else ''
-                    return Formula(relation_name, args), rest
-
-            else:   # no open parenthesis case
-                return None, string
+            return Formula.relation_case(string)
 
         elif is_quantifier(first_char):     # quantifier case
             return Formula.quantifier_case(string)
@@ -602,6 +604,51 @@ class Formula:
             return Formula.equality_case(string)
 
         else:
+            return None, string
+
+
+    @staticmethod
+    def relation_case(string):
+        """
+        :param string: string to parse, which has a prefix that is a valid
+                representation of a formula.
+        :return: A pair of the parsed formula and the unparsed suffix of the string.
+        """
+        relation = re.compile("([^(]*)\((.*)\)(.*)")
+        m = relation.match(string)
+        if m:
+            relation_name = m.group(1)
+            if not is_relation(relation_name):
+                return None, string
+
+            relation_body_start_idx = m.start(2)
+
+            args = []  # arguments of relation
+            arg, rest = Term._parse_prefix(string[relation_body_start_idx:])
+
+            if arg == None and rest[0] == ')':  # case of no arguments
+                rest = rest[1:] if len(rest) > 1 else ''
+                return Formula(relation_name, args), rest
+
+            if arg == None or len(rest) < 1 or rest[0] not in {',', ')'}:  # case of incorrect form of args
+                return None, string
+
+            args.append(arg)
+
+            while rest[0] == ',':
+                if len(rest) < 3:  # no arg after comma or missing closing parenthesis
+                    return None, string
+                arg, rest = Term._parse_prefix(rest[1:])
+                if arg == None or len(rest) < 1:  # no arg after comma or missing closing parenthesis
+                    return None, string
+                args.append(arg)
+
+            if rest[0] == ')':
+                rest = rest[1:] if len(rest) > 1 else ''
+                return Formula(relation_name, args), rest
+
+
+        else:  # not the right format
             return None, string
 
 
