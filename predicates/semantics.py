@@ -11,6 +11,7 @@ from typing import AbstractSet, FrozenSet, Generic, Mapping, Tuple, TypeVar
 from logic_utils import frozen, frozendict
 
 from predicates.syntax import *
+import copy
 
 #: A generic type for a universe element in a model.
 T = TypeVar('T')
@@ -184,21 +185,19 @@ class Model(Generic[T]):
             assert relation in self.relation_meanings and \
                    self.relation_arities[relation] in {-1, arity}
         # Task 7.8
-        print("formula", formula)
-        # print("assignment",assignment)
-        # print("universe", self.universe)
         if is_equality(formula.root):
-            eval_of_first = self.evaluate_term(formula.arguments[0])
-            eval_of_second = self.evaluate_term(formula.arguments[1])
+            eval_of_first = self.evaluate_term(formula.arguments[0], assignment)
+            eval_of_second = self.evaluate_term(formula.arguments[1], assignment)
             return eval_of_first == eval_of_second
 
         elif is_relation(formula.root):
             relation_set = self.relation_meanings[formula.root]
+            evaluates_terms = []
             for term in formula.arguments:
-                # print("relation_set", relation_set)
-                if tuple(self.evaluate_term(term)) not in relation_set:
-                    return False
-            # print("pp")
+                evaluates_terms.append(self.evaluate_term(term, assignment))
+
+            if tuple(evaluates_terms) not in relation_set:
+                return False
             return True
 
         elif is_unary(formula.root):
@@ -209,10 +208,21 @@ class Model(Generic[T]):
             second_eval = self.evaluate_formula(formula.second, assignment)
             return Model.eval_binary(first_eval, second_eval, formula.root)
 
-        # elif is_quantifier(formula.root):
-        #     for i in
+        elif is_quantifier(formula.root):
+            if formula.root == 'A':
+                for i in self.universe:
+                    new_assignment = dict(copy.deepcopy(assignment))
+                    new_assignment[formula.variable] = i
+                    if not self.evaluate_formula(formula.predicate, new_assignment):
+                        return False
+                return True
 
-
+            for i in self.universe:
+                new_assignment = dict(copy.deepcopy(assignment))
+                new_assignment[formula.variable] = i
+                if self.evaluate_formula(formula.predicate, new_assignment):
+                    return True
+            return False
 
 
     @staticmethod
@@ -231,6 +241,9 @@ class Model(Generic[T]):
         #     return not (first and second)
         # elif operator == '-|':
         #     return not (first or second)
+
+
+
 
     def is_model_of(self, formulas: AbstractSet[Formula]) -> bool:
         """Checks if the current model is a model for the given formulas.

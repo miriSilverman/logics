@@ -38,21 +38,18 @@ def test_evaluate_formula(debug=False):
     __test_formula_evaluation_common(
         lambda model,formula: model.evaluate_formula(formula),
         'evaluate_formula', debug)
-
     model = Model({'0', '1', '2'}, {'0': '0'}, {'Pz': {('0',)}},
                   {'p1': {('0',): '1', ('1',): '2', ('2',): '0'}})
     if debug:
         print('In the model', model)
     formula = Formula.parse('Pz(p1(x))')
-    for assigned_value,expected_value in [
+    for assigned_value, expected_value in [
         ('0', False), ('1', False), ('2', True)]:
         assignment = {'x': assigned_value}
         value = model.evaluate_formula(formula, frozendict(assignment))
         if debug:
             print('The value of', formula, 'with assignment', assignment, 'is',
                   value)
-        print("expected_value", expected_value)
-        print("value", value)
         assert value == expected_value
 
     universe = {0,1,2}
@@ -67,16 +64,19 @@ def test_evaluate_formula(debug=False):
     if debug:
         print('The value of', all_formula, 'is', value)
     assert value
+
     value = model.evaluate_formula(exists_formula)
     if debug:
         print('The value of', exists_formula, 'is', value)
     assert not value
 
     for exclude in pairs:
+        # print(exclude)
         model = Model(universe, {}, {'R': (pairs-{exclude})})
         if debug:
             print('In the model', model)
         value = model.evaluate_formula(all_formula)
+        # print(value)
         if debug:
             print('The value of', all_formula, 'is', value)
         assert not value
