@@ -184,6 +184,9 @@ class Model(Generic[T]):
             assert relation in self.relation_meanings and \
                    self.relation_arities[relation] in {-1, arity}
         # Task 7.8
+        print("formula", formula)
+        # print("assignment",assignment)
+        # print("universe", self.universe)
         if is_equality(formula.root):
             eval_of_first = self.evaluate_term(formula.arguments[0])
             eval_of_second = self.evaluate_term(formula.arguments[1])
@@ -192,17 +195,42 @@ class Model(Generic[T]):
         elif is_relation(formula.root):
             relation_set = self.relation_meanings[formula.root]
             for term in formula.arguments:
-                if self.evaluate_term(term) not in relation_set:
+                # print("relation_set", relation_set)
+                if tuple(self.evaluate_term(term)) not in relation_set:
                     return False
+            # print("pp")
             return True
 
         elif is_unary(formula.root):
-            return not self.evaluate_formula()
+            return not self.evaluate_formula(formula.first, assignment)
+
+        elif is_binary(formula.root):
+            first_eval = self.evaluate_formula(formula.first, assignment)
+            second_eval = self.evaluate_formula(formula.second, assignment)
+            return Model.eval_binary(first_eval, second_eval, formula.root)
+
+        # elif is_quantifier(formula.root):
+        #     for i in
 
 
 
 
-
+    @staticmethod
+    def eval_binary(first: bool, second: bool, operator: str) -> bool:
+        if operator == '&':
+            return first and second
+        elif operator == '|':
+            return first or second
+        elif operator == "->":
+            return second or not first
+        # elif operator == '+':
+        #     return second != first
+        # elif operator == '<->':
+        #     return first == second
+        # elif operator == '-&':
+        #     return not (first and second)
+        # elif operator == '-|':
+        #     return not (first or second)
 
     def is_model_of(self, formulas: AbstractSet[Formula]) -> bool:
         """Checks if the current model is a model for the given formulas.

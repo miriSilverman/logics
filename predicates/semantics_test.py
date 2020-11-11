@@ -51,6 +51,8 @@ def test_evaluate_formula(debug=False):
         if debug:
             print('The value of', formula, 'with assignment', assignment, 'is',
                   value)
+        print("expected_value", expected_value)
+        print("value", value)
         assert value == expected_value
 
     universe = {0,1,2}
@@ -168,3 +170,4 @@ def test_all(debug=False):
 
 if __name__ == '__main__':
     test_evaluate_term()
+    test_evaluate_formula()
