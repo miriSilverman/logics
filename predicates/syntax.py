@@ -242,16 +242,20 @@ class Term:
         return Term._parse_prefix(string)[0]
 
 
-    def extraction_helper(self, set: Set[str], task):
+    def extraction_helper(self, set: Set[str], task, vars: Set = None):
         if is_constant(self.root) and task == 1:
             set.add(self.root)
-        elif is_variable(self.root) and task == 2:
-            set.add(self.root)
+        elif is_variable(self.root):
+            if task == 2:
+                set.add(self.root)
+            elif task == 4:
+                if self.root not in vars:
+                    set.add(self.root)
         elif is_function(self.root):
             if task == 3:
                 set.add((self.root, len(self.arguments)))
             for arg in self.arguments:
-                arg.extraction_helper(set, task)
+                arg.extraction_helper(set, task, vars)
 
 
 
@@ -674,6 +678,30 @@ class Formula:
         # Task 7.4.2
         return Formula._parse_prefix(string)[0]
 
+
+    def form_extract_helper(self, set: Set, task, vars: Set = None):
+        if is_unary(self.root):
+            self.first.form_extract_helper(set, task, vars)
+        elif is_binary(self.root):
+            copy_of_vars = None if vars == None else vars.copy()
+            self.first.form_extract_helper(set, task, vars)
+            self.second.form_extract_helper(set, task, copy_of_vars)
+        elif is_relation(self.root):
+            if task == 5:
+                set.add((self.root, len(self.arguments)))
+            for term in self.arguments:
+                term.extraction_helper(set, task, vars)
+        elif is_equality(self.root):
+            for term in self.arguments:
+                term.extraction_helper(set, task, vars)
+        elif is_quantifier(self.root):
+            if task == 2:
+                set.add(self.variable)
+            elif task == 4:
+                vars.add(self.variable)
+            self.predicate.form_extract_helper(set, task, vars)
+
+
     @memoized_parameterless_method
     def constants(self) -> Set[str]:
         """Finds all constant names in the current formula.
@@ -682,6 +710,11 @@ class Formula:
             A set of all constant names used in the current formula.
         """
         # Task 7.6.1
+        const = set()
+        self.form_extract_helper(const, 1)
+        return const
+
+
 
     @memoized_parameterless_method
     def variables(self) -> Set[str]:
@@ -691,6 +724,9 @@ class Formula:
             A set of all variable names used in the current formula.
         """
         # Task 7.6.2
+        vars = set()
+        self.form_extract_helper(vars, 2)
+        return vars
 
     @memoized_parameterless_method
     def free_variables(self) -> Set[str]:
@@ -701,6 +737,11 @@ class Formula:
             only within a scope of a quantification on that variable name.
         """
         # Task 7.6.3
+        vars = set()
+        free_vars = set()
+        self.form_extract_helper(free_vars, 4, vars)
+        return free_vars
+
 
     @memoized_parameterless_method
     def functions(self) -> Set[Tuple[str, int]]:
@@ -712,6 +753,10 @@ class Formula:
             all function names used in the current formula.
         """
         # Task 7.6.4
+        funcs = set()
+        self.form_extract_helper(funcs, 3)
+        return funcs
+
 
     @memoized_parameterless_method
     def relations(self) -> Set[Tuple[str, int]]:
@@ -723,6 +768,9 @@ class Formula:
             all relation names used in the current formula.
         """
         # Task 7.6.5
+        relations = set()
+        self.form_extract_helper(relations, 5)
+        return relations
 
     def substitute(self, substitution_map: Mapping[str, Term],
                    forbidden_variables: AbstractSet[str] = frozenset()) -> \

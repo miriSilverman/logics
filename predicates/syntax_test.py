@@ -451,3 +451,8 @@ if __name__ == '__main__':
     test_term_constants()
     test_term_variables()
     test_term_functions()
+    test_formula_constants()
+    test_formula_variables()
+    test_free_variables()
+    test_formula_functions()
+    test_relations()
