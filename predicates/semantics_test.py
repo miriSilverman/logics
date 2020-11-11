@@ -165,3 +165,6 @@ def test_ex7(debug=False):
 
 def test_all(debug=False):
     test_ex7(debug)
+
+if __name__ == '__main__':
+    test_evaluate_term()

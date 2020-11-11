@@ -145,6 +145,17 @@ class Model(Generic[T]):
             assert function in self.function_meanings and \
                    self.function_arities[function] == arity
         # Task 7.7
+        if is_constant(term.root):
+            return self.constant_meanings[term.root]
+        elif is_variable(term.root):
+            return assignment[term.root]
+        elif is_function(term.root):
+            func_args = []
+            for t in term.arguments:
+                func_args.append(self.evaluate_term(t,assignment))
+            return self.function_meanings[term.root][tuple(func_args)]
+
+
 
     def evaluate_formula(self, formula: Formula,
                          assignment: Mapping[str, T] = frozendict()) -> bool:
