@@ -263,3 +263,43 @@ class Model(Generic[T]):
                 assert relation in self.relation_meanings and \
                        self.relation_arities[relation] in {-1, arity}
         # Task 7.9
+        for formula in formulas:
+            free_vars = formula.free_variables()
+
+            if len(free_vars) == 0:
+                if not self.evaluate_formula(formula):
+                    return False
+            else:
+                all_assigns = []
+                self.all_assignments(0, list(formula.free_variables()), {}, all_assigns)
+
+                for assignment in all_assigns:
+                    if not self.evaluate_formula(formula, assignment):
+                        return False
+
+        return True
+
+
+
+
+    def all_assignments(self, idx_of_cur_var, free_vars, cur_assignment, all_assigns):
+        for i in self.universe:
+            cur_assignment[free_vars[idx_of_cur_var]] = i
+
+            if idx_of_cur_var < len(free_vars) - 1:
+                self.all_assignments(idx_of_cur_var + 1, free_vars, cur_assignment, all_assigns)
+            else:
+                all_assigns.append(copy.deepcopy(cur_assignment))
+
+#
+# if __name__ == '__main__':
+#     model = Model({'0', '1', '2'}, {'0': '0'}, {'Pz': {('0',)}},
+#                   {'p1': {('0',): '1', ('1',): '2', ('2',): '0'}})
+#     # print(model.universe)
+#     free_vars = ['x', 'y']
+#     cur = {}
+#     all_assins = []
+#     model.all_assignments(0, free_vars, cur, all_assins)
+#     for a in all_assins:
+#         print(a)
+

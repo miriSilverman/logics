@@ -171,3 +171,4 @@ def test_all(debug=False):
 if __name__ == '__main__':
     test_evaluate_term()
     test_evaluate_formula()
+    test_is_model_of()
