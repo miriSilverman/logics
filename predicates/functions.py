@@ -136,25 +136,32 @@ def replace_relations_with_functions_in_model(model: Model[T],
                model.relation_meanings
     # Task 8.2
     relations = copy_dict(model.relation_meanings)  # copies the relations from the models relations
-    funcs = {}
+    funcs = {}      # {func name: {(combination of elements in universe) : their evaluation}}
+
     for func in original_functions:
         new_name_of_func = function_name_to_relation_name(func)
 
         if new_name_of_func not in model.relation_meanings: # the function doesnt exist in the relations
             return None
 
-        func_meaning_dict = {}
+
+        func_meaning_dict = {}  # dict of {tuple of elements from the universe : their evaluation (from the universe)}
+                                # i.e {('b','a') : 'a'}
         meaning_of_relation = model.relation_meanings[new_name_of_func]
+
+        # not the right number of combinations of elements in the universe
         if len(meaning_of_relation) != len(model.universe)**(model.relation_arities[new_name_of_func]-1):
             return None
+
         for tup in meaning_of_relation:
             key = tup[1:]
             val = tup[0]
-            if key in func_meaning_dict:
+            if key in func_meaning_dict:    # there is already a value to the current key
                 return None
             func_meaning_dict[key] = val
+
         funcs[func] = func_meaning_dict
-        relations.pop(new_name_of_func)
+        relations.pop(new_name_of_func)     # removing the relation that represents a func from the relations
 
     return Model(model.universe, model.constant_meanings, relations, funcs)
 
