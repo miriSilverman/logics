@@ -13,6 +13,8 @@ from logic_utils import fresh_variable_name_generator
 
 from predicates.syntax import *
 from predicates.semantics import *
+import copy
+
 
 def function_name_to_relation_name(function: str) -> str:
     """Converts the given function name to a canonically corresponding relation
@@ -65,6 +67,38 @@ def replace_functions_with_relations_in_model(model: Model[T]) -> Model[T]:
         assert function_name_to_relation_name(function) not in \
                model.relation_meanings
     # Task 8.1
+    print(model.relation_meanings)
+    relations = copy_dict(model.relation_meanings)
+    # relations = {key : copy.deepcopy(set(value)) for key, value in model.relation_meanings}
+    print(relations)
+    print("******")
+    print((model.relation_arities))
+    relations_arities = copy_dict(model.relation_arities)
+    print(relations_arities)
+    print("******")
+    for func in model.function_meanings:
+        new_name = function_name_to_relation_name(func)
+        # new_relation =
+        print(func)
+
+
+    new_model = Model(model.universe, model.constant_meanings, )
+
+
+def copy_dict(dict_to_copy):
+    """
+    deepcopy of dictionary of {str: set}
+    :param dict_to_copy: the dictionary to copy
+    :return: a copy of the dictionary
+    """
+    new_dict = {}
+    for key in dict_to_copy:
+        new_set = set()
+        for tup in dict_to_copy[key]:
+            new_set.add(tup)
+        new_dict[key] = new_set
+    return new_dict
+
 
 def replace_relations_with_functions_in_model(model: Model[T],
                                               original_functions:

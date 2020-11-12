@@ -281,3 +281,7 @@ def test_all(debug=False):
     test_replace_equality_with_SAME_in_formulas(debug)
     test_add_SAME_as_equality_in_model(debug)
     test_make_equality_as_SAME_in_model(debug)
+
+
+if __name__ == '__main__':
+    test_replace_functions_with_relations_in_model(False)
