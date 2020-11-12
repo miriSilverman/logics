@@ -67,22 +67,32 @@ def replace_functions_with_relations_in_model(model: Model[T]) -> Model[T]:
         assert function_name_to_relation_name(function) not in \
                model.relation_meanings
     # Task 8.1
-    print(model.relation_meanings)
-    relations = copy_dict(model.relation_meanings)
-    # relations = {key : copy.deepcopy(set(value)) for key, value in model.relation_meanings}
-    print(relations)
-    print("******")
-    print((model.relation_arities))
-    relations_arities = copy_dict(model.relation_arities)
-    print(relations_arities)
-    print("******")
+    relations = copy_dict(model.relation_meanings)  # copies the relations from the models relations
+
     for func in model.function_meanings:
         new_name = function_name_to_relation_name(func)
-        # new_relation =
-        print(func)
 
+        new_relations_set = set()
+        meaning_keys = model.function_meanings[func]
+        for key in meaning_keys:
+            tup = [v for v in meaning_keys[key]]
+            for i in key:
+                tup.append(i)
+            new_relations_set.add(tuple(tup))
+        relations[new_name] = new_relations_set
 
-    new_model = Model(model.universe, model.constant_meanings, )
+    return Model(model.universe, model.constant_meanings, relations, {})
+
+def relations_arities_copy(model):
+    """
+    does deep copy to the models relations arities
+    :param model: the model
+    :return: the copy of the relations arities
+    """
+    relations_arities = {}
+    for key in model.relation_arities:
+        relations_arities[key] = model.relation_arities[key]
+    return relations_arities
 
 
 def copy_dict(dict_to_copy):
