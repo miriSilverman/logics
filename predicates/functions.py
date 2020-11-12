@@ -135,37 +135,28 @@ def replace_relations_with_functions_in_model(model: Model[T],
         assert function_name_to_relation_name(function) in \
                model.relation_meanings
     # Task 8.2
-    print("_________________")
-    print("model:\n", model)
-    print("original_functions: ", original_functions)
     relations = copy_dict(model.relation_meanings)  # copies the relations from the models relations
-    # print("relations", relations)
     funcs = {}
     for func in original_functions:
-        # print("func: ", func)
         new_name_of_func = function_name_to_relation_name(func)
-        # print("new_name_of_func", new_name_of_func)
 
-        if new_name_of_func not in model.relation_meanings:
-            print("none case")
+        if new_name_of_func not in model.relation_meanings: # the function doesnt exist in the relations
             return None
 
         func_meaning_dict = {}
         meaning_of_relation = model.relation_meanings[new_name_of_func]
-        # print("meaning_of_relation", meaning_of_relation)
+        if len(meaning_of_relation) != len(model.universe)**(model.relation_arities[new_name_of_func]-1):
+            return None
         for tup in meaning_of_relation:
             key = tup[1:]
             val = tup[0]
             if key in func_meaning_dict:
                 return None
             func_meaning_dict[key] = val
-            # print("func_meaning_dict", func_meaning_dict)
         funcs[func] = func_meaning_dict
         relations.pop(new_name_of_func)
 
-    m = Model(model.universe, model.constant_meanings, relations, funcs)
-    print(m)
-    return m
+    return Model(model.universe, model.constant_meanings, relations, funcs)
 
 
 def _compile_term(term: Term) -> List[Formula]:

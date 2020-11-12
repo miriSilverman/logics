@@ -101,11 +101,6 @@ class Model(Generic[T]):
             arity = len(some_argument)
             assert arity > 0
 
-            print("*********")
-            print(function_meanings)
-            print(arity)
-            print("*********")
-
             assert len(function_meaning) == len(universe)**arity
             for arguments in function_meaning:
                 assert len(arguments) == arity
