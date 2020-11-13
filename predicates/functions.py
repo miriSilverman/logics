@@ -83,17 +83,6 @@ def replace_functions_with_relations_in_model(model: Model[T]) -> Model[T]:
 
     return Model(model.universe, model.constant_meanings, relations, {})
 
-# def relations_arities_copy(model):
-#     """
-#     does deep copy to the models relations arities
-#     :param model: the model
-#     :return: the copy of the relations arities
-#     """
-#     relations_arities = {}
-#     for key in model.relation_arities:
-#         relations_arities[key] = model.relation_arities[key]
-#     return relations_arities
-
 
 def copy_dict(dict_to_copy):
     """
@@ -233,6 +222,25 @@ def replace_functions_with_relations_in_formula(formula: Formula) -> Formula:
     for variable in formula.variables():
         assert variable[0] != 'z'
     # Task 8.4
+    if is_relation(formula.root):
+
+        new_args_names = []     # R[g(x),y,h(k(x3))] ---> R[z1,y,z3]
+        all_formulas = []       # [[z1=g(x)],???, [z2=k(x3), z3=h(z2)]]
+        all_formulas_as_relations = []  # [[G(z1,x)],???, [K(z2,x3), H(z3,z2)]]
+        for term in formula.arguments:
+            if is_function(term):
+                formulas = _compile_term(term)
+                all_formulas += [formulas]
+                new_args_names.append(formulas[-1].arguments[0])
+
+        for list in all_formulas:
+            for equation in list:
+                relation = Formula(function_name_to_relation_name(equation.arguments[1].root),
+                                   [equation.arguments[0]]+equation.arguments[1].arguments)
+
+
+
+
 
 def replace_functions_with_relations_in_formulas(formulas:
                                                  AbstractSet[Formula]) -> \
