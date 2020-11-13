@@ -191,19 +191,19 @@ def _compile_term(term: Term) -> List[Formula]:
         assert variable[0] != 'z'
     # Task 8.3
     formulas = []
-    new_name = next(fresh_variable_name_generator)
-    new_args = []
+    new_args = []       # args converted to variables
     for old_arg in term.arguments:
         if is_function(old_arg.root):
-            # new_formula = new_name=term.root(new_args)
             args_formulas = _compile_term(old_arg)      # [zi = g(x), ....]
             formulas += args_formulas
-            name_of_new_arg = args_formulas[-1].arguments[0]
+            name_of_new_arg = args_formulas[-1].arguments[0]    # the last equation contains the new name of the
+                                                                # old function
             new_args.append(name_of_new_arg)
         else:
             new_args.append(old_arg.root)
+
+    new_name = next(fresh_variable_name_generator)  #generates new name
     new_formula = Formula('=', [Term(new_name), Term(term.root, new_args)])
-    print(new_formula)
     formulas.append(new_formula)
     return formulas
 
