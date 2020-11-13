@@ -189,7 +189,7 @@ def _compile_term(term: Term) -> List[Formula]:
                                                                 # old function
             new_args.append(name_of_new_arg)
         else:
-            new_args.append(old_arg.root)
+            new_args.append(old_arg)
 
     new_name = next(fresh_variable_name_generator)  #generates new name
     new_formula = Formula('=', [Term(new_name), Term(term.root, new_args)])
@@ -222,7 +222,7 @@ def replace_functions_with_relations_in_formula(formula: Formula) -> Formula:
     for variable in formula.variables():
         assert variable[0] != 'z'
     # Task 8.4
-    print("formula is: ", formula)
+    # print("formula is: ", formula)
     if is_relation(formula.root):
 
         new_args_names = []     # R[g(x),y,h(k(x3))] ---> R[z1,y,z3]
@@ -235,35 +235,38 @@ def replace_functions_with_relations_in_formula(formula: Formula) -> Formula:
                 all_formulas += [formulas]
                 new_args_names.append(formulas[-1].arguments[0])
             else:
-                new_args_names.append(term.root)
-        print("new_args_names: ", new_args_names)
-        print("all_formulas: ", all_formulas)
+                new_args_names.append(term)
+        # print("new_args_names: ", new_args_names)
+        # print("all_formulas: ", all_formulas)
 
         for list in all_formulas:
-            print("cur list: ", list)
+            # print("cur list: ", list)
             for form in list:
                 print("cur form: ", form)
                 if is_equality(form.root):
                     name = function_name_to_relation_name(form.arguments[1].root)
-                    print("name: ", name)
-                    print([form.arguments[0]])
-                    print(form.arguments[1].arguments)
+                    # print("name: ", name)
+                    print(form.arguments[0])
+                    print(type(form.arguments[0]))
+                    print("args: f", form.arguments[1].arguments)
                     args = (form.arguments[0],)+form.arguments[1].arguments
-                    print(args)
+                    # print(args)
                     relation = Formula(name, args)
+                    print("type of args: ", type(args[0]))
+                    print("relation ",relation)
                     all_formulas_as_relations.append(relation)
                 # else:
         basic_relation = Formula(formula.root, new_args_names)
         new_f = concat_relations(0, all_formulas_as_relations,basic_relation)
-        print(new_f)
+        # print(new_f)
         return new_f
-    elif is_equality(formula.root):
-        name = function_name_to_relation_name(formula.root)
-        arg1 = formula.arguments[0]
-        arg2 = formula.arguments[1]
-        first = _compile_term(arg1) if is_function(arg1.root) else arg1.root
-        second = _compile_term(arg2) if is_function(arg2.root) else arg2.root
-        return Formula(name, )
+    # elif is_equality(formula.root):
+    #     name = function_name_to_relation_name(formula.root)
+    #     arg1 = formula.arguments[0]
+    #     arg2 = formula.arguments[1]
+    #     first = _compile_term(arg1) if is_function(arg1.root) else arg1.root
+    #     second = _compile_term(arg2) if is_function(arg2.root) else arg2.root
+    #     return Formula(name, )
 
 def concat_relations(idx, all_relations, basic_relation) -> Formula:
     if idx == len(all_relations):

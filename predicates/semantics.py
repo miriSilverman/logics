@@ -256,6 +256,8 @@ class Model(Generic[T]):
             formula, ``False`` otherwise.
         """
         for formula in formulas:
+            # print(formula.constants())
+            # print(self.constant_meanings.keys())
             assert formula.constants().issubset(self.constant_meanings.keys())
             for function,arity in formula.functions():
                 assert function in self.function_meanings and \

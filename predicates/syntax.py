@@ -760,6 +760,7 @@ class Formula:
             if task == 5:
                 set.add((self.root, len(self.arguments)))
             for term in self.arguments:
+
                 term.extraction_helper(set, task, vars)
         elif is_equality(self.root):
             for term in self.arguments:
