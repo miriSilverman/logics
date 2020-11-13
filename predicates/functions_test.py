@@ -286,3 +286,4 @@ def test_all(debug=False):
 if __name__ == '__main__':
     test_replace_functions_with_relations_in_model(False)
     test_replace_relations_with_functions_in_model(False)
+    test_compile_term(False)
