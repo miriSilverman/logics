@@ -142,25 +142,25 @@ def test_replace_functions_with_relations_in_formula(debug):
         #         'G': {('b','a'), ('a','b')}})]]:
 
         formula = Formula.parse(s)
-        print("formula::::", formula)
+        # print("formula::::", formula)
         if debug:
             print('Replacing functions with relations in formula', formula,
                   '...')
         new_formula = replace_functions_with_relations_in_formula(formula)
-        print("new_formula:::", new_formula)
+        # print("new_formula:::", new_formula)
         if debug:
             print('... got', new_formula)
 
         for model,validity in [[valid_model,True], [invalid_model,False]]:
             is_valid_model = model.is_model_of({new_formula})
-            print("is_valid_model:::", is_valid_model)
+            # print("is_valid_model:::", is_valid_model)
             if debug:
                 print('which', 'is' if is_valid_model else 'is not',
                       'satisfied by model', model)
-            if(is_valid_model == validity):
-                print("passed")
-            else:
-                print("did not")
+            # if(is_valid_model == validity):
+            #     print("passed")
+            # else:
+            #     print("did not")
             assert is_valid_model == validity
 
 def test_replace_functions_with_relations_in_formulas(debug):
