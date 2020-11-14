@@ -274,16 +274,6 @@ def concat_relations(idx, all_relations, basic_relation) -> Formula:
     return Formula('E', str(var), next_formula)
 
 
-if __name__ == '__main__':
-    # relations = [Formula.parse("G(z1,x)"), Formula.parse("K(z2,x3)"), Formula.parse("H(z3,z2)")]
-    # f = concat_relations(0, relations, Formula.parse("R(z1,y,z3)"))
-    # print(f)
-    form = Formula.parse("f(x)=g(x2)")
-    # form = Formula.parse("R(f(g(x)),h(2,y),3)")
-    f = replace_functions_with_relations_in_formula(form)
-    print(f)
-
-
 
 
 
@@ -330,7 +320,77 @@ def replace_functions_with_relations_in_formulas(formulas:
         for variable in formula.variables():
             assert variable[0] != 'z'
     # Task 8.5
-        
+    new_formulas = set()
+    for formula in formulas:
+        new_formula = replace_functions_with_relations_in_formula(formula)
+        new_formulas.add(new_formula)
+        # old_funcs = formula.functions()
+        old_funcs =  [function_name_to_relation_name(f[0]) for f in formula.functions()]
+        all_relations_in_new_form = new_formula.relations()
+
+        print(old_funcs)
+        print(new_formula)
+        find_relations_in_formula(new_formula, old_funcs, {})
+
+
+
+        # print(old_funcs2)
+        # print(all_relations_in_new_form)
+        # #
+        #
+        # for func in old_funcs:
+        #     new_name_of_func = function_name_to_relation_name(func[0])
+        #     # print(new_name_of_func)
+        #     for relation in all_relations_in_new_form:
+        #         if relation[0] == new_name_of_func:
+        #             # print(new_name_of_func)
+        #
+        #             # extra_formula = Formula()
+
+
+
+
+def find_relations_in_formula(formula, old_funcs, dict: dict):
+    root = formula.root
+    if is_relation(root):
+        # print(root)
+        # print(type(root), type(old_funcs[0]))
+        if root in old_funcs:
+            first_arg =formula.arguments[0]
+            inner = Formula('E', 'z' , Formula(root, [Term('z'), Term('x')]))
+            fo = Formula('A', 'x', inner)
+            print("fo: ",fo)
+            z = Term('z')
+            z1 = Term('z1')
+            z2 = Term('z2')
+            x = Term('x')
+            and_f = Formula('&', Formula(root, []))
+            second_inner = Formula('->', and_f, eq_f)
+            second_formula = Formula('A', 'x', Formula('A', 'z1', Formula('A', 'z2', second_inner)))
+
+
+
+    elif is_quantifier(root):
+        return find_relations_in_formula(formula.predicate, old_funcs, dict)
+    elif is_binary(root):
+        find_relations_in_formula(formula.first,old_funcs, dict)
+        find_relations_in_formula(formula.second,old_funcs, dict)
+    elif is_unary(root):
+        find_relations_in_formula(formula.first,old_funcs, dict)
+
+
+
+
+if __name__ == '__main__':
+    # relations = [Formula.parse("G(z1,x)"), Formula.parse("K(z2,x3)"), Formula.parse("H(z3,z2)")]
+    # f = concat_relations(0, relations, Formula.parse("R(z1,y,z3)"))
+    # print(f)
+    form = Formula.parse("f(x)=g(x2)")
+    # form = Formula.parse("R(f(g(x)),h(2,y),3)")
+    f = replace_functions_with_relations_in_formula(form)
+    print(f)
+
+
 def replace_equality_with_SAME_in_formulas(formulas: AbstractSet[Formula]) -> \
         Set[Formula]:
     """Syntactically converts the given set of formulas to a canonically
