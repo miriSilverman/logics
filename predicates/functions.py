@@ -320,63 +320,64 @@ def replace_functions_with_relations_in_formulas(formulas:
         for variable in formula.variables():
             assert variable[0] != 'z'
     # Task 8.5
-    new_formulas = set()
+    new_formulas = set()        # todo: not sure at allll
     for formula in formulas:
         new_formula = replace_functions_with_relations_in_formula(formula)
         new_formulas.add(new_formula)
-        # old_funcs = formula.functions()
-        old_funcs =  [function_name_to_relation_name(f[0]) for f in formula.functions()]
-        all_relations_in_new_form = new_formula.relations()
+        old_funcs_as_relations =  [function_name_to_relation_name(f[0]) for f in formula.functions()]
 
-        print(old_funcs)
-        print(new_formula)
-        find_relations_in_formula(new_formula, old_funcs, {})
+        # print("old_funcs", old_funcs_as_relations)
 
+        for func in old_funcs_as_relations:
+                x = Term('x')
+                z = Term('z')
+                z1 = Term('z1')
+                z2 = Term('z2')
+                inner_first = Formula('E', z.root, Formula(func, [z, x]))
+                firs_formula = Formula('A', 'x', inner_first)
+                # print("firs_formula", firs_formula)
+                and_f = Formula('&', Formula(func, [z1, x]), Formula(func, [z2, x]))
+                eq_f = Formula('=', [z1, z2])
+                second_inner = Formula('->', and_f, eq_f)
+                second_formula = Formula('A', x.root, Formula('A', z1.root, Formula('A', z2.root, second_inner)))
+                # print("second_formula: ", second_formula)
+                conj_of_constrains = Formula('&', firs_formula, second_formula)
+                # print("formula final:   ", f)
+                final = Formula('&', new_formula, conj_of_constrains)
+                # print(final)
+                new_formulas.add(final)
 
+    return new_formulas
 
-        # print(old_funcs2)
-        # print(all_relations_in_new_form)
-        # #
-        #
-        # for func in old_funcs:
-        #     new_name_of_func = function_name_to_relation_name(func[0])
-        #     # print(new_name_of_func)
-        #     for relation in all_relations_in_new_form:
-        #         if relation[0] == new_name_of_func:
-        #             # print(new_name_of_func)
-        #
-        #             # extra_formula = Formula()
-
-
-
-
-def find_relations_in_formula(formula, old_funcs, dict: dict):
-    root = formula.root
-    if is_relation(root):
-        # print(root)
-        # print(type(root), type(old_funcs[0]))
-        if root in old_funcs:
-            first_arg =formula.arguments[0]
-            inner = Formula('E', 'z' , Formula(root, [Term('z'), Term('x')]))
-            fo = Formula('A', 'x', inner)
-            print("fo: ",fo)
-            z = Term('z')
-            z1 = Term('z1')
-            z2 = Term('z2')
-            x = Term('x')
-            and_f = Formula('&', Formula(root, []))
-            second_inner = Formula('->', and_f, eq_f)
-            second_formula = Formula('A', 'x', Formula('A', 'z1', Formula('A', 'z2', second_inner)))
-
-
-
-    elif is_quantifier(root):
-        return find_relations_in_formula(formula.predicate, old_funcs, dict)
-    elif is_binary(root):
-        find_relations_in_formula(formula.first,old_funcs, dict)
-        find_relations_in_formula(formula.second,old_funcs, dict)
-    elif is_unary(root):
-        find_relations_in_formula(formula.first,old_funcs, dict)
+#
+#
+# def find_relations_in_formula(formula, old_funcs, dict: dict):
+#     root = formula.root
+#     if is_relation(root):
+#         if root in old_funcs:
+#             x = Term('x')
+#             z = Term('z')
+#             z1 = Term('z1')
+#             z2 = Term('z2')
+#             inner_first = Formula('E', z.root , Formula(root, [z, x]))
+#             firs_formula = Formula('A', 'x', inner_first)
+#             print("firs_formula", firs_formula)
+#             and_f = Formula('&', Formula(root, [z1, x]), Formula(root, [z2, x]))
+#             eq_f = Formula('=', [z1, z2])
+#             second_inner = Formula('->', and_f, eq_f)
+#             second_formula = Formula('A', x.root, Formula('A', z1.root, Formula('A', z2.root, second_inner)))
+#             print("second_formula: ", second_formula)
+#             f = Formula('&', firs_formula, second_formula)
+#             print("formula final:   ", f)
+#
+#
+#     elif is_quantifier(root):
+#         return find_relations_in_formula(formula.predicate, old_funcs, dict)
+#     elif is_binary(root):
+#         find_relations_in_formula(formula.first,old_funcs, dict)
+#         find_relations_in_formula(formula.second,old_funcs, dict)
+#     elif is_unary(root):
+#         find_relations_in_formula(formula.first,old_funcs, dict)
 
 
 
