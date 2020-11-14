@@ -524,13 +524,13 @@ def _inline_proof_once(main_proof: Proof, line_number: int, lemma_proof: Proof) 
     len_of_lemma = len(lemma_proof.lines)
     cur_line = main_proof.lines[line_number]
     current_line_num = line_number
-    lines_map = create_lines_map(len_of_lemma, line_number, main_proof)
+    lines_map = create_lines_map(len_of_lemma, line_number, main_proof) # {old_num: new_num}
 
     lines = [line for line in main_proof.lines[:line_number]]   # lines before line_number
 
-    new_lemma_proof_for_cue_line = lemma_new_proof(cur_line, lemma_proof, main_proof)
+    new_lemma_proof_for_cur_line = lemma_new_proof(cur_line, lemma_proof, main_proof)
 
-    for proof_line in new_lemma_proof_for_cue_line.lines:   # lines of lemma
+    for proof_line in new_lemma_proof_for_cur_line.lines:   # lines of lemma
         new_line = correct_proof_line(current_line_num, lines, proof_line)
         lines.append(new_line)
     current_line_num += len_of_lemma
@@ -543,8 +543,8 @@ def _inline_proof_once(main_proof: Proof, line_number: int, lemma_proof: Proof) 
         lines.append(new_line)
         current_line_num += 1
 
-    new_lemma_proof_for_cue_line = Proof(main_proof.statement, main_proof.rules.union(lemma_proof.rules), lines)
-    return new_lemma_proof_for_cue_line
+    new_lemma_proof_for_cur_line = Proof(main_proof.statement, main_proof.rules.union(lemma_proof.rules), lines)
+    return new_lemma_proof_for_cur_line
 
 
 def correct_proof_line(current_line_num, lines, proof_line):
