@@ -484,16 +484,21 @@ def eq_replaces(relations):
 
 def implies_Rs(args_for_R1, args_for_R2, relation_name):
     """
-    
-    :param args_for_R1:
-    :param args_for_R2:
-    :param relation_name:
-    :return:
+    :param args_for_R1: list of argument to the relation as x_i
+    :param args_for_R2: list of argument to the relation as y_i
+    :param relation_name: the relations name
+    :return: the formula "(R(x0,...,xn)->R(y0,...,yn))"
     """
     return Formula('->', Formula(relation_name, args_for_R1), Formula(relation_name, args_for_R2))
 
 
 def conjunc_sames(args_for_R1, args_for_R2, idx):
+    """
+    :param args_for_R1: list of argument to the relation as x_i
+    :param args_for_R2: list of argument to the relation as y_i
+    :param idx: index of the current iteration
+    :return: the formula: "(SAME(x1, y1)&SAME(x2, y2)&...SAME(xn, yn)"
+    """
     f = Formula('SAME', [args_for_R1[idx], args_for_R2[idx]])
     if idx < len(args_for_R1) - 1:
         return Formula('&', f, conjunc_sames(args_for_R1,args_for_R2, idx+1))
@@ -501,6 +506,14 @@ def conjunc_sames(args_for_R1, args_for_R2, idx):
         return f
 
 def concat_alls(args_for_R1, args_for_R2, idx, relation_name):
+    """
+    :param args_for_R1: list of argument to the relation as x_i
+    :param args_for_R2: list of argument to the relation as y_i
+    :param idx: index of the current iteration
+    :param relation_name: the relations name
+    :return: the formula:
+    "Ax1...[Axn[Ay1...[Ayn[(SAME(x1, y1)&SAME(x2, y2)&...SAME(xn, yn)->(R(x0,...,xn)->R(y0,...,yn))]]]]"
+    """
     args_len = len(args_for_R1)
     if idx < args_len:
         return Formula('A', args_for_R1[idx].root, concat_alls(args_for_R1, args_for_R2, idx+1, relation_name))
@@ -513,6 +526,9 @@ def concat_alls(args_for_R1, args_for_R2, idx, relation_name):
 
 
 def basic_properties_of_same():
+    """
+    :return:  reflexivity, symmetry, transitivity formulas for SAME
+    """
     x = Term('x')
     y = Term('y')
     z = Term('z')
@@ -528,10 +544,6 @@ def basic_properties_of_same():
     transitivity = Formula('->', assumptions, first)
     return {reflexivity, symmetry, transitivity}
 
-
-if __name__ == '__main__':
-    f = Formula.parse("((R(x)&(K(x,y)->G(x1,x2,x3)))&x=y)")
-    replace_equality_with_SAME_in_formulas({f})
 
 def add_SAME_as_equality_in_model(model: Model[T]) -> Model[T]:
     """Adds a meaning for the relation name ``'SAME'`` in the given model, that
@@ -549,7 +561,13 @@ def add_SAME_as_equality_in_model(model: Model[T]) -> Model[T]:
     """
     assert 'SAME' not in model.relation_meanings
     # Task 8.7
-    
+
+
+if __name__ == '__main__':
+    f = Formula.parse("((R(x)&(K(x,y)->G(x1,x2,x3)))&x=y)")
+    replace_equality_with_SAME_in_formulas({f})
+
+
 def make_equality_as_SAME_in_model(model: Model[T]) -> Model[T]:
     """Converts the given model to a model where equality coincides with the
     meaning of ``'SAME'`` in the given model, in the sense that any set of
