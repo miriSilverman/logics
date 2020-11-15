@@ -277,7 +277,6 @@ def concat_relations(idx, all_relations, basic_relation) -> Formula:
 
 
 
-
 def replace_functions_with_relations_in_formulas(formulas:
                                                  AbstractSet[Formula]) -> \
         Set[Formula]:
@@ -320,34 +319,52 @@ def replace_functions_with_relations_in_formulas(formulas:
         for variable in formula.variables():
             assert variable[0] != 'z'
     # Task 8.5
-    new_formulas = set()        # todo: not sure at allll
+    new_formulas = set()
     for formula in formulas:
         new_formula = replace_functions_with_relations_in_formula(formula)
         new_formulas.add(new_formula)
-        old_funcs_as_relations =  [function_name_to_relation_name(f[0]) for f in formula.functions()]
 
-        # print("old_funcs", old_funcs_as_relations)
+        # all the names of the relations in the new formula that are a conversion of a function
+        old_funcs_as_relations =  [(function_name_to_relation_name(f[0]), f[1]+1) for f in formula.functions()]
 
-        for func in old_funcs_as_relations:
-                x = Term('x')
-                z = Term('z')
-                z1 = Term('z1')
-                z2 = Term('z2')
-                inner_first = Formula('E', z.root, Formula(func, [z, x]))
-                firs_formula = Formula('A', 'x', inner_first)
-                # print("firs_formula", firs_formula)
-                and_f = Formula('&', Formula(func, [z1, x]), Formula(func, [z2, x]))
-                eq_f = Formula('=', [z1, z2])
-                second_inner = Formula('->', and_f, eq_f)
-                second_formula = Formula('A', x.root, Formula('A', z1.root, Formula('A', z2.root, second_inner)))
-                # print("second_formula: ", second_formula)
-                conj_of_constrains = Formula('&', firs_formula, second_formula)
-                # print("formula final:   ", f)
-                final = Formula('&', new_formula, conj_of_constrains)
-                # print(final)
-                new_formulas.add(final)
+        for relation, arg_num in old_funcs_as_relations:
+            args_for_R = [Term('x' + str(i)) for i in range(arg_num)]   # [x0, x1, ... , xn]
 
-    return new_formulas
+            basic_formula = Formula('E', args_for_R[0].root, Formula(relation, args_for_R)) # "Ex0[R(x0,...,xn)]"
+            f1 = first_constrain(args_for_R, 1, basic_formula)  # "Ax1[Ax2[...Axn[Ex0[R(x0,...,xn)]]]]"
+
+            z1, z2 = Term('z1'), Term('z2')
+            args_for_R.extend([z1, z2])
+
+
+            # "((R(z1, x1,...,xn)&R(z2, x1,...,xn))->z1=z2)"
+            basic_formula = Formula('->', Formula('&', Formula(relation, [z1] + args_for_R[1:-2]),
+                                                  Formula(relation, [z2] + args_for_R[1:-2])), Formula('=', [z1, z2]))
+            # "Ax1[Ax2[...Axn[Az1[Az2[ ((R(z1, x1,...,xn)&R(z2, x1,...,xn))->z1=z2) ]]]]]"
+            f2 = first_constrain(args_for_R, 1, basic_formula)
+
+
+            conj_of_constrains = Formula('&', f1, f2)
+            final = Formula('&', new_formula, conj_of_constrains)
+            new_formulas.add(final)
+
+        return new_formulas
+
+
+def first_constrain(args_for_R, idx, basic_formula):
+    """
+    :param args_for_R: list of argument to the relation as x_i
+    :param idx: index of the current iteration
+    :param relation_name: the relations name
+    :return: the formula:
+    "Ax1...[Axn[basic_formula]]"
+    """
+    args_len = len(args_for_R)
+    if idx < args_len:
+        return Formula('A', args_for_R[idx].root, first_constrain(args_for_R, idx+1, basic_formula))
+    else:
+        return basic_formula
+
 
 #
 #
