@@ -292,7 +292,7 @@ if __name__ == '__main__':
     test_replace_functions_with_relations_in_formula(False)
     test_replace_functions_with_relations_in_formulas(False)
     test_replace_equality_with_SAME_in_formulas(False)
-
+    test_add_SAME_as_equality_in_model(False)
 
 
 

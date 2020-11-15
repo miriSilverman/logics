@@ -366,37 +366,6 @@ def first_constrain(args_for_R, idx, basic_formula):
         return basic_formula
 
 
-#
-#
-# def find_relations_in_formula(formula, old_funcs, dict: dict):
-#     root = formula.root
-#     if is_relation(root):
-#         if root in old_funcs:
-#             x = Term('x')
-#             z = Term('z')
-#             z1 = Term('z1')
-#             z2 = Term('z2')
-#             inner_first = Formula('E', z.root , Formula(root, [z, x]))
-#             firs_formula = Formula('A', 'x', inner_first)
-#             print("firs_formula", firs_formula)
-#             and_f = Formula('&', Formula(root, [z1, x]), Formula(root, [z2, x]))
-#             eq_f = Formula('=', [z1, z2])
-#             second_inner = Formula('->', and_f, eq_f)
-#             second_formula = Formula('A', x.root, Formula('A', z1.root, Formula('A', z2.root, second_inner)))
-#             print("second_formula: ", second_formula)
-#             f = Formula('&', firs_formula, second_formula)
-#             print("formula final:   ", f)
-#
-#
-#     elif is_quantifier(root):
-#         return find_relations_in_formula(formula.predicate, old_funcs, dict)
-#     elif is_binary(root):
-#         find_relations_in_formula(formula.first,old_funcs, dict)
-#         find_relations_in_formula(formula.second,old_funcs, dict)
-#     elif is_unary(root):
-#         find_relations_in_formula(formula.first,old_funcs, dict)
-
-
 
 def replace_equality_with_SAME_in_formulas(formulas: AbstractSet[Formula]) -> \
         Set[Formula]:
@@ -578,11 +547,9 @@ def add_SAME_as_equality_in_model(model: Model[T]) -> Model[T]:
     """
     assert 'SAME' not in model.relation_meanings
     # Task 8.7
-
-
-if __name__ == '__main__':
-    f = Formula.parse("((R(x)&(K(x,y)->G(x1,x2,x3)))&x=y)")
-    replace_equality_with_SAME_in_formulas({f})
+    relation_meaning = copy_dict(model.relation_meanings)
+    relation_meaning['SAME'] = {(i,i) for i in model.universe}
+    return Model(model.universe, model.constant_meanings, relation_meaning)
 
 
 def make_equality_as_SAME_in_model(model: Model[T]) -> Model[T]:
@@ -609,3 +576,9 @@ def make_equality_as_SAME_in_model(model: Model[T]) -> Model[T]:
            model.relation_arities['SAME'] == 2
     assert len(model.function_meanings) == 0
     # Task 8.8
+
+
+if __name__ == '__main__':
+    f = Formula.parse("((R(x)&(K(x,y)->G(x1,x2,x3)))&x=y)")
+    replace_equality_with_SAME_in_formulas({f})
+
