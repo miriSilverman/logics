@@ -419,10 +419,10 @@ def replace_equality_with_SAME_in_formulas(formulas: AbstractSet[Formula]) -> \
 
 
 
-def replace_equality_helper(formula, relations):
+def replace_equality_helper(formula, relations) -> Formula:
     root = formula.root
     if is_equality(root):
-        eq_replaces(formula, relations)
+        return eq_replaces(formula, relations)
     elif is_quantifier(root):
         return replace_equality_helper(formula.predicate, relations)
     elif is_binary(root):
@@ -439,16 +439,31 @@ def eq_replaces(formula, relations):
         args_for_R2 = ['y'+str(i) for i in range(arg_num)]
         print(args_for_R1)
         print(args_for_R2)
+        f = concat_alls(args_for_R1, args_for_R2, 0, relation)
+        print(f)
+
+def implies_Rs(args_for_R1, args_for_R2, relation_name):
+    return Formula('->', Formula(relation_name, args_for_R1), Formula(relation_name, args_for_R2))
 
 
-def concat_alls(args_for_R1, args_for_R2, idx):
+def conjunc_sames(args_for_R1, args_for_R2, idx):
+    f = Formula('SAME', [args_for_R1[idx], args_for_R2[idx]])
+    if idx < len(args_for_R1) - 1:
+        return Formula('&', f, conjunc_sames(args_for_R1,args_for_R2, idx+1))
+    else:
+        return f
+
+def concat_alls(args_for_R1, args_for_R2, idx, relation_name):
     args_len = len(args_for_R1)
     if idx < args_len:
-        return Formula('A', args_for_R1[idx], concat_alls(args_for_R1, args_for_R2, idx+1))
+        return Formula('A', args_for_R1[idx], concat_alls(args_for_R1, args_for_R2, idx+1, relation_name))
     elif idx < args_len*2:
-        return Formula('A', args_for_R2[idx-args_len], concat_alls(args_for_R1, args_for_R2, idx+1))
+        return Formula('A', args_for_R2[idx-args_len], concat_alls(args_for_R1, args_for_R2, idx+1, relation_name))
     else:
-        return Formula.parse("z1=z2")
+        f1 = conjunc_sames(args_for_R1, args_for_R2, 0)
+        f2 = implies_Rs(args_for_R1, args_for_R2, relation_name)
+        return Formula('->', f1, f2)
+
 
 
 
