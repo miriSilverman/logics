@@ -236,6 +236,9 @@ def test_replace_equality_with_SAME_in_formulas(debug):
             print('which',
                   'is' if model.is_model_of(new_formulas) else 'is not',
                   'satisfied by model', model)
+        print("model: ", model)
+        print(model.is_model_of(new_formulas))
+        print("v: ", validity)
         assert model.is_model_of(new_formulas) == validity
   
 def test_add_SAME_as_equality_in_model(debug):

@@ -420,8 +420,14 @@ def replace_equality_with_SAME_in_formulas(formulas: AbstractSet[Formula]) -> \
         formulas_without_eq.append(new_formula)
     fs = eq_replaces(all_relations_in_formulas)
     formulas_without_eq += fs
-    print(formulas_without_eq)
-    return set(formulas_without_eq)
+    s =  set(formulas_without_eq).union(basic_properties_of_same())
+    print("my set:  ")
+    print_set(s)
+    return s
+
+def print_set(s):
+    for n, i in enumerate(s):
+        print(str(n)+')  ', i)
 
 def replace_equality_helper(formula, relations) -> Formula:
     root = formula.root
@@ -443,8 +449,8 @@ def eq_replaces(relations):
     formulas = []
     for relation, arg_num in relations:
         print(relation)
-        args_for_R1 = ['x'+str(i) for i in range(arg_num)]
-        args_for_R2 = ['y'+str(i) for i in range(arg_num)]
+        args_for_R1 = [Term('x'+str(i)) for i in range(arg_num)]
+        args_for_R2 = [Term('y'+str(i)) for i in range(arg_num)]
         print(args_for_R1)
         print(args_for_R2)
         f = concat_alls(args_for_R1, args_for_R2, 0, relation)
@@ -465,17 +471,30 @@ def conjunc_sames(args_for_R1, args_for_R2, idx):
 def concat_alls(args_for_R1, args_for_R2, idx, relation_name):
     args_len = len(args_for_R1)
     if idx < args_len:
-        return Formula('A', args_for_R1[idx], concat_alls(args_for_R1, args_for_R2, idx+1, relation_name))
+        return Formula('A', args_for_R1[idx].root, concat_alls(args_for_R1, args_for_R2, idx+1, relation_name))
     elif idx < args_len*2:
-        return Formula('A', args_for_R2[idx-args_len], concat_alls(args_for_R1, args_for_R2, idx+1, relation_name))
+        return Formula('A', args_for_R2[idx-args_len].root, concat_alls(args_for_R1, args_for_R2, idx+1, relation_name))
     else:
         f1 = conjunc_sames(args_for_R1, args_for_R2, 0)
         f2 = implies_Rs(args_for_R1, args_for_R2, relation_name)
         return Formula('->', f1, f2)
 
 
+def basic_properties_of_same():
+    x = Term('x')
+    y = Term('y')
+    z = Term('z')
+    first = Formula('SAME', [x, y])
+    second = Formula('SAME', [y, x])
+    mid1 = Formula('SAME', [x, z])
+    mid2 = Formula('SAME', [z, y])
+    assumptions = Formula('&', mid1, mid2)
 
 
+    reflexivity = Formula('SAME', [x, x])
+    symmetry = Formula('&', Formula('->', first, second), Formula('->', second, first))
+    transitivity = Formula('->', assumptions, first)
+    return {reflexivity, symmetry, transitivity}
 
 
 if __name__ == '__main__':
