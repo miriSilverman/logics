@@ -408,56 +408,88 @@ def replace_equality_with_SAME_in_formulas(formulas: AbstractSet[Formula]) -> \
         assert 'SAME' not in \
                {relation for relation,arity in formula.relations()}
     # Task 8.6
+    all_relations_in_formulas = relations_in_all_formulas(formulas) # list of all the relations in formulas
+
+    # list of all the formulas when every equality x=y is replaced with SAME(x,y)
+    formulas_without_eq = replace_equality_with_same(all_relations_in_formulas, formulas)
+
+    # set of formulas for every relation of type: "Ax[Ay[(SAME(x,y)->(R(x)->R(y))]]"
+    fs = eq_replaces(all_relations_in_formulas)
+
+    return set(formulas_without_eq).union(basic_properties_of_same()).union(fs)
+
+
+def replace_equality_with_same(all_relations_in_formulas, formulas):
+    """
+    :param all_relations_in_formulas: list of all the relations in all the formulas
+    :param formulas: set of all the formulas
+    :return: list of all the formulas when every equality x=y is replaced with SAME(x,y)
+    """
+    formulas_without_eq = []
+    for formula in formulas:
+        new_formula = replace_equality_helper(formula)
+        formulas_without_eq.append(new_formula)
+    return formulas_without_eq
+
+
+def relations_in_all_formulas(formulas):
+    """
+    :param formulas: set of formulas
+    :return: list of all the relations in all the formulas
+    """
     all_relations_in_formulas = []
     for f in formulas:
         for r in f.relations():
             all_relations_in_formulas.append(r)
+    return all_relations_in_formulas
 
-    print(all_relations_in_formulas)
-    formulas_without_eq = []
-    for formula in formulas:
-        new_formula = replace_equality_helper(formula, all_relations_in_formulas)
-        formulas_without_eq.append(new_formula)
-    fs = eq_replaces(all_relations_in_formulas)
-    formulas_without_eq += fs
-    s =  set(formulas_without_eq).union(basic_properties_of_same())
-    print("my set:  ")
-    print_set(s)
-    return s
+#
+# def print_set(s):
+#     for n, i in enumerate(s):
+#         print(str(n)+')  ', i)
 
-def print_set(s):
-    for n, i in enumerate(s):
-        print(str(n)+')  ', i)
-
-def replace_equality_helper(formula, relations) -> Formula:
+def replace_equality_helper(formula) -> Formula:
+    """
+    :param formula: formula to replace the equalities in it
+    :return: the formula when every equality x=y is replaced with SAME(x,y)
+    """
     root = formula.root
     if is_equality(root) or is_relation(root):
         if is_equality(root):
             root = 'SAME'
         return Formula(root, formula.arguments)
     elif is_quantifier(root):
-        return Formula(root, formula.variable, replace_equality_helper(formula.predicate, relations))
+        return Formula(root, formula.variable, replace_equality_helper(formula.predicate))
     elif is_binary(root):
-        first = replace_equality_helper(formula.first, relations)
-        second = replace_equality_helper(formula.second, relations)
+        first = replace_equality_helper(formula.first)
+        second = replace_equality_helper(formula.second)
         return Formula(root, first, second)
     elif is_unary(root):
-        first = replace_equality_helper(formula.first, relations)
+        first = replace_equality_helper(formula.first)
         return Formula(root, first)
 
 def eq_replaces(relations):
-    formulas = []
+    """
+    :param relations: list of all the relations in the formulas
+    :return: a set of formulas, each for every relation R(x) of the format:
+    "Ax[Ay[(SAME(x,y)->(R(x)->R(y))]]" (as well as for not unary relations)
+    """
+    formulas = set()
     for relation, arg_num in relations:
-        print(relation)
         args_for_R1 = [Term('x'+str(i)) for i in range(arg_num)]
         args_for_R2 = [Term('y'+str(i)) for i in range(arg_num)]
-        print(args_for_R1)
-        print(args_for_R2)
         f = concat_alls(args_for_R1, args_for_R2, 0, relation)
-        formulas.append(f)
+        formulas.add(f)
     return formulas
 
 def implies_Rs(args_for_R1, args_for_R2, relation_name):
+    """
+    
+    :param args_for_R1:
+    :param args_for_R2:
+    :param relation_name:
+    :return:
+    """
     return Formula('->', Formula(relation_name, args_for_R1), Formula(relation_name, args_for_R2))
 
 
