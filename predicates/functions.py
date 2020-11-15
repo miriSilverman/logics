@@ -381,17 +381,6 @@ def replace_functions_with_relations_in_formulas(formulas:
 
 
 
-
-if __name__ == '__main__':
-    # relations = [Formula.parse("G(z1,x)"), Formula.parse("K(z2,x3)"), Formula.parse("H(z3,z2)")]
-    # f = concat_relations(0, relations, Formula.parse("R(z1,y,z3)"))
-    # print(f)
-    form = Formula.parse("f(x)=g(x2)")
-    # form = Formula.parse("R(f(g(x)),h(2,y),3)")
-    f = replace_functions_with_relations_in_formula(form)
-    print(f)
-
-
 def replace_equality_with_SAME_in_formulas(formulas: AbstractSet[Formula]) -> \
         Set[Formula]:
     """Syntactically converts the given set of formulas to a canonically
@@ -419,7 +408,56 @@ def replace_equality_with_SAME_in_formulas(formulas: AbstractSet[Formula]) -> \
         assert 'SAME' not in \
                {relation for relation,arity in formula.relations()}
     # Task 8.6
-        
+    all_relations_in_formulas = []
+    for f in formulas:
+        for r in f.relations():
+            all_relations_in_formulas.append(r)
+
+    print(all_relations_in_formulas)
+    for formula in formulas:
+        replace_equality_helper(formula, all_relations_in_formulas)
+
+
+
+def replace_equality_helper(formula, relations):
+    root = formula.root
+    if is_equality(root):
+        eq_replaces(formula, relations)
+    elif is_quantifier(root):
+        return replace_equality_helper(formula.predicate, relations)
+    elif is_binary(root):
+        replace_equality_helper(formula.first, relations)
+        replace_equality_helper(formula.second, relations)
+    elif is_unary(root):
+        replace_equality_helper(formula.first, relations)
+
+
+def eq_replaces(formula, relations):
+    for relation, arg_num in relations:
+        print(relation)
+        args_for_R1 = ['x'+str(i) for i in range(arg_num)]
+        args_for_R2 = ['y'+str(i) for i in range(arg_num)]
+        print(args_for_R1)
+        print(args_for_R2)
+
+
+def concat_alls(args_for_R1, args_for_R2, idx):
+    args_len = len(args_for_R1)
+    if idx < args_len:
+        return Formula('A', args_for_R1[idx], concat_alls(args_for_R1, args_for_R2, idx+1))
+    elif idx < args_len*2:
+        return Formula('A', args_for_R2[idx-args_len], concat_alls(args_for_R1, args_for_R2, idx+1))
+    else:
+        return Formula.parse("z1=z2")
+
+
+
+
+
+if __name__ == '__main__':
+    f = Formula.parse("((R(x)&(K(x,y)->G(x1,x2,x3)))&x=y)")
+    replace_equality_with_SAME_in_formulas({f})
+
 def add_SAME_as_equality_in_model(model: Model[T]) -> Model[T]:
     """Adds a meaning for the relation name ``'SAME'`` in the given model, that
     canonically corresponds to equality in the given model.
