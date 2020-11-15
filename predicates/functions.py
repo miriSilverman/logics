@@ -414,25 +414,33 @@ def replace_equality_with_SAME_in_formulas(formulas: AbstractSet[Formula]) -> \
             all_relations_in_formulas.append(r)
 
     print(all_relations_in_formulas)
+    formulas_without_eq = []
     for formula in formulas:
-        replace_equality_helper(formula, all_relations_in_formulas)
-
-
+        new_formula = replace_equality_helper(formula, all_relations_in_formulas)
+        formulas_without_eq.append(new_formula)
+    fs = eq_replaces(all_relations_in_formulas)
+    formulas_without_eq += fs
+    print(formulas_without_eq)
+    return set(formulas_without_eq)
 
 def replace_equality_helper(formula, relations) -> Formula:
     root = formula.root
-    if is_equality(root):
-        return eq_replaces(formula, relations)
+    if is_equality(root) or is_relation(root):
+        if is_equality(root):
+            root = 'SAME'
+        return Formula(root, formula.arguments)
     elif is_quantifier(root):
-        return replace_equality_helper(formula.predicate, relations)
+        return Formula(root, formula.variable, replace_equality_helper(formula.predicate, relations))
     elif is_binary(root):
-        replace_equality_helper(formula.first, relations)
-        replace_equality_helper(formula.second, relations)
+        first = replace_equality_helper(formula.first, relations)
+        second = replace_equality_helper(formula.second, relations)
+        return Formula(root, first, second)
     elif is_unary(root):
-        replace_equality_helper(formula.first, relations)
+        first = replace_equality_helper(formula.first, relations)
+        return Formula(root, first)
 
-
-def eq_replaces(formula, relations):
+def eq_replaces(relations):
+    formulas = []
     for relation, arg_num in relations:
         print(relation)
         args_for_R1 = ['x'+str(i) for i in range(arg_num)]
@@ -440,7 +448,8 @@ def eq_replaces(formula, relations):
         print(args_for_R1)
         print(args_for_R2)
         f = concat_alls(args_for_R1, args_for_R2, 0, relation)
-        print(f)
+        formulas.append(f)
+    return formulas
 
 def implies_Rs(args_for_R1, args_for_R2, relation_name):
     return Formula('->', Formula(relation_name, args_for_R1), Formula(relation_name, args_for_R2))
