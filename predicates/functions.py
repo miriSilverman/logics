@@ -576,31 +576,42 @@ def make_equality_as_SAME_in_model(model: Model[T]) -> Model[T]:
            model.relation_arities['SAME'] == 2
     assert len(model.function_meanings) == 0
     # Task 8.8
-    equivalence_classes = set(model.universe)
-    eq_belonging = {i:i for i in model.universe}
-    print("1:", eq_belonging)
+    new_universe = set(model.universe)
+    equivalence_classes = {i:i for i in model.universe}
+    # print("1:", equivalence_classes)
     for pair in model.relation_meanings['SAME']:
         first, second = pair[0], pair[1]
         if first != second:
-            print("pair: ", pair)
-            if first in equivalence_classes and second in equivalence_classes:
-                equivalence_classes.remove(second)
-                eq_belonging[first] = first
-                eq_belonging[second] = first
-                for key in eq_belonging:
-                    if eq_belonging[key] == second:
-                        eq_belonging[key] = first
+            # print("pair: ", pair)
+            if first in new_universe and second in new_universe:
+                new_universe.remove(second)
+                equivalence_classes[first] = first
+                equivalence_classes[second] = first
+                for key in equivalence_classes:
+                    if equivalence_classes[key] == second:
+                        equivalence_classes[key] = first
 
 
-        print("eq: ",equivalence_classes)
-    print("eq_belonging: ",eq_belonging)
+        # print("eq: ",new_universe)
+    # print("eq_belonging: ",equivalence_classes)
     constants = dict()
-    # for key, val in model.constant_meanings:
-    #     if val not in
+    cm = model.constant_meanings
+    for key in cm:
+        constants[key] = equivalence_classes[cm[key]]
 
-
-
-
+    relations = dict()
+    rm = model.relation_meanings
+    for key in rm:
+        meanings = set()
+        for tup in rm[key]:
+            new_tup = []
+            for i in tup:
+                new_tup.append(equivalence_classes[i])
+            meanings.add(tuple(new_tup))
+        relations[key] = meanings
+    m =  Model(new_universe, constants, relations)
+    print(m)
+    return m
 if __name__ == '__main__':
     # f = Formula.parse("((R(x)&(K(x,y)->G(x1,x2,x3)))&x=y)")
     # replace_equality_with_SAME_in_formulas({f})
