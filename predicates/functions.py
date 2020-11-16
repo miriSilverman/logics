@@ -576,9 +576,69 @@ def make_equality_as_SAME_in_model(model: Model[T]) -> Model[T]:
            model.relation_arities['SAME'] == 2
     assert len(model.function_meanings) == 0
     # Task 8.8
+    equivalence_classes = set(model.universe)
+    eq_belonging = {i:i for i in model.universe}
+    print("1:", eq_belonging)
+    for pair in model.relation_meanings['SAME']:
+        first, second = pair[0], pair[1]
+        if first != second:
+            print("pair: ", pair)
+            if first in equivalence_classes and second in equivalence_classes:
+                equivalence_classes.remove(second)
+                eq_belonging[first] = first
+                eq_belonging[second] = first
+                for key in eq_belonging:
+                    if eq_belonging[key] == second:
+                        eq_belonging[key] = first
+
+
+        print("eq: ",equivalence_classes)
+    print("eq_belonging: ",eq_belonging)
+    constants = dict()
+    # for key, val in model.constant_meanings:
+    #     if val not in
+
+
 
 
 if __name__ == '__main__':
-    f = Formula.parse("((R(x)&(K(x,y)->G(x1,x2,x3)))&x=y)")
-    replace_equality_with_SAME_in_formulas({f})
+    # f = Formula.parse("((R(x)&(K(x,y)->G(x1,x2,x3)))&x=y)")
+    # replace_equality_with_SAME_in_formulas({f})
+    eq = {0,1,2,3,4}
+    not_to_add = set()
+    same_pairs = {(0,0),(0,4),(1,1),(2,2),(3,3),(4,4),(4,0),(1,2),(2,1)}
+    for pair in same_pairs:
+        print(pair)
+        print(eq)
+        p0, p1 = pair[0], pair[1]
+        first_in_eq = p0 in eq
+        second_in_eq = p1 in eq
+        print(first_in_eq)
+        print(second_in_eq)
+        if p0 != p1:
+            print("not equal")
+            if first_in_eq and second_in_eq:
+                print("here")
+                eq.remove(p1)
+
+            # if p0 in eq and p1 in eq:
+
+            # if first_in_eq and second_in_eq:
+            #     eq.remove(pair[1])
+            # elif not first_in_eq and not second_in_eq:
+            #     if first_in_n2add or second_in_n2add:
+            #         not_to_add.add(p0)
+            #         not_to_add.add(p1)
+            #     elif
+        # if pair[0] not in not_to_add and pair[1] not in not_to_add:
+        #     if pair[0] not in eq and pair[1] not in eq:
+        #         eq.add(pair[0])
+        # not_to_add.add(pair[0])
+        # not_to_add.add(pair[1])
+        # print("pair is: ", pair)
+
+        # print(eq)
+        # print(not_to_add)
+        print("________")
+
 
