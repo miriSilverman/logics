@@ -577,18 +577,21 @@ def make_equality_as_SAME_in_model(model: Model[T]) -> Model[T]:
     assert len(model.function_meanings) == 0
     # Task 8.8
     new_universe = set(model.universe)
-    equivalence_classes = {i:i for i in model.universe}
+    equivalence_classes = {i:i for i in model.universe} # {element_in_universe: the equivalence_class delegate}
+
     for pair in model.relation_meanings['SAME']:
         first, second = pair[0], pair[1]
-        if first != second:
-            if first in new_universe and second in new_universe:
+        if first != second: # two elements that belong to the same equivalence class
+            if equivalence_classes[first] != equivalence_classes[second]:
                 new_universe.remove(second)
-                equivalence_classes[first] = first
-                equivalence_classes[second] = first
-                for key in equivalence_classes:
-                    if equivalence_classes[key] == second:
-                        equivalence_classes[key] = first
+                equivalence_classes[second] = equivalence_classes[first]
 
+                for key in equivalence_classes:
+                    # update all the element that had "second"as their delegate to have its new delegate
+                    if equivalence_classes[key] == equivalence_classes[second]:
+                        equivalence_classes[key] = equivalence_classes[first]
+
+    # replace in constants an relation the new delegates
     constants = dict()
     cm = model.constant_meanings
     for key in cm:
@@ -608,7 +611,7 @@ def make_equality_as_SAME_in_model(model: Model[T]) -> Model[T]:
 
 
     m =  Model(new_universe, constants, relations)
-    print(m)
+    # print(m)
     return m
 
 
@@ -640,13 +643,9 @@ if __name__ == '__main__':
     for pair in same_pairs:
         first, second = pair[0], pair[1]
         if first != second:
-            print(pair)
-            print(new_universe)
-            print(equivalence_classes)
             if equivalence_classes[first] != equivalence_classes[second]:
-                print("removed: ", second)
                 new_universe.remove(second)
-                equivalence_classes[first] = equivalence_classes[first]
+                # equivalence_classes[first] = equivalence_classes[first]
                 equivalence_classes[second] = equivalence_classes[first]
                 for key in equivalence_classes:
                     if equivalence_classes[key] == equivalence_classes[second]:
@@ -654,4 +653,5 @@ if __name__ == '__main__':
 
 
             print("_____")
-
+    print(equivalence_classes)
+    print(new_universe)
