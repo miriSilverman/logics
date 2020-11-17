@@ -443,4 +443,4 @@ if __name__ == '__main__':
     extraTestsForTermPrefix()
     extra_formula_parse()
     test_ex7()
-    test_term_substitute(True)
+    test_term_substitute()

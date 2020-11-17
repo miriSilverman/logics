@@ -376,17 +376,17 @@ class Term:
         for variable in forbidden_variables:
             assert is_variable(variable)
         # Task 9.1
-        # print("self: ", self)
-        # print(substitution_map)
-        # print("forrbidden: ", forbidden_variables)
         root = self.root
         if is_variable(root) or is_constant(root):
             if root in substitution_map.keys():
                 sub_val = substitution_map[root]
-                try:
-                    sub_val.substitute(substitution_map, forbidden_variables)
+
                 if root in forbidden_variables:
-                    raise ForbiddenVariableError
+                    raise ForbiddenVariableError(root)
+
+                for key in forbidden_variables:     # checks that no forbidden vars in the substitution of the root
+                    if key in sub_val.variables():
+                        raise ForbiddenVariableError(key)
                 else:
                     return sub_val
             else:
