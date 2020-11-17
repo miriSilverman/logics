@@ -304,6 +304,8 @@ def test_formula_substitute(debug=False):
         if debug:
             print('Substituting', substitution_map, 'in', formula, 'yields',
                   result)
+        print(result)
+        print(expected)
         assert result == expected
 
     for s,substitution,forbidden_variables,variable_name in [
@@ -444,3 +446,9 @@ if __name__ == '__main__':
     extra_formula_parse()
     test_ex7()
     test_term_substitute()
+    # t = Term('_')
+    # map = {'_': Term('c')}
+    # x = t.substitute(map, set())
+    # print(x)
+    test_formula_substitute(True)
+

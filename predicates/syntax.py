@@ -392,7 +392,15 @@ class Term:
             else:
                 return self
         elif is_function(root):
-            return Term(root, [term.substitute(substitution_map, forbidden_variables) for term in self.arguments])
+            args = []
+            for term in self.arguments:
+                try:
+                    sub_term = term.substitute(substitution_map, forbidden_variables)
+                    args.append(sub_term)
+                except ForbiddenVariableError as e:
+                    raise e
+            return Term(root, args)
+            # return Term(root, [term.substitute(substitution_map, forbidden_variables) for term in self.arguments])
 
 
 
@@ -908,6 +916,35 @@ class Formula:
         for variable in forbidden_variables:
             assert is_variable(variable)
         # Task 9.2
+        print("____")
+        print("self is: ", self)
+        print("substitution_map ", substitution_map)
+        print("forbidden_variables ", forbidden_variables)
+        root = self.root
+        if is_unary(root):
+            return Formula(root, self.first.substitute(substitution_map, forbidden_variables))
+        elif is_binary(root):
+            first = self.first.substitute(substitution_map, forbidden_variables)
+            second = self.second.substitute(substitution_map, forbidden_variables)
+            return Formula(root, first, second)
+        elif is_quantifier(root):
+            updated_forbidden_vars = {i for i in forbidden_variables}
+            updated_forbidden_vars.add(self.variable)
+            return Formula(root, self.variable, self.predicate.substitute(substitution_map, updated_forbidden_vars))
+        elif is_relation(root) or is_equality(root):
+            print("hh")
+
+            args = [ ]
+            for term in self.arguments:
+                try:
+                    new_term = term.substitute(substitution_map, forbidden_variables)
+                    args.append(new_term)
+                except ForbiddenVariableError as e:
+                    raise e
+            print("args: ",args)
+            f = Formula(root, args)
+            print("f is: ", f)
+            return f
 
     def propositional_skeleton(self) -> Tuple[PropositionalFormula,
                                               Mapping[str, Formula]]:
