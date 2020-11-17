@@ -440,20 +440,7 @@ def extra_formula_parse():
         assert formula != None
 
 if __name__ == '__main__':
-    test_term_repr()
-    test_formula_repr()
-    test_term_parse_prefix()
     extraTestsForTermPrefix()
-    test_term_parse()
-    test_formula_parse_prefix()
     extra_formula_parse()
-    test_formula_parse()
-    test_term_constants()
-    test_term_variables()
-    test_term_functions()
-    test_formula_constants()
-    test_formula_variables()
-    test_free_variables()
-    test_formula_functions()
-    test_relations()
     test_ex7()
+    test_term_substitute(True)

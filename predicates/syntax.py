@@ -376,6 +376,25 @@ class Term:
         for variable in forbidden_variables:
             assert is_variable(variable)
         # Task 9.1
+        # print("self: ", self)
+        # print(substitution_map)
+        # print("forrbidden: ", forbidden_variables)
+        root = self.root
+        if is_variable(root) or is_constant(root):
+            if root in substitution_map.keys():
+                sub_val = substitution_map[root]
+                try:
+                    sub_val.substitute(substitution_map, forbidden_variables)
+                if root in forbidden_variables:
+                    raise ForbiddenVariableError
+                else:
+                    return sub_val
+            else:
+                return self
+        elif is_function(root):
+            return Term(root, [term.substitute(substitution_map, forbidden_variables) for term in self.arguments])
+
+
 
 @lru_cache(maxsize=100) # Cache the return value of is_equality
 def is_equality(string: str) -> bool:
