@@ -610,48 +610,7 @@ def make_equality_as_SAME_in_model(model: Model[T]) -> Model[T]:
             relations[key] = meanings
 
 
-    m =  Model(new_universe, constants, relations)
-    # print(m)
-    return m
+    return Model(new_universe, constants, relations)
 
 
 
-
-
-if __name__ == '__main__':
-    # f = Formula.parse("((R(x)&(K(x,y)->G(x1,x2,x3)))&x=y)")
-    # replace_equality_with_SAME_in_formulas({f})
-    eq = {0,1,2,3,4,5,6}
-    not_to_add = set()
-    same_pairs = {(5,5),(0,0),(0,4),(6,5), (1,1),(2,2),(3,3),(4,4),(6,6),(4,0),(1,2),(2,1), (3,0), (0,3),(5,6)}
-    # for pair in same_pairs:
-    #     print(pair)
-    #     print(eq)
-    #     p0, p1 = pair[0], pair[1]
-    #     first_in_eq = p0 in eq
-    #     second_in_eq = p1 in eq
-    #     print(first_in_eq)
-    #     print(second_in_eq)
-    #     if p0 != p1:
-    #         print("not equal")
-    #         if first_in_eq and second_in_eq:
-    #             print("here")
-    #             eq.remove(p1)
-
-    new_universe = eq
-    equivalence_classes = {i:i for i in eq}
-    for pair in same_pairs:
-        first, second = pair[0], pair[1]
-        if first != second:
-            if equivalence_classes[first] != equivalence_classes[second]:
-                new_universe.remove(second)
-                # equivalence_classes[first] = equivalence_classes[first]
-                equivalence_classes[second] = equivalence_classes[first]
-                for key in equivalence_classes:
-                    if equivalence_classes[key] == equivalence_classes[second]:
-                        equivalence_classes[key] = equivalence_classes[first]
-
-
-            print("_____")
-    print(equivalence_classes)
-    print(new_universe)
