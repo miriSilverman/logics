@@ -382,6 +382,7 @@ class Term:
                 sub_val = substitution_map[root]
 
                 if root in forbidden_variables:
+                    print(root)
                     raise ForbiddenVariableError(root)
 
                 for key in forbidden_variables:     # checks that no forbidden vars in the substitution of the root
@@ -934,7 +935,7 @@ class Formula:
         elif is_relation(root) or is_equality(root):
             print("hh")
 
-            args = [ ]
+            args = []
             for term in self.arguments:
                 try:
                     new_term = term.substitute(substitution_map, forbidden_variables)
