@@ -382,8 +382,9 @@ class Term:
                 sub_val = substitution_map[root]
 
                 if root in forbidden_variables:
-                    print(root)
-                    raise ForbiddenVariableError(root)
+                    return self
+                #     print(root)
+                #     raise ForbiddenVariableError(root)
 
                 for key in forbidden_variables:     # checks that no forbidden vars in the substitution of the root
                     if key in sub_val.variables():
@@ -917,10 +918,6 @@ class Formula:
         for variable in forbidden_variables:
             assert is_variable(variable)
         # Task 9.2
-        print("____")
-        print("self is: ", self)
-        print("substitution_map ", substitution_map)
-        print("forbidden_variables ", forbidden_variables)
         root = self.root
         if is_unary(root):
             return Formula(root, self.first.substitute(substitution_map, forbidden_variables))
@@ -933,7 +930,6 @@ class Formula:
             updated_forbidden_vars.add(self.variable)
             return Formula(root, self.variable, self.predicate.substitute(substitution_map, updated_forbidden_vars))
         elif is_relation(root) or is_equality(root):
-            print("hh")
 
             args = []
             for term in self.arguments:
@@ -942,10 +938,8 @@ class Formula:
                     args.append(new_term)
                 except ForbiddenVariableError as e:
                     raise e
-            print("args: ",args)
-            f = Formula(root, args)
-            print("f is: ", f)
-            return f
+            return Formula(root, args)
+
 
     def propositional_skeleton(self) -> Tuple[PropositionalFormula,
                                               Mapping[str, Formula]]:

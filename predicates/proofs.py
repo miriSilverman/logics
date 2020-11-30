@@ -242,6 +242,9 @@ class Schema:
             assert is_variable(variable)
         # Task 9.3
 
+
+
+
     def instantiate(self, instantiation_map: InstantiationMap) -> \
             Union[Formula, None]:
         """Instantiates the current schema according to the given map from
