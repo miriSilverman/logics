@@ -449,4 +449,4 @@ if __name__ == '__main__':
     # x = t.substitute(map, set())
     # print(x)
     test_formula_substitute()
-
+    test_propositional_skeleton()

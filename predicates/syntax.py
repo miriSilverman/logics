@@ -966,6 +966,50 @@ class Formula:
         """
         # Task 9.8
 
+        return self.propositional_skeleton_helper({})
+
+
+
+    def propositional_skeleton_helper(self, map):
+        root = self.root
+
+        if is_unary(root):
+            for key in map:
+                if self.first == map[key]:
+                    return PropositionalFormula(root, key), map
+
+            first, map = self.first.propositional_skeleton()
+            return PropositionalFormula(root, first), map
+
+        elif is_binary(root):
+            new_map = {key: map[key] for key in map}
+            for key in map:
+                if self.first == map[key]:
+                    first = key
+                    break
+            else:
+                first, first_map = self.first.propositional_skeleton_helper(new_map)
+                for key in first_map:
+                    new_map[key] = first_map[key]
+
+            for key in new_map:
+                if new_map[key] == self.second:
+                    second = key
+                    break
+            else:
+                second, second_map = self.second.propositional_skeleton_helper(new_map)
+                for key in second_map:
+                    new_map[key] = second_map[key]
+
+            return PropositionalFormula(root, first, second), new_map
+        else:
+            var_name = next(fresh_variable_name_generator)
+            return PropositionalFormula(var_name), {var_name: self}
+
+
+
+
+
     @staticmethod
     def from_propositional_skeleton(skeleton: PropositionalFormula,
                                     substitution_map: Mapping[str, Formula]) -> \
