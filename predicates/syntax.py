@@ -971,42 +971,145 @@ class Formula:
 
 
     def propositional_skeleton_helper(self, map):
+        """Computes a propositional skeleton of the current formula.
+
+                Args:
+                    map: the current map of  from each atomic propositional formula to the subformula for
+                    which it was substituted.
+
+                Returns:
+                    A pair. The first element of the pair is a propositional formula
+                    obtained from the current formula by substituting every (outermost)
+                    subformula that has a relation or quantifier at its root with an
+                    atomic propositional formula, consistently such that multiple equal
+                    such (outermost) subformulas are substituted with the same atomic
+                    propositional formula. The atomic propositional formulas used for
+                    substitution are obtained, from left to right, by calling
+                    `next`\ ``(``\ `~logic_utils.fresh_variable_name_generator`\ ``)``.
+                    The second element of the pair is a mapping from each atomic
+                    propositional formula to the subformula for which it was
+                    substituted.
+        """
         root = self.root
 
         if is_unary(root):
             for key in map:
-                if self.first == map[key]:
+                if self.first == map[key]:      # first arg already in the map
                     return PropositionalFormula(root, key), map
 
-            first, map = self.first.propositional_skeleton()
-            return PropositionalFormula(root, first), map
+            first, first_map = self.first.propositional_skeleton_helper(map)
+
+            return PropositionalFormula(root, first), first_map
 
         elif is_binary(root):
-            new_map = {key: map[key] for key in map}
             for key in map:
                 if self.first == map[key]:
-                    first = key
+                    first = key     # first arg already in the map
                     break
             else:
-                first, first_map = self.first.propositional_skeleton_helper(new_map)
-                for key in first_map:
-                    new_map[key] = first_map[key]
+                # first arg not in the map yet
+                first, first_map = self.first.propositional_skeleton_helper(map)
 
-            for key in new_map:
-                if new_map[key] == self.second:
-                    second = key
+            for key in map:
+                if map[key] == self.second:
+                    second = key        # second arg already in the map
                     break
             else:
-                second, second_map = self.second.propositional_skeleton_helper(new_map)
-                for key in second_map:
-                    new_map[key] = second_map[key]
+                # second arg not in the map yet
+                second, second_map = self.second.propositional_skeleton_helper(map)
 
-            return PropositionalFormula(root, first, second), new_map
+            return PropositionalFormula(root, first, second), map
+
         else:
+            for key in map:
+                if map[key] == self:  # formula in map already
+
+                    return PropositionalFormula(key), map
+
             var_name = next(fresh_variable_name_generator)
-            return PropositionalFormula(var_name), {var_name: self}
+            map[var_name] = self
+            return PropositionalFormula(var_name), map
 
-
+    #
+    # def propositional_skeleton_helper(self, map):
+    #     """Computes a propositional skeleton of the current formula.
+    #
+    #             Args:
+    #                 map: the current map of  from each atomic propositional formula to the subformula for
+    #                 which it was substituted.
+    #
+    #             Returns:
+    #                 A pair. The first element of the pair is a propositional formula
+    #                 obtained from the current formula by substituting every (outermost)
+    #                 subformula that has a relation or quantifier at its root with an
+    #                 atomic propositional formula, consistently such that multiple equal
+    #                 such (outermost) subformulas are substituted with the same atomic
+    #                 propositional formula. The atomic propositional formulas used for
+    #                 substitution are obtained, from left to right, by calling
+    #                 `next`\ ``(``\ `~logic_utils.fresh_variable_name_generator`\ ``)``.
+    #                 The second element of the pair is a mapping from each atomic
+    #                 propositional formula to the subformula for which it was
+    #                 substituted.
+    #     """
+    #     root = self.root
+    #     # new_map = {key: map[key] for key in map}
+    #
+    #     if is_unary(root):
+    #
+    #         for key in map:
+    #             if self.first == map[key]:      # first arg already in the map
+    #                 return PropositionalFormula(root, key), map
+    #
+    #         first, first_map = self.first.propositional_skeleton_helper(map)
+    #         # for key in first_map:       # adding the
+    #         #     new_map[key] = first_map[key]
+    #
+    #         return PropositionalFormula(root, first), first_map
+    #         # return PropositionalFormula(root, first), new_map
+    #
+    #     elif is_binary(root):
+    #         for key in map:
+    #             if self.first == map[key]:
+    #                 first = key
+    #                 break
+    #         else:
+    #             first, first_map = self.first.propositional_skeleton_helper(map)
+    #             # first, first_map = self.first.propositional_skeleton_helper(new_map)
+    #             # for key in first_map:
+    #             #     new_map[key] = first_map[key]
+    #
+    #         # for key in new_map:
+    #         #     if new_map[key] == self.second:
+    #         #         second = key
+    #         #         break
+    #         for key in map:
+    #             if map[key] == self.second:
+    #                 second = key
+    #                 break
+    #         else:
+    #             # second, second_map = self.second.propositional_skeleton_helper(new_map)
+    #             second, second_map = self.second.propositional_skeleton_helper(map)
+    #             # for key in second_map:
+    #             #     new_map[key] = second_map[key]
+    #
+    #         # return PropositionalFormula(root, first, second), new_map
+    #         return PropositionalFormula(root, first, second), map
+    #     else:
+    #         for key in map:
+    #             if map[key] == self:
+    #                 return PropositionalFormula(key), map
+    #
+    #         # for key in new_map:
+    #         #     if new_map[key] == self:
+    #         #         return PropositionalFormula(key), new_map
+    #
+    #         var_name = next(fresh_variable_name_generator)
+    #         # new_map[var_name] = self
+    #         map[var_name] = self
+    #         # return PropositionalFormula(var_name), new_map
+    #         return PropositionalFormula(var_name), map
+    #
+    #
 
 
 
