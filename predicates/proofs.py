@@ -539,6 +539,14 @@ class Proof:
             """
             assert line_number < len(lines) and lines[line_number] is self
             # Task 9.5
+            cur_line = lines[line_number]
+            scheme = cur_line.assumption
+
+            if scheme not in assumptions:
+                return False
+            f = scheme.instantiate(cur_line.instantiation_map)
+            return f == cur_line.formula
+
     
     @frozen
     class MPLine:
