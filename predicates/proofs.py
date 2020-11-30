@@ -241,8 +241,41 @@ class Schema:
         for variable in bound_variables:
             assert is_variable(variable)
         # Task 9.3
+        print("formula: ", formula)
+        print("constants: ", constants_and_variables_instantiation_map)
+        print("relations: ", relations_instantiation_map)
+        print("bound: ", bound_variables)
 
-
+        root = formula.root
+        if is_unary(root):
+            return Formula(root, Schema._instantiate_helper(formula.first, constants_and_variables_instantiation_map,
+                                                            relations_instantiation_map, bound_variables))
+        elif is_binary(root):
+            first = Schema._instantiate_helper(formula.first, constants_and_variables_instantiation_map,
+                                                            relations_instantiation_map, bound_variables)
+            second = Schema._instantiate_helper(formula.second, constants_and_variables_instantiation_map,
+                                                            relations_instantiation_map, bound_variables)
+            return Formula(root, first, second)
+        elif is_quantifier(root):
+            updated_forbidden_vars = {i for i in bound_variables}
+            updated_forbidden_vars.add(formula.variable)
+            var = formula.variable
+            if var in  constants_and_variables_instantiation_map:
+                var = constants_and_variables_instantiation_map[var]
+            return Formula(root, var, Schema._instantiate_helper(formula.predicate,
+                                     constants_and_variables_instantiation_map, relations_instantiation_map,
+                                                                 updated_forbidden_vars))
+        elif is_relation(root) or is_equality(root):
+            if root not in relations_instantiation_map:
+                return formula.substitute(constants_and_variables_instantiation_map, bound_variables)
+            sub = relations_instantiation_map[root]
+            if len(sub.arguments) == 0:
+                for fv in sub.free_variables:
+                    if fv in bound_variables:
+                        raise Schema.BoundVariableError(root, fv)
+                return sub
+            else:
+                
 
 
     def instantiate(self, instantiation_map: InstantiationMap) -> \
