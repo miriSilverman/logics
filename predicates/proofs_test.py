@@ -588,4 +588,5 @@ def test_all(debug=False):
 if __name__ == '__main__':
     test_instantiate_helper()
     test_instantiate()
-    test_assumption_line_is_valid(True)
+    test_assumption_line_is_valid()
+    test_mp_line_is_valid(True)
