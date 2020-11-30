@@ -995,16 +995,16 @@ class Formula:
         if is_unary(root):
             for key in map:
                 if self.first == map[key]:      # first arg already in the map
-                    return PropositionalFormula(root, key), map
+                    return PropositionalFormula(root, PropositionalFormula(key)), map
 
             first, first_map = self.first.propositional_skeleton_helper(map)
 
-            return PropositionalFormula(root, first), first_map
+            return PropositionalFormula(root, first), map
 
         elif is_binary(root):
             for key in map:
                 if self.first == map[key]:
-                    first = key     # first arg already in the map
+                    first = PropositionalFormula(key)     # first arg already in the map
                     break
             else:
                 # first arg not in the map yet
@@ -1012,7 +1012,7 @@ class Formula:
 
             for key in map:
                 if map[key] == self.second:
-                    second = key        # second arg already in the map
+                    second = PropositionalFormula(key)        # second arg already in the map
                     break
             else:
                 # second arg not in the map yet
@@ -1023,7 +1023,6 @@ class Formula:
         else:
             for key in map:
                 if map[key] == self:  # formula in map already
-
                     return PropositionalFormula(key), map
 
             var_name = next(fresh_variable_name_generator)
@@ -1144,3 +1143,4 @@ class Formula:
         for variable in skeleton.variables():
             assert variable in substitution_map
         # Task 9.10
+

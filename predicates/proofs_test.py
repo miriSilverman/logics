@@ -591,5 +591,6 @@ if __name__ == '__main__':
     test_assumption_line_is_valid()
     test_mp_line_is_valid()
     test_ug_line_is_valid()
+    test_tautology_line_is_valid()
 
 
