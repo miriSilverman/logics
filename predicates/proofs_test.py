@@ -30,8 +30,13 @@ def test_instantiate_helper(debug=False):
              'plus(s(z),x))])->Az[plus(x,z)=plus(z,x)])'),
             ('Ax[R(x)]', {'R'}, {}, {'R': Formula.parse('_=1')},
              'Ax[x=1]'),
+
+
+
             ('Ax[R(x)]', {'R', 'x'}, {'x': Term('z')},
              {'R': Formula.parse('_=x')}, 'Az[z=x]'),
+
+
             ('Ev[u=f(v)]', {'v'}, {'v': Term('x')}, {}, 'Ex[u=f(x)]'),
             ('(Ax[R(x)]->R(c))', {'c', 'x', 'R'}, {}, {}, '(Ax[R(x)]->R(c))'),
             ('(Ax[R(x)]->Ay[R(y)])', {'x', 'y'},
@@ -65,6 +70,9 @@ def test_instantiate_helper(debug=False):
             frozendict(relations_instantiation_map))
         if debug:
             print('... yields', result)
+
+        print("str(result)", str(result))
+        print("instance: ",instance)
         assert str(result) == instance
 
     for formula,templates,constant_and_variable_instantiation_map,\
@@ -578,4 +586,4 @@ def test_all(debug=False):
     test_ex9(debug)
 
 if __name__ == '__main__':
-    test_instantiate_helper()
+    test_instantiate_helper(True)

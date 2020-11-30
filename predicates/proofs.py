@@ -241,10 +241,6 @@ class Schema:
         for variable in bound_variables:
             assert is_variable(variable)
         # Task 9.3
-        print("formula: ", formula)
-        print("constants: ", constants_and_variables_instantiation_map)
-        print("relations: ", relations_instantiation_map)
-        print("bound: ", bound_variables)
 
         root = formula.root
         if is_unary(root):
@@ -256,26 +252,56 @@ class Schema:
             second = Schema._instantiate_helper(formula.second, constants_and_variables_instantiation_map,
                                                             relations_instantiation_map, bound_variables)
             return Formula(root, first, second)
+
         elif is_quantifier(root):
             updated_forbidden_vars = {i for i in bound_variables}
-            updated_forbidden_vars.add(formula.variable)
             var = formula.variable
             if var in  constants_and_variables_instantiation_map:
-                var = constants_and_variables_instantiation_map[var]
-            return Formula(root, var, Schema._instantiate_helper(formula.predicate,
-                                     constants_and_variables_instantiation_map, relations_instantiation_map,
-                                                                 updated_forbidden_vars))
+                var = constants_and_variables_instantiation_map[var].root
+            updated_forbidden_vars.add(var)
+
+            pred = Schema._instantiate_helper(formula.predicate,
+                                              constants_and_variables_instantiation_map, relations_instantiation_map,
+                                              updated_forbidden_vars)
+            return Formula(root, var, pred)
+
         elif is_relation(root) or is_equality(root):
+
             if root not in relations_instantiation_map:
-                return formula.substitute(constants_and_variables_instantiation_map, bound_variables)
+                return formula.substitute(constants_and_variables_instantiation_map, set())
+
             sub = relations_instantiation_map[root]
-            if len(sub.arguments) == 0:
-                for fv in sub.free_variables:
-                    if fv in bound_variables:
-                        raise Schema.BoundVariableError(root, fv)
+
+            if len(formula.arguments) == 0:     # relation of format R()
+                Schema.checkFreeVriables(bound_variables, root, sub)
                 return sub
-            else:
-                
+
+            else:   # relation of format R(t)
+                t = formula.arguments[0]
+                # try:
+
+                t_prime = t.substitute(constants_and_variables_instantiation_map, set())
+
+                Schema.checkFreeVriables(bound_variables, root, sub)
+
+                return sub.substitute({'_': t_prime}, set())
+
+                # except ForbiddenVariableError as e:
+                #     raise Schema.BoundVariableError(e.variable_name, root)
+
+    @staticmethod
+    def checkFreeVriables(bound_variables, root, sub):
+        """
+        Args:
+            bound_variables: variables to be treated as bound
+            root: root of formula
+            sub: relations_instantiation_map[root]
+
+        raises an exception if a free variable in the substitution is bounded
+        """
+        for fv in sub.free_variables():
+            if fv in bound_variables:
+                raise Schema.BoundVariableError(root, fv)
 
 
     def instantiate(self, instantiation_map: InstantiationMap) -> \

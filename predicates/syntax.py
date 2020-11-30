@@ -930,7 +930,6 @@ class Formula:
             updated_forbidden_vars.add(self.variable)
             return Formula(root, self.variable, self.predicate.substitute(substitution_map, updated_forbidden_vars))
         elif is_relation(root) or is_equality(root):
-
             args = []
             for term in self.arguments:
                 try:
