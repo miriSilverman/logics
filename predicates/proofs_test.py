@@ -71,8 +71,8 @@ def test_instantiate_helper(debug=False):
         if debug:
             print('... yields', result)
 
-        print("str(result)", str(result))
-        print("instance: ",instance)
+        # print("str(result)", str(result))
+        # print("instance: ",instance)
         assert str(result) == instance
 
     for formula,templates,constant_and_variable_instantiation_map,\
@@ -586,4 +586,6 @@ def test_all(debug=False):
     test_ex9(debug)
 
 if __name__ == '__main__':
-    test_instantiate_helper(True)
+    test_instantiate_helper()
+    test_instantiate()
+

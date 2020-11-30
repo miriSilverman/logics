@@ -119,7 +119,7 @@ class Schema:
                     that is disallowed during a schema instantiation.
                 relation_name: the relation name during whose substitution the
                     relevant occurrence of the variable name is to become bound.
-            """            
+            """
             assert is_variable(variable_name)
             assert is_relation(relation_name)
             self.variable_name = variable_name
@@ -234,8 +234,8 @@ class Schema:
         for name in constants_and_variables_instantiation_map:
             assert is_constant(name) or is_variable(name)
             if is_variable(name):
-                assert is_variable(
-                    constants_and_variables_instantiation_map[name].root)
+                # print(constants_and_variables_instantiation_map[name], type(constants_and_variables_instantiation_map[name]))
+                assert is_variable(constants_and_variables_instantiation_map[name].root)
         for relation in relations_instantiation_map:
             assert is_relation(relation)
         for variable in bound_variables:
@@ -278,16 +278,16 @@ class Schema:
 
             else:   # relation of format R(t)
                 t = formula.arguments[0]
-                # try:
+                try:
 
-                t_prime = t.substitute(constants_and_variables_instantiation_map, set())
+                    t_prime = t.substitute(constants_and_variables_instantiation_map, set())
 
-                Schema.checkFreeVriables(bound_variables, root, sub)
+                    Schema.checkFreeVriables(bound_variables, root, sub)
 
-                return sub.substitute({'_': t_prime}, set())
+                    return sub.substitute({'_': t_prime}, set())
 
-                # except ForbiddenVariableError as e:
-                #     raise Schema.BoundVariableError(e.variable_name, root)
+                except ForbiddenVariableError as e:
+                    raise Schema.BoundVariableError(e.variable_name, root)
 
     @staticmethod
     def checkFreeVriables(bound_variables, root, sub):
@@ -301,7 +301,7 @@ class Schema:
         """
         for fv in sub.free_variables():
             if fv in bound_variables:
-                raise Schema.BoundVariableError(root, fv)
+                raise Schema.BoundVariableError(fv, root)
 
 
     def instantiate(self, instantiation_map: InstantiationMap) -> \
@@ -416,6 +416,26 @@ class Schema:
                 assert is_relation(key)
                 assert isinstance(instantiation_map[key], Formula)
         # Task 9.4
+        for key in instantiation_map:
+            if key not in self.templates:
+                return None
+        cons_and_vars_map = {}
+        relations_map = {}
+        for key in instantiation_map:
+            if is_constant(key) or is_variable(key):
+                if type(instantiation_map[key])== str:
+                    cons_and_vars_map[key] = Term(instantiation_map[key])
+                else:
+                    cons_and_vars_map[key] = instantiation_map[key]
+
+            else:
+
+                relations_map[key] = instantiation_map[key]
+        try:
+            return Schema._instantiate_helper(self.formula, cons_and_vars_map, relations_map, set())
+        except Schema.BoundVariableError:
+            return None
+
 
 @frozen
 class Proof:
