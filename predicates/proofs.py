@@ -681,6 +681,14 @@ class Proof:
             """
             assert line_number < len(lines) and lines[line_number] is self
             # Task 9.7
+            cur_line = lines[line_number].formula
+            if cur_line.root != 'A' or self.predicate_line_number >= line_number \
+                    or lines[self.predicate_line_number].formula != cur_line.predicate:
+                return False
+            return True
+
+
+
 
     @frozen
     class TautologyLine:
