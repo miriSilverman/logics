@@ -904,24 +904,22 @@ def _prove_from_skeleton_proof(formula: Formula,
         for operator in line.formula.operators():
             assert is_unary(operator) or is_binary(operator)
     # Task 9.11.2
-    print(formula)
-    print("___")
-    print(skeleton_proof)
-    print("___")
-    print(substitution_map)
-    print("___")
     lines = []
     for line in skeleton_proof.lines:
-        formula = Formula.from_propositional_skeleton(line.formula, substitution_map)
-        if line.rule == MP:
-            mp_line = Proof.MPLine(formula, line.assumptions[0], line.assumptions[1])
-            lines.append(mp_line)
-        else:   # axiom
-            conclusion = Formula.from_propositional_skeleton(line.rule.conclusion, substitution_map)
-            # PropositionalInferenceRule.specialization_map()
-            scheme = Schema()
-            Proof.AssumptionLine(formula, )
+        form = Formula.from_propositional_skeleton(line.formula, substitution_map)
 
+        if line.rule == MP:
+            mp_line = Proof.MPLine(form, line.assumptions[0], line.assumptions[1])
+            lines.append(mp_line)
+        else:   # rule is axiom
+            rule = PROPOSITIONAL_AXIOM_TO_SCHEMA[line.rule]
+            propositional_specialization_map = PropositionalInferenceRule.specialization_map(line.rule,
+                                                 PropositionalInferenceRule(line.rule.assumptions, line.formula))
+            x =_axiom_specialization_map_to_schema_instantiation_map(propositional_specialization_map, substitution_map)
+            l = Proof.AssumptionLine(form, rule, x)
+            lines.append(l)
+
+    return Proof(PROPOSITIONAL_AXIOMATIC_SYSTEM_SCHEMAS, formula, lines)
 
 def prove_tautology(tautology: Formula) -> Proof:
     """Proves the given predicate-logic tautology.
