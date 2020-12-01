@@ -596,4 +596,5 @@ if __name__ == '__main__':
     test_axiom_specialization_map_to_schema_instantiation_map()
     test_prove_from_skeleton_proof()
     test_prove_tautology()
+    test_all()
 
