@@ -166,3 +166,7 @@ def test_all(debug=False):
 if __name__ == '__main__':
     test_prover_basic()
     test_add_universal_instantiation()
+    test_add_tautological_implication(True)
+
+
+

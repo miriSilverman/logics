@@ -336,6 +336,39 @@ class Prover:
         for line_number in line_numbers:
             assert line_number < len(self._lines)
         # Task 10.2
+        print("_______________________________________________________________")
+        print(implication)
+        print(line_numbers)
+        for n, l in enumerate(self._lines):
+            print(n,')', l)
+        lines = []
+        nums = []
+        for line_num in line_numbers:
+            lines.append(self._lines[line_num])
+            nums.append(line_num)
+        if lines[0].formula.first == implication.first:
+            first = lines[0]
+            second = lines[1]
+        else:
+            first = lines[1]
+            second = lines[0]
+
+        a = first.formula       # (Greek(x)->Human(x)
+        b = Formula('->', first.formula.first, second.formula.second)   # (Greek(x)->Mortal(x))
+        c = Formula('->', second.formula, b)   # ((Human(x)->Mortal(x))->(Greek(x)->Mortal(x)))
+        f = Formula('->', a,c)
+        # print("f", f)
+        tautology_line = self.add_tautology(f)
+        mp_1 = self.add_mp(c, nums[0], tautology_line)
+        mp_2 = self.add_mp(b, nums[1], mp_1)
+        # l = self.add_ug(Formula('A', 'x', b), mp_2)
+        # self.qed()
+        # print("miri")
+        for n, l in enumerate(self._lines):
+            print(n,')', l)
+        return mp_2
+
+
 
     def add_existential_derivation(self, consequent: Union[Formula, str],
                                    line_number1: int, line_number2: int) -> int:
