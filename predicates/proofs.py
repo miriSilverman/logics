@@ -866,6 +866,12 @@ def _axiom_specialization_map_to_schema_instantiation_map(
     for key in substitution_map:
         assert is_propositional_variable(key)
     # Task 9.11.1
+    new_map = {}
+    for key in propositional_specialization_map:
+        new_map[key.upper()] = Formula.from_propositional_skeleton(propositional_specialization_map[key],substitution_map)
+
+    return new_map
+
 
 def _prove_from_skeleton_proof(formula: Formula,
                                skeleton_proof: PropositionalProof,
@@ -899,6 +905,7 @@ def _prove_from_skeleton_proof(formula: Formula,
         for operator in line.formula.operators():
             assert is_unary(operator) or is_binary(operator)
     # Task 9.11.2
+    
 
 def prove_tautology(tautology: Formula) -> Proof:
     """Proves the given predicate-logic tautology.

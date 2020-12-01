@@ -294,15 +294,3 @@ class Model(Generic[T]):
             else:
                 all_assigns.append(copy.deepcopy(cur_assignment))
 
-#
-# if __name__ == '__main__':
-#     model = Model({'0', '1', '2'}, {'0': '0'}, {'Pz': {('0',)}},
-#                   {'p1': {('0',): '1', ('1',): '2', ('2',): '0'}})
-#     # print(model.universe)
-#     free_vars = ['x', 'y']
-#     cur = {}
-#     all_assins = []
-#     model.all_assignments(0, free_vars, cur, all_assins)
-#     for a in all_assins:
-#         print(a)
-
