@@ -307,6 +307,12 @@ class Prover:
         assert instantiation == \
                quantified.predicate.substitute({quantified.variable: term})
         # Task 10.1
+        r = quantified.predicate.substitute({quantified.variable : Term('_')})  # (Man(_)->Mortal(_))
+        f = Formula('->', quantified, instantiation)  # (Ax[(Man(x)->Mortal(x))]->(Man(aristotle)->Mortal(aristotle)))
+        ui_line_num = self.add_instantiated_assumption(f, Prover.UI, {'R': r, 'c' :term, 'x': quantified.variable})
+        return self.add_mp(instantiation, line_number, ui_line_num)
+
+
 
     def add_tautological_implication(self, implication: Union[Formula, str],
                                      line_numbers: AbstractSet[int]) -> int:

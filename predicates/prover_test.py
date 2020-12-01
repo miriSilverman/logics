@@ -162,3 +162,7 @@ def test_ex10(debug=False):
 
 def test_all(debug=False):
     test_ex10(debug)
+
+if __name__ == '__main__':
+    test_prover_basic()
+    test_add_universal_instantiation()
