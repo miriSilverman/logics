@@ -594,3 +594,5 @@ if __name__ == '__main__':
     test_tautology_line_is_valid()
     test_is_valid()
     test_axiom_specialization_map_to_schema_instantiation_map()
+    test_prove_from_skeleton_proof()
+
