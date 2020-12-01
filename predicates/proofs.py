@@ -911,13 +911,19 @@ def _prove_from_skeleton_proof(formula: Formula,
         if line.rule == MP:
             mp_line = Proof.MPLine(form, line.assumptions[0], line.assumptions[1])
             lines.append(mp_line)
+
         else:   # rule is axiom
             rule = PROPOSITIONAL_AXIOM_TO_SCHEMA[line.rule]
+
+            # map of format {'p': ~z33}
             propositional_specialization_map = PropositionalInferenceRule.specialization_map(line.rule,
                                                  PropositionalInferenceRule(line.rule.assumptions, line.formula))
-            x =_axiom_specialization_map_to_schema_instantiation_map(propositional_specialization_map, substitution_map)
-            l = Proof.AssumptionLine(form, rule, x)
-            lines.append(l)
+
+
+            # map of format {'P': ~Ey[~x=y]}
+            scheme_map =_axiom_specialization_map_to_schema_instantiation_map(propositional_specialization_map,
+                                                                              substitution_map)
+            lines.append(Proof.AssumptionLine(form, rule, scheme_map))
 
     return Proof(PROPOSITIONAL_AXIOMATIC_SYSTEM_SCHEMAS, formula, lines)
 
@@ -934,3 +940,9 @@ def prove_tautology(tautology: Formula) -> Proof:
     """
     assert is_propositional_tautology(tautology.propositional_skeleton()[0])
     # Task 9.12
+    prop_formula, map = tautology.propositional_skeleton()
+    proof = prove_propositional_tautology(prop_formula, {})
+    return _prove_from_skeleton_proof(tautology, proof, map)
+
+
+
