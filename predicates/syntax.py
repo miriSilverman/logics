@@ -1143,4 +1143,14 @@ class Formula:
         for variable in skeleton.variables():
             assert variable in substitution_map
         # Task 9.10
+        root = skeleton.root
+        if is_unary(root):
+            return Formula(root, Formula.from_propositional_skeleton(skeleton.first, substitution_map))
 
+        elif is_binary(root):
+            first = Formula.from_propositional_skeleton(skeleton.first, substitution_map)
+            second = Formula.from_propositional_skeleton(skeleton.second, substitution_map)
+            return Formula(root, first, second)
+
+        elif is_constant(root) or is_variable(root):
+            return substitution_map[root]
