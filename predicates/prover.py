@@ -14,7 +14,6 @@ from logic_utils import fresh_variable_name_generator
 
 from predicates.syntax import *
 from predicates.proofs import *
-from propositions.tautology import prove_sound_inference
 
 class Prover:
     """A class for gradually creating a predicate-logic proof from given
@@ -360,7 +359,6 @@ class Prover:
         tautology = self.concat_imply(implication, line_nums, 0)
         tautology_line_num = self.add_tautology(tautology)
         self.concat_mp(line_nums, tautology, 0, tautology_line_num)
-        self.qed()
         return tautology_line_num+len(line_nums)
 
 
@@ -447,6 +445,20 @@ class Prover:
         conditional = self._lines[line_number2].formula
         assert conditional == Formula('->', quantified.predicate, consequent)
         # Task 10.3
+        x = quantified.variable
+        line_1_formula = self._lines[line_number1].formula          # Ex[Man(x)]
+        line_2_formula = self._lines[line_number2].formula          # (Man(x)->Ex[Mortal(x)])
+        f = Formula('A', x, line_2_formula)     # Ax[(Man(x)->Ex[Mortal(x)])]
+        and_formula = Formula('&', f, line_1_formula)  # (Ax[(Man(x)->Ex[Mortal(x)])]&Ex[Man(x)])
+        imply_formula = Formula('->', and_formula, consequent)      # ((Ax[(Man(x)->Ex[Mortal(x)])]&Ex[Man(x)])->Ex[Mortal(x)])
+
+
+        line_ug = self.add_ug(f, line_number2)
+        r = line_1_formula.predicate.substitute({x: Term('_')}, set())  # Man(_)
+        es_line_num = self.add_instantiated_assumption(imply_formula, Prover.ES, {'Q': consequent, 'R': r, 'x': x})
+        return self.add_tautological_implication(consequent, {line_number1, line_ug, es_line_num})
+
+
 
     def add_flipped_equality(self, flipped: Union[Formula, str],
                              line_number: int) -> int:
