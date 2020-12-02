@@ -336,37 +336,77 @@ class Prover:
         for line_number in line_numbers:
             assert line_number < len(self._lines)
         # Task 10.2
-        print("_______________________________________________________________")
-        print(implication)
-        print(line_numbers)
-        for n, l in enumerate(self._lines):
-            print(n,')', l)
-        lines = []
-        nums = []
-        for line_num in line_numbers:
-            lines.append(self._lines[line_num])
-            nums.append(line_num)
-        if lines[0].formula.first == implication.first:
-            first = lines[0]
-            second = lines[1]
-        else:
-            first = lines[1]
-            second = lines[0]
+        # print("_______________________________________________________________")
+        # print(implication)
+        # print(line_numbers)
+        # for n, l in enumerate(self._lines):
+        #     print(n,')', l)
+        # lines = []
+        # nums = []
+        # for line_num in line_numbers:
+        #     lines.append(self._lines[line_num])
+        #     nums.append(line_num)
+        # if lines[0].formula.first == implication.first:
+        #     first = lines[0]
+        #     second = lines[1]
+        # else:
+        #     first = lines[1]
+        #     second = lines[0]
+        #
+        # a = first.formula       # (Greek(x)->Human(x)
+        # b = Formula('->', first.formula.first, second.formula.second)   # (Greek(x)->Mortal(x))
+        # c = Formula('->', second.formula, b)   # ((Human(x)->Mortal(x))->(Greek(x)->Mortal(x)))
+        # f = Formula('->', a,c)
+        # # print("f", f)
+        # tautology_line = self.add_tautology(f)
+        # mp_1 = self.add_mp(c, nums[0], tautology_line)
+        # mp_2 = self.add_mp(b, nums[1], mp_1)
+        # # l = self.add_ug(Formula('A', 'x', b), mp_2)
+        # # self.qed()
+        # # print("miri")
+        # for n, l in enumerate(self._lines):
+        #     print(n,')', l)
+        # return mp_2
+        assumptions = []
+        all_map = {}
+        for num in line_numbers:
+            line_formula = self._lines[num].formula
+            prop_formula, map = line_formula.propositional_skeleton()
+            for key in map:
+                if key not in all_map:
+                    all_map[key] = map[key]
+            f = Prover.update_formula(prop_formula, map, all_map)
+            assumptions.append(f)
 
-        a = first.formula       # (Greek(x)->Human(x)
-        b = Formula('->', first.formula.first, second.formula.second)   # (Greek(x)->Mortal(x))
-        c = Formula('->', second.formula, b)   # ((Human(x)->Mortal(x))->(Greek(x)->Mortal(x)))
-        f = Formula('->', a,c)
-        # print("f", f)
-        tautology_line = self.add_tautology(f)
-        mp_1 = self.add_mp(c, nums[0], tautology_line)
-        mp_2 = self.add_mp(b, nums[1], mp_1)
-        # l = self.add_ug(Formula('A', 'x', b), mp_2)
-        # self.qed()
-        # print("miri")
-        for n, l in enumerate(self._lines):
-            print(n,')', l)
-        return mp_2
+
+            # print(prop_formula, map)
+            print(f)
+        conclusion, map = implication.propositional_skeleton()
+        # for key in map:
+        #     if key not in all_map:
+        #         all_map[key] = map[key]
+        conclusion = Prover.update_formula(conclusion, map, all_map)
+        print(conclusion)
+        rule = PropositionalInferenceRule(assumptions, conclusion)
+
+        
+        proof = PropositionalProof.prove_sound_inference(rule)
+        print(proof)
+        print("miri")
+
+
+    def update_formula(formula: PropositionalFormula, cur_map, all_map):
+        root = formula.root
+        if is_unary(root):
+            return PropositionalFormula(root, Prover.update_formula(formula.first, cur_map, all_map))
+        elif is_binary(root):
+            first = Prover.update_formula(formula.first, cur_map, all_map)
+            second = Prover.update_formula(formula.second, cur_map, all_map)
+            return PropositionalFormula(root, first, second)
+        elif is_variable(root) or is_constant(root):
+            for key in all_map:
+                if cur_map[root] == all_map[key]:
+                    return PropositionalFormula(key)
 
 
 
