@@ -167,6 +167,6 @@ if __name__ == '__main__':
     test_prover_basic()
     test_add_universal_instantiation()
     test_add_tautological_implication()
-    test_add_existential_derivation(True)
+    test_add_existential_derivation()
 
 
