@@ -218,10 +218,20 @@ def lovers_proof(print_as_proof_forms: bool = False) -> Proof:
         `~predicates.prover.Prover.AXIOMS`.
     """
     prover = Prover({'Ax[Ey[Loves(x,y)]]',
-                     'Ax[Az[Ay[(Loves(x,y)->Loves(z,x))]]]'},
-                    print_as_proof_forms)
+                     'Ax[Az[Ay[(Loves(x,y)->Loves(z,x))]]]'}, print_as_proof_forms)
     # Task 10.4
+    line_1 = prover.add_assumption('Ax[Ey[Loves(x,y)]]')
+    line_2 = prover.add_universal_instantiation("Ey[Loves(x,y)]",line_1, 'x')
+    line_3 = prover.add_assumption('Ax[Az[Ay[(Loves(x,y)->Loves(z,x))]]]')
+    line_4 = prover.add_universal_instantiation("Az[Ay[(Loves(x,y)->Loves(z,x))]]", line_3, 'x')
+    line_5 = prover.add_universal_instantiation("Ay[(Loves(x,y)->Loves(z,x))]", line_4, 'z')
+    line_6 = prover.add_universal_instantiation("(Loves(x,y)->Loves(z,x))", line_5, 'y')
+    line_7 = prover.add_existential_derivation("Loves(z,x)", line_2, line_6)
+    line_8 = prover.add_ug("Az[Loves(z,x)]", line_7)
+    line_9 = prover.add_ug("Ax[Az[Loves(z,x)]]", line_8)
     return prover.qed()
+
+
 
 def homework_proof(print_as_proof_forms: bool = False) -> Proof:
     """Proves from the assumptions:

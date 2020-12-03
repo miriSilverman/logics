@@ -116,3 +116,6 @@ def test_ex11_opt(debug=False):
 def test_all(debug=False):
     test_ex10(debug)
     test_ex11_opt(debug)
+
+if __name__ == '__main__':
+    test_lovers_proof(True)
