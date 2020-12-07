@@ -252,6 +252,29 @@ def homework_proof(print_as_proof_forms: bool = False) -> Proof:
     prover = Prover({'~Ex[(Homework(x)&Fun(x))]',
                      'Ex[(Homework(x)&Reading(x))]'}, print_as_proof_forms)
     # Task 10.5
+    l1 = prover.add_assumption('~Ex[(Homework(x)&Fun(x))]')
+
+    'Ex[(Homework(x)&Fun(x))] ---> ~Ax[~(Homework(x)&Fun(x))]'
+    '~Ex[(Homework(x)&Fun(x))] ---> ~~Ax[~(Homework(x)&Fun(x))] == Ax[~(Homework(x)&Fun(x))]'
+    # l2 = prover.add_tautology('(~Ex[(Homework(x)&Fun(x))]->Ax[~(Homework(x)&Fun(x))])')
+
+    # l2 = prover.add_universal_instantiation('Ax[~(Homework(x)&Fun(x))]->~(Homework(x)&Fun(x))',l1, 'x')
+    f1 = "(~Homework(x)&Fun(x))"
+    f2 = "(Homework(x)&~Fun(x))"
+    f3 = "(~Homework(x)&~Fun(x))"
+    prover.add_tautology('(~(Homework(x)&Fun(x))->(('+f1+'|'+f2+')|'+f3+'))')
+    l1 = prover.add_assumption('Ex[(Homework(x)&Reading(x))]')
+    "Homework(x)"
+    "--->   (Homework(x)&~Fun(x))"
+    "Homework(x)->~Fun(x)"
+    "Reading(x)->Reading(x)"
+    '(Homework(x)&Reading(x)) -> (Reading(x)&~Fun(x))'
+    'Ax[Homework(x)&Reading(x)) -> (Reading(x)&~Fun(x))] & Ex[(Homework(x)&Reading(x))] ----->  (Reading(x)&~Fun(x))'
+    'Ex(Reading(x)&~Fun(x))'
+
+
+
+    print("miriaa")
     return prover.qed()
 
 #: The three group axioms

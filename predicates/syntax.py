@@ -383,8 +383,6 @@ class Term:
 
                 if root in forbidden_variables:
                     return self
-                #     print(root)
-                #     raise ForbiddenVariableError(root)
 
                 for key in forbidden_variables:     # checks that no forbidden vars in the substitution of the root
                     if key in sub_val.variables():

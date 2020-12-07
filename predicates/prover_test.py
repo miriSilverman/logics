@@ -168,5 +168,6 @@ if __name__ == '__main__':
     test_add_universal_instantiation()
     test_add_tautological_implication()
     test_add_existential_derivation()
+    test_add_flipped_equality()
 
 

@@ -486,6 +486,21 @@ class Prover:
         assert equality == Formula('=', [flipped.arguments[1],
                                          flipped.arguments[0]])
         # Task 10.6
+        c = flipped.arguments[1]
+        d = flipped.arguments[0]
+        c_c= Formula('=', [c,c])
+        c_d = Formula('=', [c,d])
+        d_c = Formula('=', [d,c])
+        l1 = self.add_instantiated_assumption(c_c, Prover.RX, {'c':c})
+        f1 = Formula('->', c_c, d_c)
+        f2 = Formula('->', c_d, f1)
+        l2 = self.add_instantiated_assumption(f2, Prover.ME, {'R': Formula('=',[Term('_'),c]),'c':c, 'd':d})
+        l3 = self.add_mp(f1, line_number, l2)
+        l4 = self.add_mp(f1.second, l1, l3)
+
+
+
+
 
     def add_free_instantiation(self, instantiation: Union[Formula, str],
                                line_number: int,
