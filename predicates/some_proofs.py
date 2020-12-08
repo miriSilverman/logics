@@ -252,29 +252,18 @@ def homework_proof(print_as_proof_forms: bool = False) -> Proof:
     prover = Prover({'~Ex[(Homework(x)&Fun(x))]',
                      'Ex[(Homework(x)&Reading(x))]'}, print_as_proof_forms)
     # Task 10.5
-    l1 = prover.add_assumption('~Ex[(Homework(x)&Fun(x))]')
-
-    'Ex[(Homework(x)&Fun(x))] ---> ~Ax[~(Homework(x)&Fun(x))]'
-    '~Ex[(Homework(x)&Fun(x))] ---> ~~Ax[~(Homework(x)&Fun(x))] == Ax[~(Homework(x)&Fun(x))]'
-    # l2 = prover.add_tautology('(~Ex[(Homework(x)&Fun(x))]->Ax[~(Homework(x)&Fun(x))])')
-
-    # l2 = prover.add_universal_instantiation('Ax[~(Homework(x)&Fun(x))]->~(Homework(x)&Fun(x))',l1, 'x')
-    f1 = "(~Homework(x)&Fun(x))"
-    f2 = "(Homework(x)&~Fun(x))"
-    f3 = "(~Homework(x)&~Fun(x))"
-    prover.add_tautology('(~(Homework(x)&Fun(x))->(('+f1+'|'+f2+')|'+f3+'))')
-    l1 = prover.add_assumption('Ex[(Homework(x)&Reading(x))]')
-    "Homework(x)"
-    "--->   (Homework(x)&~Fun(x))"
-    "Homework(x)->~Fun(x)"
-    "Reading(x)->Reading(x)"
-    '(Homework(x)&Reading(x)) -> (Reading(x)&~Fun(x))'
-    'Ax[Homework(x)&Reading(x)) -> (Reading(x)&~Fun(x))] & Ex[(Homework(x)&Reading(x))] ----->  (Reading(x)&~Fun(x))'
-    'Ex(Reading(x)&~Fun(x))'
-
-
-
-    print("miriaa")
+    l1 = prover.add_instantiated_assumption(Formula.parse("((Homework(x)&Fun(x))->Ex[(Homework(x)&Fun(x))])"), prover.EI, {'R': "(Homework(_)&Fun(_))", 'x': 'x', 'c': 'x'})
+    l2 = prover.add_assumption('~Ex[(Homework(x)&Fun(x))]')
+    l3 = prover.add_tautological_implication(Formula.parse('(~Ex[(Homework(x)&Fun(x))]->~(Homework(x)&Fun(x)))'), {l1, l2})
+    l4 = prover.add_mp(Formula.parse("~(Homework(x)&Fun(x)))"), l2, l3)
+    l5 = prover.add_tautology(Formula.parse("(~(Homework(x)&Fun(x))->(Homework(x)->~Fun(x)))"))
+    l6 = prover.add_mp(Formula.parse("(Homework(x)->~Fun(x))"), l4, l5)
+    l7 = prover.add_tautological_implication("((Homework(x)&Reading(x))->(Reading(x)&~Fun(x)))", {l6})
+    l8 = prover.add_assumption("Ex[(Homework(x)&Reading(x))]")
+    l9 = prover.add_instantiated_assumption("((Reading(x)&~Fun(x))->Ex[(Reading(x)&~Fun(x))])",
+                                             prover.EI, {'R': "(Reading(_)&~Fun(_))", 'x': 'x', 'c': Term('x')})
+    l10 = prover.add_tautological_implication("((Homework(x)&Reading(x))->Ex[(Reading(x)&~Fun(x))])", {l7, l9})
+    l11 = prover.add_existential_derivation("Ex[(Reading(x)&~Fun(x))]", l8, l10)
     return prover.qed()
 
 #: The three group axioms

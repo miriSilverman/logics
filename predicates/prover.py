@@ -497,6 +497,7 @@ class Prover:
         l2 = self.add_instantiated_assumption(f2, Prover.ME, {'R': Formula('=',[Term('_'),c]),'c':c, 'd':d})
         l3 = self.add_mp(f1, line_number, l2)
         l4 = self.add_mp(f1.second, l1, l3)
+        return l4
 
 
 
@@ -554,6 +555,27 @@ class Prover:
         for variable in instantiation.variables():
             assert variable[0] != 'z'
         # Task 10.7
+        print("******************************")
+        print(line_number)
+        print(instantiation)
+        print(substitution_map)
+        print("******************")
+        prev_line = self._lines[line_number]
+        new_line_formula = prev_line.formula
+        print("origin line: ", new_line_formula)
+        # origin_vars = new_line_formula.variables()
+        # print("origin_vars::", origin_vars)
+        for key in substitution_map:
+            z = next(fresh_variable_name_generator)
+            new_line_formula = new_line_formula.substitute({key: Term(z)}, {})
+            new_line_formula = new_line_formula.substitute({z: substitution_map[key]}, set())
+            print("new_line_formula: ", new_line_formula)
+
+
+        print("miri")
+
+
+
 
     def add_substituted_equality(self, substituted: Union[Formula, str],
                                  line_number: int,
