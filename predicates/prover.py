@@ -561,19 +561,28 @@ class Prover:
         print(substitution_map)
         print("******************")
         prev_line = self._lines[line_number]
-        new_line_formula = prev_line.formula
-        print("origin line: ", new_line_formula)
-        # origin_vars = new_line_formula.variables()
-        # print("origin_vars::", origin_vars)
-        for key in substitution_map:
-            z = next(fresh_variable_name_generator)
-            new_line_formula = new_line_formula.substitute({key: Term(z)}, {})
-            new_line_formula = new_line_formula.substitute({z: substitution_map[key]}, set())
-            print("new_line_formula: ", new_line_formula)
+        formula = prev_line.formula
+        # print("formula:   ", formula)
+        vars = formula.variables()      # 0=plus(minus(x),x)
+        temp_conversion = dict()        # {zi: substitution_map[vi]}
+        last_line = line_number
+        for v in vars:  # 0=plus(minus(z55),z55)
+            l = self.add_ug(Formula('A', v, formula), last_line)
+            temp_var = next(fresh_variable_name_generator)
+            temp_conversion[temp_var] = substitution_map[v]
+            last_line = self.add_universal_instantiation(formula.substitute({v:Term(temp_var)}), l, temp_var)
+
+        temp_formula = self._lines[last_line].formula
+        temp_vars = temp_formula.variables()
+        for temp_var in temp_vars:
+            line = self.add_ug(Formula('A', temp_var, temp_formula), last_line)
+            sub = temp_conversion[temp_var]
+            f = temp_formula.substitute({temp_var:sub})
+            last_line = self.add_universal_instantiation(f, line, sub)
 
 
-        print("miri")
 
+        return last_line
 
 
 
