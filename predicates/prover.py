@@ -555,14 +555,8 @@ class Prover:
         for variable in instantiation.variables():
             assert variable[0] != 'z'
         # Task 10.7
-        print("******************************")
-        print(line_number)
-        print(instantiation)
-        print(substitution_map)
-        print("******************")
         prev_line = self._lines[line_number]
         formula = prev_line.formula
-        # print("formula:   ", formula)
         vars = formula.variables()      # 0=plus(minus(x),x)
         temp_conversion = dict()        # {zi: substitution_map[vi]}
         last_line = line_number
@@ -570,17 +564,17 @@ class Prover:
             l = self.add_ug(Formula('A', v, formula), last_line)
             temp_var = next(fresh_variable_name_generator)
             temp_conversion[temp_var] = substitution_map[v]
-            last_line = self.add_universal_instantiation(formula.substitute({v:Term(temp_var)}), l, temp_var)
+            formula = formula.substitute({v:Term(temp_var)})
+            last_line = self.add_universal_instantiation(formula, l, temp_var)
+
 
         temp_formula = self._lines[last_line].formula
         temp_vars = temp_formula.variables()
         for temp_var in temp_vars:
             line = self.add_ug(Formula('A', temp_var, temp_formula), last_line)
             sub = temp_conversion[temp_var]
-            f = temp_formula.substitute({temp_var:sub})
-            last_line = self.add_universal_instantiation(f, line, sub)
-
-
+            temp_formula = temp_formula.substitute({temp_var:sub})
+            last_line = self.add_universal_instantiation(temp_formula, line, sub)
 
         return last_line
 
