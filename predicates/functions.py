@@ -591,7 +591,7 @@ def make_equality_as_SAME_in_model(model: Model[T]) -> Model[T]:
                     if equivalence_classes[key] == equivalence_classes[second]:
                         equivalence_classes[key] = equivalence_classes[first]
 
-    # replace in constants an relation the new delegates
+    # replace in constants meaning and in relation meaning values with their new delegates
     constants = dict()
     cm = model.constant_meanings
     for key in cm:
