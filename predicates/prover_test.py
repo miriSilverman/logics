@@ -171,7 +171,7 @@ if __name__ == '__main__':
     test_add_flipped_equality()
     test_add_free_instantiation()
     test_add_substituted_equality()
-
+    test_add_chained_equality()
 
 
 

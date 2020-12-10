@@ -672,6 +672,23 @@ class Prover:
         assert is_equality(equality2.root)
         assert equality1.arguments[1] == equality2.arguments[0]
         # Task 10.9.1
+        assump = self._lines[line_number1].formula
+        assump2 = self._lines[line_number2].formula
+        a = assump.arguments[0]
+        b = assump.arguments[1]
+        c = assump2.arguments[1]
+        b_eq_a = Formula('=', [b, a])
+        R = Formula('=', [Term('_'), c])
+        l1 = self.add_flipped_equality(b_eq_a, line_number1)
+        a_eq_c = Formula('=', [a, c])
+        f = Formula('->', b_eq_a, Formula('->', assump2,a_eq_c ))
+        l2 = self.add_instantiated_assumption(f, Prover.ME, {'R': R, 'c': b, 'd': a})
+        l3 = self.add_mp(f.second, l1, l2)
+        l4 = self.add_mp(a_eq_c, line_number2, l3)
+        return l4
+
+
+
 
     def add_chained_equality(self, chained: Union[Formula, str],
                              line_numbers: Sequence[int]) -> int:
@@ -717,3 +734,9 @@ class Prover:
             current_term = equality.arguments[1]
         assert chained.arguments[1] == current_term
         # Task 10.9.2
+        last_line = line_numbers[0]
+        for i in range(1, len(line_numbers)):
+            last_line = self._add_chaining_of_two_equalities(last_line, line_numbers[i])
+
+        return last_line
+
