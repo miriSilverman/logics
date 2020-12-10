@@ -623,6 +623,23 @@ class Prover:
                              parametrized_term.substitute(
                                  {'_': equality.arguments[1]})])
         # Task 10.8
+                                                            #  parametrized_term:  plus('_', 0)
+        line_formula = self._lines[line_number].formula     # c=d
+        first = line_formula.arguments[0]
+        second = line_formula.arguments[1]
+        f_first = parametrized_term.substitute({'_': first})    # plus(c, 0)
+        rx_formula = Formula('=', [f_first, f_first])
+        l1 = self.add_instantiated_assumption(rx_formula, Prover.RX, {'c': f_first})    # plus(c, 0)=plus(c, 0)
+        f = Formula('->', line_formula, Formula('->', rx_formula, substituted))         # (c=d->(plus(c, 0)=plus(c, 0)->plus(c, 0)=plus(d, 0)))
+        R = Formula('=', [f_first, parametrized_term])      # plus(c, 0)=plus('_', 0)
+        l2 = self.add_instantiated_assumption(f, Prover.ME, {'R': R, 'c': first, 'd': second})
+        l3 = self.add_mp(f.second, line_number, l2)
+        l4 = self.add_mp(substituted, l1, l3)
+        return l4
+
+
+
+
 
     def _add_chaining_of_two_equalities(self, line_number1: int,
                                         line_number2: int) -> int:
