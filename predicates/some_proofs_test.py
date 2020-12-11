@@ -120,4 +120,4 @@ def test_all(debug=False):
 if __name__ == '__main__':
     test_lovers_proof()
     test_homework_proof()
-
+    test_unique_zero_proof()

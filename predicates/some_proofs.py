@@ -378,6 +378,23 @@ def unique_zero_proof(print_as_proof_forms: bool = False) -> Proof:
     """
     prover = Prover(GROUP_AXIOMS.union({'plus(a,c)=a'}), print_as_proof_forms)
     # Task 10.10
+    zero = prover.add_assumption('plus(0,x)=x')
+    negation = prover.add_assumption('plus(minus(x),x)=0')
+    associativity = prover.add_assumption('plus(plus(x,y),z)=plus(x,plus(y,z))')
+
+    l1 = prover.add_assumption('plus(a,c)=a')
+    l2 = prover.add_substituted_equality("plus(minus(a),plus(a,c))=plus(minus(a),a)", l1, "plus(minus(a),_)")
+    l3 = prover.add_free_instantiation("plus(minus(a),a)=0", negation, {'x':Term('a')})
+    l4 = prover._add_chaining_of_two_equalities(l2, l3) # plus(minus(a),plus(a,c))=0
+    l5 = prover.add_free_instantiation('plus(plus(minus(a),a),c)=plus(minus(a),plus(a,c))', associativity,
+                                       {'x':'minus(a)', 'y':'a', 'z': 'c'})
+    l6 = prover._add_chaining_of_two_equalities(l5, l4) # -a+(a+c) = 0
+    l7 = prover.add_flipped_equality("0=plus(minus(a),a)", l3)
+    l8 = prover.add_substituted_equality("plus(0,c)=plus(plus(minus(a),a),c)",l7, "plus(_,c)")
+    l9 = prover.add_free_instantiation("plus(0,c)=c", zero, {'x':'c'})
+    l10 = prover.add_flipped_equality("c=plus(0,c)", l9)
+    l11 = prover._add_chaining_of_two_equalities(l10, l8)
+    l12 = prover._add_chaining_of_two_equalities(l11, l6)
     return prover.qed()
 
 #: The six field axioms
