@@ -416,6 +416,42 @@ def multiply_zero_proof(print_as_proof_forms: bool = False) -> Proof:
     """
     prover = Prover(FIELD_AXIOMS, print_as_proof_forms)
     # Task 10.11
+    zero = prover.add_assumption('plus(0,x)=x')
+    commotativity = prover.add_assumption("times(x,y)=times(y,x)")
+    distribute = prover.add_assumption("times(x,plus(y,z))=plus(times(x,y),times(x,z))")
+    negation = prover.add_assumption('plus(minus(x),x)=0')
+    associativity = prover.add_assumption('plus(plus(x,y),z)=plus(x,plus(y,z))')
+    # proof = unique_zero_proof()
+    # last_line_num = len(proof.lines)
+    # print(proof.lines[last_line_num-1])
+    line1 = prover.add_free_instantiation("plus(0,0)=0", zero, {'x':'0'}) # 0+0 = 0
+    line2 = prover.add_substituted_equality("times(plus(0,0),x)=times(0,x)", line1, "times(_,x)") #(0+0)*x=0*x
+
+    line3 = prover.add_free_instantiation("times(x,0)=times(0,x)", commotativity, {'x': 'x', 'y': '0'})  # x*0=0*x
+    line4 = prover.add_flipped_equality("times(0,x)=times(plus(0,0),x)", line2)   #0*x=(0+0)*x
+    line5 = prover.add_free_instantiation("times(plus(0,0),x)=times(x,plus(0,0))", commotativity,
+                                       {'x':'plus(0,0),x)', 'y':'x'})   # (0+0)*x=x*(0+0)
+    line6 = prover.add_free_instantiation("times(x,plus(0,0))=plus(times(x,0),times(x,0))", distribute,
+                                       {'x':'x', 'y':'0', 'z':'0'}) # x*(0+0)=(x*0)+(x*0)
+    line7 = prover.add_chained_equality("times(x,0)=plus(times(x,0),times(x,0))", [line3,line4,line5,line6]) # x*0=(x*0)+(x*0)
+
+
+
+    l1 = prover.add_assumption('plus(a,c)=a')
+    l2 = prover.add_substituted_equality("plus(minus(a),plus(a,c))=plus(minus(a),a)", l1, "plus(minus(a),_)")
+    l3 = prover.add_free_instantiation("plus(minus(a),a)=0", negation, {'x':Term('a')})
+    l4 = prover._add_chaining_of_two_equalities(l2, l3) # plus(minus(a),plus(a,c))=0
+    l5 = prover.add_free_instantiation('plus(plus(minus(a),a),c)=plus(minus(a),plus(a,c))', associativity,
+                                       {'x':'minus(a)', 'y':'a', 'z': 'c'})
+    l6 = prover._add_chaining_of_two_equalities(l5, l4) # -a+(a+c) = 0
+    l7 = prover.add_flipped_equality("0=plus(minus(a),a)", l3)
+    l8 = prover.add_substituted_equality("plus(0,c)=plus(plus(minus(a),a),c)",l7, "plus(_,c)")
+    l9 = prover.add_free_instantiation("plus(0,c)=c", zero, {'x':'c'})
+    l10 = prover.add_flipped_equality("c=plus(0,c)", l9)
+    l11 = prover._add_chaining_of_two_equalities(l10, l8)
+    l12 = prover._add_chaining_of_two_equalities(l11, l6)
+
+    print('miri')
     return prover.qed()
 
 #: Axiom schema of induction

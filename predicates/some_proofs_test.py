@@ -121,3 +121,4 @@ if __name__ == '__main__':
     test_lovers_proof()
     test_homework_proof()
     test_unique_zero_proof()
+    test_multiply_zero_proof()
