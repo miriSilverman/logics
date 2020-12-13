@@ -421,9 +421,8 @@ def multiply_zero_proof(print_as_proof_forms: bool = False) -> Proof:
     distribute = prover.add_assumption("times(x,plus(y,z))=plus(times(x,y),times(x,z))")
     negation = prover.add_assumption('plus(minus(x),x)=0')
     associativity = prover.add_assumption('plus(plus(x,y),z)=plus(x,plus(y,z))')
-    # proof = unique_zero_proof()
-    # last_line_num = len(proof.lines)
-    # print(proof.lines[last_line_num-1])
+
+
     line1 = prover.add_free_instantiation("plus(0,0)=0", zero, {'x':'0'}) # 0+0 = 0
     line2 = prover.add_substituted_equality("times(plus(0,0),x)=times(0,x)", line1, "times(_,x)") #(0+0)*x=0*x
 
@@ -434,24 +433,29 @@ def multiply_zero_proof(print_as_proof_forms: bool = False) -> Proof:
     line6 = prover.add_free_instantiation("times(x,plus(0,0))=plus(times(x,0),times(x,0))", distribute,
                                        {'x':'x', 'y':'0', 'z':'0'}) # x*(0+0)=(x*0)+(x*0)
     line7 = prover.add_chained_equality("times(x,0)=plus(times(x,0),times(x,0))", [line3,line4,line5,line6]) # x*0=(x*0)+(x*0)
+    line8 = prover.add_flipped_equality("plus(times(x,0),times(x,0))=times(x,0)", line7)
 
 
-
-    l1 = prover.add_assumption('plus(a,c)=a')
-    l2 = prover.add_substituted_equality("plus(minus(a),plus(a,c))=plus(minus(a),a)", l1, "plus(minus(a),_)")
-    l3 = prover.add_free_instantiation("plus(minus(a),a)=0", negation, {'x':Term('a')})
+    # l1 = 'plus(a,c)=a' ------> c=0
+    l2 = prover.add_substituted_equality("plus(minus(times(x,0)),plus(times(x,0),times(x,0)))=plus(minus(times(x,0))"
+                                         ",times(x,0))", line8, "plus(minus(times(x,0)),_)")
+    l3 = prover.add_free_instantiation("plus(minus(times(x,0)),times(x,0))=0", negation, {'x':'times(x,0)'})
     l4 = prover._add_chaining_of_two_equalities(l2, l3) # plus(minus(a),plus(a,c))=0
-    l5 = prover.add_free_instantiation('plus(plus(minus(a),a),c)=plus(minus(a),plus(a,c))', associativity,
-                                       {'x':'minus(a)', 'y':'a', 'z': 'c'})
+    l5 = prover.add_free_instantiation('plus(plus(minus(times(x,0)),times(x,0)),times(x,0))=plus(minus(times(x,0)),'
+                                       'plus(times(x,0),times(x,0)))', associativity,
+                                       {'x':'minus(times(x,0))', 'y':'times(x,0)', 'z': 'times(x,0)'})
     l6 = prover._add_chaining_of_two_equalities(l5, l4) # -a+(a+c) = 0
-    l7 = prover.add_flipped_equality("0=plus(minus(a),a)", l3)
-    l8 = prover.add_substituted_equality("plus(0,c)=plus(plus(minus(a),a),c)",l7, "plus(_,c)")
-    l9 = prover.add_free_instantiation("plus(0,c)=c", zero, {'x':'c'})
-    l10 = prover.add_flipped_equality("c=plus(0,c)", l9)
+    l7 = prover.add_flipped_equality("0=plus(minus(times(x,0)),times(x,0))", l3)
+    l8 = prover.add_substituted_equality("plus(0,times(x,0))=plus(plus(minus(times(x,0)),times(x,0)),times(x,0))",l7,
+                                         "plus(_,times(x,0))")
+    l9 = prover.add_free_instantiation("plus(0,times(x,0))=times(x,0)", zero, {'x':'times(x,0)'})
+    l10 = prover.add_flipped_equality("times(x,0)=plus(0,times(x,0))", l9)
     l11 = prover._add_chaining_of_two_equalities(l10, l8)
-    l12 = prover._add_chaining_of_two_equalities(l11, l6)
+    l12 = prover._add_chaining_of_two_equalities(l11, l6) # x*0=0
 
-    print('miri')
+    l13 = prover.add_free_instantiation("times(0,x)=times(x,0)", commotativity, {'x':'0', 'y':'x'}) # 0*x=x*0
+    l14 = prover._add_chaining_of_two_equalities(l13, l12)  #  0*x=0
+
     return prover.qed()
 
 #: Axiom schema of induction
