@@ -66,5 +66,5 @@ if __name__ == '__main__':
     test_task9()
     test_task10()
     test_task11()
-    # test_task12()
-    # test_task13()
+    test_task12()
+    test_task13()

@@ -482,22 +482,23 @@ def peano_zero_proof(print_as_proof_forms: bool = False) -> Proof:
     # Task 10.12
     ax4 = prover.add_assumption("plus(x,s(y))=s(plus(x,y))")
     ax3 = prover.add_assumption("plus(x,0)=x")
-    # induction = prover.add_assumption('((R(0)&Ax[(R(x)->R(s(x)))])->Ax[R(x)])')
 
-    l1 = prover.add_free_instantiation("plus(0,s(x))=s(plus(0,x))", ax4, {'x':'0', 'y':'x'}) # 0+s(x)=s(0+x)
+    l1 = prover.add_free_instantiation("plus(0,s(x))=s(plus(0,x))", ax4, {'x':Term('0'), 'y':Term('x')})
+    R = Formula.parse("plus(0,s(x))=s(_)")
+    f = Formula.parse("(plus(0,x)=x->(plus(0,s(x))=s(plus(0,x))->plus(0,s(x))=s(x)))")
+    l2 = prover.add_instantiated_assumption(f, prover.ME, {'R':R, 'c':Term.parse('plus(0,x)'), 'd': Term('x')})
+    l3 = prover.add_tautological_implication("(plus(0,x)=x->plus(0,s(x))=s(x))", {l1,l2})
 
-    f = Formula.parse("(plus(0,x)=x->(plus(0,s(x))=s(plus(0,x))->plus(0,s(x))=s(x)))")  # 0+x=x -> (0+s(x)=s(0+x) -> 0+s(x)=s(x))
-    l2 = prover.add_instantiated_assumption(f, prover.ME, {'R':R, 'c':Term.parse('plus(0,x)'), 'd': Term('x')})    # (0+x)=x -> (s(0+x)->s(x))
-                                                                                        # (0+x)=x -> ((0+s(x))->s(x))
+    first = Formula.parse("(plus(0,0)=0&Ax[(plus(0,x)=x->plus(0,s(x))=s(x))])")
+    second = Formula.parse("Ax[plus(0,x)=x]")
+    fo = Formula('->', first, second)
+    induction = prover.add_instantiated_assumption(fo, INDUCTION_AXIOM, {'R':Formula.parse('plus(0,_)=_')})
 
-    l5 = prover.add_free_instantiation("plus(0,0)=0", ax3, {'x':'0'})       # 0+0=0
-                                                                            # 0+0=0 & Ax[(0+x)=x -> ((0+s(x))->s(x))]    {'R': '0+_=_'}
-                                                                            # ---> (0+x)=x
-
-
-    # L6 = prover.add_
-    # l9 = prover.add_tautological_implication()
-    print("miri")
+    l4 = prover.add_ug(first.second, l3)
+    l5 = prover.add_free_instantiation(first.first, ax3, {'x':Term('0')})
+    l6 = prover.add_tautological_implication(first, {l4, l5})                                                                              # 0+0=0 & Ax[(0+x)=x -> ((0+s(x))->s(x))]    {'R': '0+_=_'}
+    l7 = prover.add_mp(second, l6, induction)
+    l8 = prover.add_universal_instantiation("plus(0,x)=x", l7, Term('x'))
 
     return prover.qed()
 
