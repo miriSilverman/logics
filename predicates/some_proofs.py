@@ -480,6 +480,25 @@ def peano_zero_proof(print_as_proof_forms: bool = False) -> Proof:
     """
     prover = Prover(PEANO_AXIOMS, print_as_proof_forms)
     # Task 10.12
+    ax4 = prover.add_assumption("plus(x,s(y))=s(plus(x,y))")
+    ax3 = prover.add_assumption("plus(x,0)=x")
+    # induction = prover.add_assumption('((R(0)&Ax[(R(x)->R(s(x)))])->Ax[R(x)])')
+
+    l1 = prover.add_free_instantiation("plus(0,s(x))=s(plus(0,x))", ax4, {'x':'0', 'y':'x'}) # 0+s(x)=s(0+x)
+
+    f = Formula.parse("(plus(0,x)=x->(plus(0,s(x))=s(plus(0,x))->plus(0,s(x))=s(x)))")  # 0+x=x -> (0+s(x)=s(0+x) -> 0+s(x)=s(x))
+    l2 = prover.add_instantiated_assumption(f, prover.ME, {'R':R, 'c':Term.parse('plus(0,x)'), 'd': Term('x')})    # (0+x)=x -> (s(0+x)->s(x))
+                                                                                        # (0+x)=x -> ((0+s(x))->s(x))
+
+    l5 = prover.add_free_instantiation("plus(0,0)=0", ax3, {'x':'0'})       # 0+0=0
+                                                                            # 0+0=0 & Ax[(0+x)=x -> ((0+s(x))->s(x))]    {'R': '0+_=_'}
+                                                                            # ---> (0+x)=x
+
+
+    # L6 = prover.add_
+    # l9 = prover.add_tautological_implication()
+    print("miri")
+
     return prover.qed()
 
 #: Axiom schema of (unrestricted) comprehension
