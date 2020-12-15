@@ -158,3 +158,6 @@ def test_ex11(debug=False):
 
 def test_all(debug=False):
     test_ex11(debug)
+
+if __name__ == '__main__':
+    test_remove_assumption()

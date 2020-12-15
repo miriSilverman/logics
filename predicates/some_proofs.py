@@ -506,6 +506,8 @@ def peano_zero_proof(print_as_proof_forms: bool = False) -> Proof:
 COMPREHENSION_AXIOM = Schema(
     Formula.parse('Ey[Ax[((In(x,y)->R(x))&(R(x)->In(x,y)))]]'), {'R'})
 
+
+
 def russell_paradox_proof(print_as_proof_forms: bool = False) -> Proof:
     """Proves from the axioms schema of unrestricted comprehension the
     contradiction ``'(z=z&~z=z)'``.
@@ -518,8 +520,22 @@ def russell_paradox_proof(print_as_proof_forms: bool = False) -> Proof:
         A valid proof of the above inference via
         `~predicates.prover.Prover.AXIOMS`.
     """
-    prover = Prover({COMPREHENSION_AXIOM}, print_as_proof_forms)
+    prover = Prover({COMPREHENSION_AXIOM}, True)
     # Task 10.13
+    R = Formula.parse('((In(_,y)->~In(_,_))&(~In(_,_)->In(_,y)))')
+    rx = R.substitute({'_': Term('x')})
+    ry = R.substitute({'_': Term('y')})
+    l1 = prover.add_instantiated_assumption(Formula('E', 'y', Formula('A', 'x', rx)), COMPREHENSION_AXIOM, {'R': '~In(_,_)'})
+    l2 = prover.add_instantiated_assumption(Formula('->', Formula('A', 'x', rx), ry), Prover.UI, {'R':R, 'x':'x', 'c':'y'})
+
+    print("miri")
+
+
+
+
+
+
+
     return prover.qed()
 
 def _not_exists_not_implies_all_proof(formula: Formula, variable: str,
