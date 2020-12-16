@@ -429,10 +429,6 @@ def relations_in_all_formulas(formulas):
             all_relations_in_formulas.append(r)
     return all_relations_in_formulas
 
-#
-# def print_set(s):
-#     for n, i in enumerate(s):
-#         print(str(n)+')  ', i)
 
 def replace_equality_helper(formula) -> Formula:
     """

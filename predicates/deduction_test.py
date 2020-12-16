@@ -26,6 +26,14 @@ def test_remove_assumption(debug=False):
         print("Testing remove_assumption with assumption 'plus(a,c)=a' for the "
               'following proof:\n' + str(proof))
     result = remove_assumption(proof, Formula.parse('plus(a,c)=a'), debug)
+
+
+    print(".......res assump...............")
+    print(result.assumptions)
+    print("............supposed:  .........")
+    print(Prover.AXIOMS.union({Schema(Formula.parse(a)) for a in GROUP_AXIOMS}))
+
+
     assert result.assumptions == \
            Prover.AXIOMS.union({Schema(Formula.parse(a)) for a in GROUP_AXIOMS})
     assert str(result.conclusion) == '(plus(a,c)=a->c=0)'
