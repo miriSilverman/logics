@@ -157,3 +157,33 @@ def proof_by_way_of_contradiction(proof: Proof, assumption: Formula,
         if isinstance(line, Proof.UGLine):
             assert line.formula.variable not in assumption.free_variables()
     # Task 11.2
+
+    not_phi = assumption
+    phi = Formula('~', assumption)
+    not_axiom = proof.conclusion
+    axiom = Formula('~', not_axiom)
+
+    prover = Prover(proof.assumptions, False)
+
+    proof_of_not_phi_imp_not_axsiom = remove_assumption(proof, not_phi)
+
+    for line in proof_of_not_phi_imp_not_axsiom.lines:
+        l = prover._add_line(line)
+
+    not_phi_imp_not_axiom_line_num = len(prover._lines)-1   # conclusion: (~phi)->(~axiom)
+    not_phi_imp_not_axiom_formula = prover._lines[not_phi_imp_not_axiom_line_num].formula
+    axiom_imp_phi = Formula('->', axiom, phi)
+    
+    # l1 = (~phi)->(~axiom)
+    l2 = prover.add_tautology(Formula('->',not_phi_imp_not_axiom_formula, axiom_imp_phi))  # (~phi->~axiom)->(axiom->phi)
+    l3 = prover.add_mp(axiom_imp_phi, not_phi_imp_not_axiom_line_num, l2)  # axiom->phi
+    l4 = prover.add_tautology(axiom)        # axiom
+    l5 = prover.add_mp(phi, l4, l3)         # phi
+
+
+    new_assumptions = set()
+    for assum in proof.assumptions:
+        if assum.formula != assumption:
+            new_assumptions.add(assum)
+
+    return Proof(new_assumptions, Formula('~', assumption), prover._lines)

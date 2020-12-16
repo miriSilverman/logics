@@ -528,7 +528,7 @@ def russell_paradox_proof(print_as_proof_forms: bool = False) -> Proof:
     l1 = prover.add_instantiated_assumption(Formula('E', 'y', Formula('A', 'x', rx)), COMPREHENSION_AXIOM, {'R': '~In(_,_)'})
     l2 = prover.add_instantiated_assumption(Formula('->', Formula('A', 'x', rx), ry), Prover.UI, {'R':R, 'x':'x', 'c':'y'})
 
-    print("miri")
+    print("miri r")
 
 
 

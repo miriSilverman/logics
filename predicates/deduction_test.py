@@ -103,6 +103,9 @@ def test_proof_by_way_of_contradiction(debug=False):
               ' for the following proof:\n' + str(proof))
     result = proof_by_way_of_contradiction(proof, Formula.parse('Ax[~x=c]'),
                                            debug)
+    print(result.assumptions)
+    print(Prover.AXIOMS.union({Schema(Formula.parse('Ax[x=c]'))}))
+
     assert result.assumptions == Prover.AXIOMS.union(
         {Schema(Formula.parse('Ax[x=c]'))})
     assert str(result.conclusion) == '~Ax[~x=c]'
@@ -162,4 +165,5 @@ def test_all(debug=False):
     test_ex11(debug)
 
 if __name__ == '__main__':
-    test_remove_assumption()
+    # test_remove_assumption()
+    test_proof_by_way_of_contradiction()
