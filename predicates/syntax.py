@@ -400,7 +400,6 @@ class Term:
                 except ForbiddenVariableError as e:
                     raise e
             return Term(root, args)
-            # return Term(root, [term.substitute(substitution_map, forbidden_variables) for term in self.arguments])
 
 
 

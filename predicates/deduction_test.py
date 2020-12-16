@@ -165,5 +165,5 @@ def test_all(debug=False):
     test_ex11(debug)
 
 if __name__ == '__main__':
-    # test_remove_assumption()
-    test_proof_by_way_of_contradiction()
+    test_remove_assumption()
+    # test_proof_by_way_of_contradiction()

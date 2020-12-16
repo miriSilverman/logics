@@ -191,30 +191,77 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
     # Task 11.5
     print(formula)
     root = formula.root
-    if is_binary(root):
-        first = formula.first
-        second = formula.second
+
+    assumptions = Prover.AXIOMS.union(ADDITIONAL_QUANTIFICATION_AXIOMS)
+    prover = Prover(assumptions, False)
+
+    if is_variable(root) or is_constant(root) or is_relation(root) or is_equality(root):
+        f = Formula('->', formula, formula)
+        l = prover.add_tautology(f)
+        prover.add_tautological_implication(Formula('&', f, f), {l})
+        return formula, Proof(assumptions, equivalence_of(formula, formula), prover._lines)
+
+    elif is_quantifier(root):
+        x = formula.variable
+        phi = formula.predicate
+        psi, p = _uniquely_rename_quantified_variables(phi)
+        l1 = prover.add_proof(p.conclusion, p)   # phi <-> psi
+
+        phi_eq_psi = prover._lines[l1].formula
+        if root == 'A':
+            assump15 = Schema(Formula.parse('(((R(x)->Q(x))&(Q(x)->R(x)))->'
+                         '((Ax[R(x)]->Ay[Q(y)])&(Ay[Q(y)]->Ax[R(x)])))'), {'x', 'y', 'R', 'Q'})
+            Axphi_eq_Axpsi = equivalence_of(Formula('A', x, phi), Formula('A', x, psi))  # Ax[phi] <-> Ax[psi]
+            form = Formula('->', phi_eq_psi, Axphi_eq_Axpsi)
+            l2 = prover.add_instantiated_assumption(form, assump15, {'x': Term(x), 'y': Term(x),
+                    'R': phi.substitute({x: Term('_')}), 'Q':psi.substitute({x: Term('_')})})   # (phi <-> psi) -> (Ax[phi] <-> Ax[psi])  not sure we need substitute
+            l3 = prover.add_mp(Axphi_eq_Axpsi, l1, l2) # Ax[phi] <-> Ax[psi]
+
+            return Formula(root, formula.variable, psi), Proof(assumptions, Axphi_eq_Axpsi, prover._lines)
+
+        elif root == 'E':
+            assump16 = Schema(Formula.parse('(((R(x)->Q(x))&(Q(x)->R(x)))->'
+                         '((Ex[R(x)]->Ey[Q(y)])&(Ey[Q(y)]->Ex[R(x)])))'),
+           {'x', 'y', 'R', 'Q'})
+            Exphi_eq_Expsi = equivalence_of(Formula('E', x, phi), Formula('E', x, psi))  # Ex[phi] <-> Ex[psi]
+            form = Formula('->', phi_eq_psi, Exphi_eq_Expsi)
+            l2 = prover.add_instantiated_assumption(form, assump16, {'x': Term(x), 'y': Term(x),
+                    'R': phi.substitute({x: Term('_')}), 'Q':psi.substitute({x: Term('_')})})   # (phi <-> psi) -> (Ex[phi] <-> Ex[psi])  not sure we need substitute
+            l3 = prover.add_mp(Exphi_eq_Expsi, l1, l2) # Ex[phi] <-> Ex[psi]
+            return Formula(root, formula.variable, psi), Proof(assumptions, Exphi_eq_Expsi, prover._lines)
+
+
+    elif is_binary(root):
+        first, first_proof = _uniquely_rename_quantified_variables(formula.first)
+        l1 = prover.add_proof(first_proof.conclusion, first_proof)  # origin_first <-> first
+
+        second, second_proof = _uniquely_rename_quantified_variables(formula.second)
+        l2 = prover.add_proof(second_proof.conclusion, second_proof)  # origin_second <-> second
+
+
         first_free_vars = first.free_variables()
         second_free_vars = second.free_variables()
+        new_first = first
+        new_second = second
         if is_quantifier(first.root):
             x = first.variable
             if x in second_free_vars:
                 z = next(fresh_variable_name_generator)
-                first = first.substitute({x:Term(z)})
+                new_first = first.substitute({x:Term(z)})
         if is_quantifier(second.root):
             x = second.variable
             if x in first_free_vars:
                 z = next(fresh_variable_name_generator)
-                second = first.substitute({x:Term(z)})
-        print(first)
-        print(second)
+                new_second = first.substitute({x:Term(z)})
 
-    assumptions = Prover.AXIOMS.union(ADDITIONAL_QUANTIFICATION_AXIOMS)
-    prover = Prover(assumptions, True)
+        prover.add_tautological_implication()
+    # assumptions = Prover.AXIOMS.union(ADDITIONAL_QUANTIFICATION_AXIOMS)
+    prover = Prover(assumptions, False)
     f = Formula('->', formula, formula)
     l = prover.add_tautology(f)
     prover.add_tautological_implication(Formula('&', f, f), {l})
-    print("______________________________________________miri")
+    # print("______________________________________________miri")
+
 
     return formula, Proof(assumptions, equivalence_of(formula, formula), prover._lines)
 
