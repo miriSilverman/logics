@@ -189,6 +189,37 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
     for variable in formula.variables():
         assert variable[0] != 'z'
     # Task 11.5
+    print(formula)
+    root = formula.root
+    if is_binary(root):
+        first = formula.first
+        second = formula.second
+        first_free_vars = first.free_variables()
+        second_free_vars = second.free_variables()
+        if is_quantifier(first.root):
+            x = first.variable
+            if x in second_free_vars:
+                z = next(fresh_variable_name_generator)
+                first = first.substitute({x:Term(z)})
+        if is_quantifier(second.root):
+            x = second.variable
+            if x in first_free_vars:
+                z = next(fresh_variable_name_generator)
+                second = first.substitute({x:Term(z)})
+        print(first)
+        print(second)
+
+    assumptions = Prover.AXIOMS.union(ADDITIONAL_QUANTIFICATION_AXIOMS)
+    prover = Prover(assumptions, True)
+    f = Formula('->', formula, formula)
+    l = prover.add_tautology(f)
+    prover.add_tautological_implication(Formula('&', f, f), {l})
+    print("______________________________________________miri")
+
+    return formula, Proof(assumptions, equivalence_of(formula, formula), prover._lines)
+
+
+
 
 def _pull_out_quantifications_across_negation(formula: Formula) -> \
         Tuple[Formula, Proof]:
