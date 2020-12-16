@@ -173,7 +173,7 @@ def proof_by_way_of_contradiction(proof: Proof, assumption: Formula,
     not_phi_imp_not_axiom_line_num = len(prover._lines)-1   # conclusion: (~phi)->(~axiom)
     not_phi_imp_not_axiom_formula = prover._lines[not_phi_imp_not_axiom_line_num].formula
     axiom_imp_phi = Formula('->', axiom, phi)
-    
+
     # l1 = (~phi)->(~axiom)
     l2 = prover.add_tautology(Formula('->',not_phi_imp_not_axiom_formula, axiom_imp_phi))  # (~phi->~axiom)->(axiom->phi)
     l3 = prover.add_mp(axiom_imp_phi, not_phi_imp_not_axiom_line_num, l2)  # axiom->phi

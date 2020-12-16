@@ -62,6 +62,18 @@ def is_quantifier_free(formula: Formula) -> bool:
         otherwise.
     """
     # Task 11.3.1
+    root = formula.root
+    if is_unary(root):
+        return is_quantifier_free(formula.first)
+    elif is_binary(root):
+        first = is_quantifier_free(formula.first)
+        second = is_quantifier_free(formula.second)
+        return first and second
+    elif is_quantifier(root):
+        return False
+    else:
+        return True
+
 
 def is_in_prenex_normal_form(formula: Formula) -> bool:
     """Checks if the given formula is in prenex normal form.
