@@ -260,3 +260,4 @@ def test_all(debug=False):
 
 if __name__ == '__main__':
     test_is_quantifier_free()
+    test_is_in_prenex_normal_form()
