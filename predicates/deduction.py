@@ -35,114 +35,102 @@ def remove_assumption(proof: Proof, assumption: Formula,
         if isinstance(line, Proof.UGLine):
             assert line.formula.variable not in assumption.free_variables()
     # Task 11.1
-    print(proof.assumptions)
-    print("proof.conclusion: ", proof.conclusion)
-    print("------------phi: ", assumption)
-
     phi = assumption
-
-    prover = Prover(proof.assumptions, True)      #todo: change to print_as_proof_forms
-
+    prover = Prover(proof.assumptions, print_as_proof_forms)
     line_conversion_map = {}    # {old_line_num: new_line_num}
 
     for num, line in enumerate(proof.lines):
-        print("line is: ", line)
         f = line.formula
-        if f == phi:
-            print("!!!!   f==phi   !!!!")
-            l = prover.add_tautology(Formula('->', f, f))
+
+        if f == phi or type(line) == Proof.TautologyLine:
+            l = prover.add_tautology(Formula('->', phi, f))
             line_conversion_map[num] = l
 
         elif type(line) == Proof.MPLine:
-            print("!!!!   mp line   !!!!")
-            # print("line is: ", line)
-            # print(proof.lines[line.antecedent_line_number])
-            # print(proof.lines[line.conditional_line_number])
-
-            alpha = proof.lines[line.antecedent_line_number].formula
-            alpha_imp_beta = proof.lines[line.conditional_line_number].formula
-            beta = alpha_imp_beta.second
-
-            print("\nalpha", alpha)
-            print("alpha_imp_beta", alpha_imp_beta)
-            print("beta", beta)
-
-            print("++++")
-            first_assump_num = line_conversion_map[line.antecedent_line_number] # phi -> alpha
-            print(line.antecedent_line_number)
-            print(line.conditional_line_number)
-            second_assump_num = line_conversion_map[line.conditional_line_number] # phi->(alpha->beta)
-
-            phi_imp_alpha = prover._lines[first_assump_num].formula    # phi -> alpha
-            print("phi -> alpha:")
-            # print(phi_imp_alpha)
-            # phi_imp_alpha_imp_beta = prover._lines[first_assump_num].formula        # phi->(alpha->beta)
-            phi_imp_alpha_imp_beta = Formula('->', phi, Formula('->', alpha, beta))        # phi->(alpha->beta)
-            # print("phi->(alpha->beta):")
-            # print(phi_imp_alpha_imp_beta)
-            # phi_imp_beta = Formula('->', phi, phi_imp_alpha_imp_beta.second.second)     # phi->beta
-            phi_imp_beta = Formula('->', phi, beta)     # phi->beta
-            # print("phi->beta")
-            # print(phi_imp_beta)
-            form = Formula('->', phi_imp_alpha_imp_beta, Formula('->', phi_imp_alpha, phi_imp_beta))
-            l1 = prover.add_tautology(form)   # phi->(alpha->beta)---> ((phi -> alpha) -> (phi->beta))
-            l2 = prover.add_mp(form.second, second_assump_num, l1)  # ((phi -> alpha) -> (phi->beta))
-            l3 = prover.add_mp(form.second.second, first_assump_num, l2)    #  (phi->beta)
-            line_conversion_map[num] = l3
+            manage_mp_line(line, line_conversion_map, num, phi, proof, prover)
 
         elif type(line) == Proof.AssumptionLine:
-            print("!!!!   assumption   !!!!")
-
-            alpha = line.formula
-            if line.assumption != None:
-                step1 = prover.add_instantiated_assumption(alpha, line.assumption, line.instantiation_map)
-            else:
-                step1 = prover.add_assumption(alpha)  # alpha
-            step2 = prover.add_tautology(Formula('->', alpha, Formula('->', phi, alpha)))   # alpha->(phi->alpha)
-            step3 = prover.add_mp(Formula('->', phi, alpha), step1, step2)  # phi->alpha
-            line_conversion_map[num] = step3
+            manage_assumption_line(line, line_conversion_map, num, phi, prover)
 
         elif type(line) == Proof.UGLine:
-            print("!!!!   ug line   !!!!")
-            formula = line.formula  # Ax[alpha]
-            # print("line is", line)
-            alpha = formula.predicate   # alpha
-            print("alpha: ", alpha)
-            alpha_new_line_num = line_conversion_map[line.predicate_line_number]    # phi->alpha  line num in new proof
-            phi_imp_alpha = prover._lines[alpha_new_line_num].formula
-            x = formula.variable
+            manage_ug_line(line, line_conversion_map, num, phi, prover)
 
-            ug_formula = Formula('A', x, phi_imp_alpha)
-
-            print("ug_formula", ug_formula)
-            line1 = prover.add_ug(ug_formula, alpha_new_line_num)   # Ax[phi->alpha]
-            f = Formula('->', ug_formula, Formula('->', phi, Formula('A', x, alpha)))
-            print("f   ", f)
-            # (Ax[(plus(a,c)=a->plus(minus(x),x)=0)]->(plus(a,c)=a->Ax[plus(minus(x),x)=0]))
-            line2 = prover.add_instantiated_assumption(f, Prover.US, {'Q': phi, 'R': alpha.substitute({x:Term('_')}), 'x':x})   # Ax[phi->alpha] -> (phi->Ax[alpha])
-
-            line3 = prover.add_mp(Formula('->', phi, formula), line1, line2)    # phi->Ax[alpha]
-            line_conversion_map[num] = line3
-        elif type(line) == Proof.TautologyLine:
-            print("!!!!   tautology line   !!!!")
-
-            l = prover.add_tautology(Formula('->', phi, line.formula))
-            line_conversion_map[num] = l
-
-    GROUP_AXIOMS = frozenset({'plus(0,x)=x', 'plus(minus(x),x)=0',
-                              'plus(plus(x,y),z)=plus(x,plus(y,z))'})
     new_assumptions = set()
     for assum in proof.assumptions:
         if assum.formula != phi:
             new_assumptions.add(assum)
-        else:
-            print("the not allowed:   ", assum)
 
-    a = Prover.AXIOMS.union({Schema(Formula.parse(a)) for a in GROUP_AXIOMS})
-    new_proof = Proof(new_assumptions, Formula('->', phi, proof.conclusion), prover._lines)
-    print("______________________")
+    return Proof(new_assumptions, Formula('->', phi, proof.conclusion), prover._lines)
 
-    return new_proof
+
+def manage_ug_line(line, line_conversion_map, num, phi, prover):
+    """
+    adds the relevant lines in case of a ug line
+    Args:
+        line: the current line in the original proof
+        line_conversion_map: {old line num: new line num}
+        num: number of the current line in the original proof
+        phi: the assumption to remove
+        prover: the proof of phi->origin_conclusion without the assumption phi
+    """
+    formula = line.formula  # Ax[alpha]
+    alpha = formula.predicate  # alpha
+    alpha_new_line_num = line_conversion_map[line.predicate_line_number]  # phi->alpha  line num in new proof
+    phi_imp_alpha = prover._lines[alpha_new_line_num].formula
+    x = formula.variable
+    ug_formula = Formula('A', x, phi_imp_alpha)
+    line1 = prover.add_ug(ug_formula, alpha_new_line_num)  # Ax[phi->alpha]
+    foo = Formula('->', ug_formula, Formula('->', phi, Formula('A', x, alpha)))
+    line2 = prover.add_instantiated_assumption(foo, Prover.US, {'Q': phi, 'R': alpha.substitute({x: Term('_')}),
+                                                                'x': x})  # Ax[phi->alpha] -> (phi->Ax[alpha])
+    line3 = prover.add_mp(Formula('->', phi, formula), line1, line2)  # phi->Ax[alpha]
+    line_conversion_map[num] = line3
+
+
+def manage_assumption_line(line, line_conversion_map, num, phi, prover):
+    """
+    adds the relevant lines in case of an assumption line
+    Args:
+        line: the current line in the original proof
+        line_conversion_map: {old line num: new line num}
+        num: number of the current line in the original proof
+        phi: the assumption to remove
+        prover: the proof of phi->origin_conclusion without the assumption phi
+    """
+    alpha = line.formula
+    if line.assumption != None:
+        step1 = prover.add_instantiated_assumption(alpha, line.assumption, line.instantiation_map)
+    else:
+        step1 = prover.add_assumption(alpha)  # alpha
+    step2 = prover.add_tautology(Formula('->', alpha, Formula('->', phi, alpha)))  # alpha->(phi->alpha)
+    step3 = prover.add_mp(Formula('->', phi, alpha), step1, step2)  # phi->alpha
+    line_conversion_map[num] = step3
+
+
+def manage_mp_line(line, line_conversion_map, num, phi, proof, prover):
+    """
+    adds the relevant lines in case of a mp line
+    Args:
+        line: the current line in the original proof
+        line_conversion_map: {old line num: new line num}
+        num: number of the current line in the original proof
+        phi: the assumption to remove
+        prover: the proof of phi->origin_conclusion without the assumption phi
+    """
+    alpha = proof.lines[line.antecedent_line_number].formula
+    alpha_imp_beta = proof.lines[line.conditional_line_number].formula
+    beta = alpha_imp_beta.second
+    first_assump_num = line_conversion_map[line.antecedent_line_number]  # phi -> alpha
+    second_assump_num = line_conversion_map[line.conditional_line_number]  # phi->(alpha->beta)
+    phi_imp_alpha = prover._lines[first_assump_num].formula  # phi -> alpha
+    phi_imp_alpha_imp_beta = Formula('->', phi, Formula('->', alpha, beta))  # phi->(alpha->beta)
+    phi_imp_beta = Formula('->', phi, beta)  # phi->beta
+    form = Formula('->', phi_imp_alpha_imp_beta, Formula('->', phi_imp_alpha, phi_imp_beta))
+    l1 = prover.add_tautology(form)  # phi->(alpha->beta)---> ((phi -> alpha) -> (phi->beta))
+    l2 = prover.add_mp(form.second, second_assump_num, l1)  # ((phi -> alpha) -> (phi->beta))
+    l3 = prover.add_mp(form.second.second, first_assump_num, l2)  # (phi->beta)
+    line_conversion_map[num] = l3
+
 
 def proof_by_way_of_contradiction(proof: Proof, assumption: Formula,
                                   print_as_proof_forms: bool = False) -> Proof:
