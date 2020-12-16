@@ -189,7 +189,7 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
     for variable in formula.variables():
         assert variable[0] != 'z'
     # Task 11.5
-    print(formula)
+    print("formula: ", formula)
     root = formula.root
 
     assumptions = Prover.AXIOMS.union(ADDITIONAL_QUANTIFICATION_AXIOMS)
@@ -200,7 +200,7 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
         f = Formula('->', formula, formula)
         l1 = prover.add_tautology(f)
         l2 = prover.add_tautological_implication(Formula('&', f, f), {l1})
-        print("koko")
+        print("vars done with ", formula)
         return formula, Proof(assumptions, equivalence_of(formula, formula), prover._lines)
 
     elif is_quantifier(root):
@@ -210,7 +210,7 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
         phi = formula.predicate
         psi, p = _uniquely_rename_quantified_variables(phi)
         print("psi ", psi)
-        print("proof:", p)
+        # print("proof:", p)
         l1 = prover.add_proof(p.conclusion, p)   # phi <-> psi
 
         phi_eq_psi = prover._lines[l1].formula
@@ -226,9 +226,9 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
 
             l2 = prover.add_instantiated_assumption(form, assump15, {'x': x, 'y': x, 'R': phi.substitute({x: Term('_')}),
                     'Q':psi.substitute({x: Term('_')})})   # (phi <-> psi) -> (Ax[phi] <-> Ax[psi])
-            print("miri")
             l3 = prover.add_mp(Axphi_eq_Axpsi, l1, l2) # Ax[phi] <-> Ax[psi]
 
+            print("quant done with ", formula)
             return Formula(root, formula.variable, psi), Proof(assumptions, Axphi_eq_Axpsi, prover._lines)
 
         elif root == 'E':
@@ -257,26 +257,49 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
 
         first_free_vars = first.free_variables()
         second_free_vars = second.free_variables()
-        new_first = first
+        quantified_new_first = first
         new_second = second
         if is_quantifier(first.root):
+            print("first is quantifier", formula)
             x = first.variable
+            print("x", x)
             if x in second_free_vars:
+                print("x is free in second")
                 z = next(fresh_variable_name_generator)
-                new_first = first.substitute({x:Term(z)})
+                new_first = first.predicate.substitute({x:Term(z)})
+                quantified_new_first = Formula('A', z, new_first)
+                print("first", first)
+                print("new_first", new_first)
+                print("quantified_new_first", quantified_new_first)
+                R = new_first.substitute({z: Term('_')})
+                l3 = prover.add_instantiated_assumption(Formula('->', first, new_first),
+                                                        Prover.UI, {'R':R, 'x':x, 'c':z})   # Ax[R(x)]->R(z)
+                l4 = prover.add_ug()
+                print("R", R)
+
+
+
+
         if is_quantifier(second.root):
             x = second.variable
             if x in first_free_vars:
                 z = next(fresh_variable_name_generator)
                 new_second = first.substitute({x:Term(z)})
+                quantified_new_second = Formula('A', z, new_second)
 
-        new_formula = Formula(root, new_first, new_second)
+
+        new_formula = Formula(root, quantified_new_first, new_second)
         origin_formula_eq_new_formula = equivalence_of(formula, new_formula)
+        print("new formula: ", new_formula)
         #((x<->a)&&(y<->b))->((x&&y)<->(a&&b))
         # (origin_first &|-> origin_second) <-> (first &|-> second)
-        l3 = prover.add_tautological_implication(origin_formula_eq_new_formula, {l1, l2})
+        eq = equivalence_of(first, quantified_new_first)
+        print("eq", eq)
+        l5 = prover.add_tautology(eq)
+        l6 = prover.add_tautological_implication(origin_formula_eq_new_formula, {l1, l2})
+        print("binary done with ", formula)
+        # "Ax[R(x)] <-> Az[R(z)]"
         return new_formula, Proof(assumptions, equivalence_of(formula, new_formula), prover._lines)
-
 
 
 
