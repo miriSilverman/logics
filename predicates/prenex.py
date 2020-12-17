@@ -332,17 +332,20 @@ def _uniquely_rename_quantified_variables_helper(formula: Formula, vars_to_chang
 
             if x in vars_to_change:
                 z = next(fresh_variable_name_generator)
-                Rz = psi.predicate.substitute({x: Term(z)})
-                cur_formula = Formula(root, z, Rz)  # Az[psi(z)]
+                Rz = psi.substitute({x: Term(z)})   # psi(z)
+                new_formula = Formula(root, z, Rz)  # Az[psi(z)]
                 R = Rz.substitute({z: Term('_')})  # psi(_)
-
+                print(formula)
                 if root == 'A':
-                    equivalent_proof_line = prove_eq_all_rename_var(R, psi, Rz, prover, cur_formula,
+                    equivalent_proof_line = prove_eq_all_rename_var(R, cur_formula, Rz, prover, new_formula,
                                                                            x, z)  # "Ax[psi(x)] <-> Az[psi(z)]"
+                    print("mirii")
+
                 elif root == 'E':
-                    equivalent_proof_line = prove_equ_exist_case(R, psi, Rz, prover, cur_formula, x,
+                    equivalent_proof_line = prove_equ_exist_case(R, cur_formula, Rz, prover, new_formula, x,
                                                                         z)  # "Ex[psi(x)] <-> Ez[psi(z)]"
 
+                cur_formula = new_formula
                 eq = equivalence_of(formula, cur_formula)
                 prover.add_tautological_implication(eq, {line_eq, equivalent_proof_line})   # "Ax[phi(x)] <-> Az[psi(z)]"
 
@@ -358,17 +361,18 @@ def _uniquely_rename_quantified_variables_helper(formula: Formula, vars_to_chang
 
             if x in vars_to_change:
                 z = next(fresh_variable_name_generator)
-                Rz = psi.predicate.substitute({x: Term(z)})
-                cur_formula = Formula(root, z, Rz)  # Az[psi(z)]
+                Rz = psi.substitute({x: Term(z)})
+                new_formula = Formula(root, z, Rz)  # Az[psi(z)]
                 R = Rz.substitute({z: Term('_')})  # psi(_)
 
                 if root == 'A':
-                    equivalent_proof_line = prove_eq_all_rename_var(R, psi, Rz, prover, cur_formula,
+                    equivalent_proof_line = prove_eq_all_rename_var(R, cur_formula, Rz, prover, new_formula,
                                                                            x, z)  # "Ax[psi(x)] <-> Az[psi(z)]"
                 elif root == 'E':
-                    equivalent_proof_line = prove_equ_exist_case(R, psi, Rz, prover, cur_formula, x,
+                    equivalent_proof_line = prove_equ_exist_case(R, cur_formula, Rz, prover, new_formula, x,
                                                                         z)  # "Ex[psi(x)] <-> Ez[psi(z)]"
 
+                cur_formula = new_formula
                 eq = equivalence_of(formula, cur_formula)
                 prover.add_tautological_implication(eq, {line_eq, equivalent_proof_line})   # "Ax[phi(x)] <-> Az[psi(z)]"
 
@@ -387,16 +391,22 @@ def _uniquely_rename_quantified_variables_helper(formula: Formula, vars_to_chang
     elif is_binary(root):
         print("!!!! in binary   !!!!!")
 
-        origin_second_free_vars = formula.second.free_variables()
+        origin_second_free_vars = formula.second.free_variables().union(vars_to_change)
+        if is_quantifier(formula.second.root):
+            origin_second_free_vars = origin_second_free_vars.union({formula.second.variable})
 
-        first, l1, l2, second = create_new_firs_and_second(formula, prover, origin_second_free_vars)  # todo: maybe change
+        first, first_proof = _uniquely_rename_quantified_variables_helper(formula.first, origin_second_free_vars)
+        l1 = prover.add_proof(first_proof.conclusion, first_proof)  # origin_first <-> first
+
+        first_free_vars = first.free_variables().union(vars_to_change)
+        if is_quantifier(first.root):
+            first_free_vars = first_free_vars.union({first.variable})
+        second, second_proof = _uniquely_rename_quantified_variables_helper(formula.second, first_free_vars)
+        l2 = prover.add_proof(second_proof.conclusion, second_proof)  # origin_second <-> second
+
+
         the_new_formula = Formula(root, first, second)
 
-        first_free_vars = first.free_variables()
-        second_free_vars = second.free_variables()
-
-        quantified_new_first = first
-        quantified_new_second = second
 
         cur_formula = the_new_formula   # (first * second)
         equivalent_proof_line_first = prover.add_tautology(equivalence_of(first, first))    # first <-> first
