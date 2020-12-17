@@ -220,6 +220,14 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
             Exphi_eq_Expsi = quantifier_exist_case(l1, phi, phi_eq_psi, prover, psi, x)
             return Formula(root, formula.variable, psi), Proof(assumptions, Exphi_eq_Expsi, prover._lines)
 
+    elif is_unary(root):
+        first, first_proof = _uniquely_rename_quantified_variables(formula.first)
+        l1 = prover.add_proof(first_proof.conclusion, first_proof)  # origin_first <-> first
+        new_formula = Formula(root, first)
+        eq = equivalence_of(formula, new_formula)
+        prover.add_tautological_implication(eq, {l1})
+        print("new: ", new_formula)
+        return new_formula, Proof(assumptions, eq, prover._lines)
 
     elif is_binary(root):
         print("!!!! in binary   !!!!!")
@@ -234,6 +242,8 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
         quantified_new_second = second
 
         cur_formula = the_new_formula   # (first * second)
+        equivalent_proof_line_first = prover.add_tautology(equivalence_of(first, first))    # first <-> first
+        equivalent_proof_line_second = prover.add_tautology(equivalence_of(second, second))  # second <-> second
 
         if is_quantifier(first.root):
             print("first is quantifier", formula)
@@ -243,68 +253,66 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
                 print("x is free in second")
                 z = next(fresh_variable_name_generator)
                 Rz = first.predicate.substitute({x:Term(z)})     # R(z)
-                quantified_new_first = Formula(root, z, Rz)   # Az[R(z)]
+                quantified_new_first = Formula(first.root, z, Rz)   # Az[R(z)]
                 R = Rz.substitute({z: Term('_')})    # R(_)
 
-                equivalent_proof_line_first = -1
-                if root == 'A':
+                if first.root == 'A':
                     equivalent_proof_line_first = prove_eq_all_rename_var(R, first, Rz, prover, quantified_new_first, x, z) # "Ax[R(x)] <-> Az[R(z)]"
-                elif root == 'E':
+                elif first.root == 'E':
                     equivalent_proof_line_first = prove_equ_exist_case(R, Rz, first, prover, quantified_new_first, x, z)
 
-                new_formula = Formula(root, quantified_new_first, quantified_new_second)    # (Az[R(z)] * second)
-                origin_formula_eq_new_formula = equivalence_of(formula, new_formula)
+                cur_formula = Formula(root, quantified_new_first, quantified_new_second)    # (Az[R(z)] * second)
+                # origin_formula_eq_new_formula = equivalence_of(formula, new_formula)
                 ###################
-                step1 = prover.add_tautological_implication(origin_formula_eq_new_formula, {l1, l2, equivalent_proof_line_first}) # (Ax[R(x)] * second) <-> (Az[R(z)] * second)
+                # step1 = prover.add_tautological_implication(origin_formula_eq_new_formula, {l1, l2, equivalent_proof_line_first}) # (Ax[R(x)] * second) <-> (Az[R(z)] * second)
                 #################
                 print("binary done with ", formula)
 
-                cur_formula = new_formula
+                # cur_formula = new_formula
                 first_free_vars = cur_formula.first.free_variables()
+                print("first cur_formula: ", cur_formula)
                 # return new_formula, Proof(assumptions, equivalence_of(formula, new_formula), prover._lines)
 
-            else:
-                ##################  simple case    ##############################################
-                # if x not in second_free_vars:
-                new_and_old_eq = equivalence_of(formula, the_new_formula)
-                ########
-                step1 = prover.add_tautological_implication(new_and_old_eq, {l1, l2})
-                #########
-                # return the_new_formula, Proof(assumptions, new_and_old_eq, prover._lines)
-                ###################################################################################
 
         if is_quantifier(second.root):
             print("second is quantifier", formula)
 
             x = second.variable
-            if x in first_free_vars:
+            if x in first_free_vars or (is_quantifier(first.root) and first.variable==x):
                 z = next(fresh_variable_name_generator)
                 Rz = quantified_new_second.predicate.substitute({x:Term(z)})
-                quantified_new_second = Formula(root, z, Rz)   # Az[R(z)]
+                quantified_new_second = Formula(second.root, z, Rz)   # Az[R(z)]
                 R = Rz.substitute({z: Term('_')})    # R(_)
 
+                print("miri")
 
-                equivalent_proof_line_second = -1
-                if root == 'A':
+                if second.root == 'A':
                     equivalent_proof_line_second = prove_eq_all_rename_var(R, second, Rz, prover, quantified_new_second, x, z) # "Ax[R(x)] <-> Az[R(z)]"
-                elif root == 'E':
-                    equivalent_proof_line_second = prove_equ_exist_case(R, Rz, first, prover, quantified_new_second, x, z) # "Ex[R(x)] <-> Ez[R(z)]"
+                elif second.root == 'E':
+                    equivalent_proof_line_second = prove_equ_exist_case(R, second, Rz, prover, quantified_new_second, x, z) # "Ex[R(x)] <-> Ez[R(z)]"
 
 
 
-                new_formula = Formula(root, quantified_new_first, quantified_new_second)    # (first * Az[R(z)])
-                origin_formula_eq_new_formula = equivalence_of(formula, new_formula)
+                cur_formula = Formula(root, quantified_new_first, quantified_new_second)    # (first * Az[R(z)])
+                # origin_formula_eq_new_formula = equivalence_of(formula, cur_formula)
                 ###################
-                step1 = prover.add_tautological_implication(origin_formula_eq_new_formula, {l1, l2, equivalent_proof_line_second}) # (Ax[R(x)] * second) <-> (Az[R(z)] * second)
+                # step1 = prover.add_tautological_implication(origin_formula_eq_new_formula, {l1, l2, equivalent_proof_line_second}) # (first * Ax[R(x)]) <-> (first * Az[R(z)])
                 #################
                 print("binary done with ", formula)
+                print("second cur_formula: ", cur_formula)
 
-                cur_formula = new_formula
-                second_free_vars = cur_formula.second.free_variables()
+                # cur_formula = new_formula
+                # second_free_vars = cur_formula.second.free_variables()
 
 
 
         eq = equivalence_of(formula, cur_formula)
+        # print("eq", eq)
+        # lines = prover._lines
+        # print(lines[l1])
+        # print(lines[l2])
+        # print(lines[equivalent_proof_line_first])
+        # print(lines[equivalent_proof_line_second])
         prover.add_tautological_implication(eq, {l1, l2, equivalent_proof_line_first, equivalent_proof_line_second})
         return cur_formula, Proof(assumptions, eq, prover._lines)
 
@@ -315,32 +323,31 @@ def prove_equ_exist_case(R, Rz, first, prover, quantified_new_first, x, z):
     Returns:
 
     """
-    pred = Formula('->', Rz, first)  # R(z)->Ex[R(x)]
+    pred = Formula('->', first, Rz)  # R(z)->Ex[R(x)]
     s1 = prover.add_instantiated_assumption(pred, Prover.EI, {'R': R, 'x': x, 'c': z})  # R(z)->Ex[R(x)]
     form = Formula('A', z, pred)  # Az[R(z)->Ex[R(x)]]
     s2 = prover.add_ug(form, s1)  # Az[R(z)->Ex[R(x)]]
     and_form = Formula('&', form, quantified_new_first)  # Az[R(z)->Ex[R(x)]] & Ez[R(z)]
-    imp_form = Formula('->', and_form, first)  # Az[R(z)->Ex[R(x)]] & Ez[R(z)] -> Ex[R(x)]
-    s3 = prover.add_instantiated_assumption(imp_form, Prover.ES, {'Q': quantified_new_first, 'R': R,
-                                                                  'x': z})  # Az[R(z)->Ex[R(x)]] & Ez[R(z)] -> Ex[R(x)]
+    imp_form = Formula('->', and_form, Rz)  # Az[R(z)->Ex[R(x)]] & Ez[R(z)] -> Ex[R(x)]
+    s3 = prover.add_instantiated_assumption(imp_form, Prover.ES, {'Q': Rz, 'R': R, 'x': z})  # Az[R(z)->Ex[R(x)]] & Ez[R(z)] -> Ex[R(x)]
     ###
-    s4 = prover.add_tautological_implication(Formula('->', quantified_new_first, first),
+    s4 = prover.add_tautological_implication(Formula('->', quantified_new_first, Rz),
                                              {s2, s3})  # Ez[R(z)] -> Ex[R(x)]]
     ###
-    pred2 = Formula('->', first.predicate, quantified_new_first)  # R(x)->Ez[R(z)]
+    pred2 = Formula('->', Rz.predicate, quantified_new_first)  # R(x)->Ez[R(z)]
     s5 = prover.add_instantiated_assumption(pred2, Prover.EI, {'R': R, 'x': z, 'c': x})  # R(x)->Ez[R(z)]
     form2 = Formula('A', x, pred2)  # Ax[R(x)->Ez[R(z)]]
-    s6 = prover.add_ug(form, s5)  # Ax[R(x)->Ez[R(z)]]
-    and_form2 = Formula('&', form2, first)  # Ax[R(x)->Ez[R(z)]] & Ex[R(x)]
+    s6 = prover.add_ug(form2, s5)  # Ax[R(x)->Ez[R(z)]]
+    and_form2 = Formula('&', form2, Rz)  # Ax[R(x)->Ez[R(z)]] & Ex[R(x)]
     imp_form2 = Formula('->', and_form2, quantified_new_first)  # Ax[R(x)->Ez[R(z)]] & Ex[R(x)] -> Ez[R(z)]
     s7 = prover.add_instantiated_assumption(imp_form2, Prover.ES,
-                                            {'Q': quantified_new_first, 'R': R,
-                                             'x': z})  # Ax[R(x)->Ez[R(z)]] & Ex[R(x)] -> Ez[R(z)]
+                            {'Q': quantified_new_first, 'R': R, 'x': x})  # Ax[R(x)->Ez[R(z)]] & Ex[R(x)] -> Ez[R(z)]
+
     ###
-    s8 = prover.add_tautological_implication(Formula('->', first, quantified_new_first),
-                                             {s6, s7})  # Ex[R(x)]] -> Ez[R(z)]
+    s8 = prover.add_tautological_implication(Formula('->', Rz, quantified_new_first), {s6, s7})  # Ex[R(x)]] -> Ez[R(z)]
     ###
-    l11 = prover.add_tautological_implication(equivalence_of(first, quantified_new_first), {s4, s8}) # Ex[R(x)]] <-> Ez[R(z)]
+
+    l11 = prover.add_tautological_implication(equivalence_of(Rz, quantified_new_first), {s4, s8}) # Ex[R(x)]] <-> Ez[R(z)]
     return l11
 
 
