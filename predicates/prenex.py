@@ -282,6 +282,7 @@ def prove_equ_exist_case(R, Rz, first, prover, quantified_new_first, x, z):
     Returns:
 
     """
+    #############       Ez[R(z)] -> Ex[R(x)]]       ###########
     pred = Formula('->', first, Rz)  # R(z)->Ex[R(x)]
     s1 = prover.add_instantiated_assumption(pred, Prover.EI, {'R': R, 'x': x, 'c': z})  # R(z)->Ex[R(x)]
     form = Formula('A', z, pred)  # Az[R(z)->Ex[R(x)]]
@@ -293,6 +294,7 @@ def prove_equ_exist_case(R, Rz, first, prover, quantified_new_first, x, z):
     s4 = prover.add_tautological_implication(Formula('->', quantified_new_first, Rz),
                                              {s2, s3})  # Ez[R(z)] -> Ex[R(x)]]
 
+    ##########     Ex[R(x)]] -> Ez[R(z)]    ###########
     pred2 = Formula('->', Rz.predicate, quantified_new_first)  # R(x)->Ez[R(z)]
     s5 = prover.add_instantiated_assumption(pred2, Prover.EI, {'R': R, 'x': z, 'c': x})  # R(x)->Ez[R(z)]
     form2 = Formula('A', x, pred2)  # Ax[R(x)->Ez[R(z)]]
@@ -443,6 +445,41 @@ def _pull_out_quantifications_across_negation(formula: Formula) -> \
     """
     assert is_unary(formula.root)
     # Task 11.6
+    print("formula", formula)
+    first = formula.first
+    root = first.root
+    assumptions = Prover.AXIOMS.union(ADDITIONAL_QUANTIFICATION_AXIOMS)
+    prover = Prover(assumptions, False)
+
+    if is_quantifier_free(first):
+        eq = equivalence_of(formula, formula)
+        prover.add_tautology(eq)
+        return formula, Proof(assumptions, eq, prover._lines)
+
+    elif is_quantifier(root):   # ~Ax[R(x)] ------> Ex[~R(x)]
+        x = first.variable
+        phi = first.predicate
+        R = phi.substitute({x:Term('_')})
+
+        if root == 'A':
+            axiom = Schema(Formula.parse('((~Ax[R(x)]->Ex[~R(x)])&(Ex[~R(x)]->~Ax[R(x)]))'), {'x', 'R'})
+            f = equivalence_of(formula, Formula('E', x, Formula('~', phi)))
+
+        elif root == 'E':
+            axiom = Schema(Formula.parse('((~Ex[R(x)]->Ax[~R(x)])&(Ax[~R(x)]->~Ex[R(x)]))'), {'x', 'R'})
+            f = equivalence_of(formula, Formula('A', x, Formula('~', phi)))
+        # f = axiom.formula.substitute({'x': Term(x), 'R': R})
+        eq_formula = f.first.second   # Ex[~R(x)]
+        l1 = prover.add_instantiated_assumption(f, axiom, {'x': x, 'R': R})  # ~Ax[R(x)] <-> Ex[~R(x)]
+
+        eq_pred_formula, proof =_pull_out_quantifications_across_negation(eq_formula.predicate)     # ~R(x) <-> eq_pred_formula
+        pred_eq_line = prover.add_proof(proof.conclusion, proof)
+        new_formula = Formula(eq_formula.root, eq_formula.variable, eq_pred_formula)    # Ex[eq_pred_formula]
+        eq = equivalence_of(formula, new_formula)    # Ax[~R(x)] <-> Ex[eq_pred_formula]
+        l2 = prover.add_tautological_implication(eq, {l1, pred_eq_line})
+        print("new_formula", new_formula)
+        return new_formula, Proof(assumptions, eq, prover._lines)
+
 
 def _pull_out_quantifications_from_left_across_binary_operator(formula:
                                                                Formula) -> \
