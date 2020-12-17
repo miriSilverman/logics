@@ -241,13 +241,7 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
         print("!!!! in binary   !!!!!")
 
         ########################   creating new first and second recursivly  ##########################
-        first, first_proof = _uniquely_rename_quantified_variables(formula.first)
-        l1 = prover.add_proof(first_proof.conclusion, first_proof)  # origin_first <-> first
-        origin_eq_first = equivalence_of(formula.first, first)
-
-        second, second_proof = _uniquely_rename_quantified_variables(formula.second)
-        l2 = prover.add_proof(second_proof.conclusion, second_proof)  # origin_second <-> second
-        origin_eq_second = equivalence_of(formula.second, second)
+        first, l1, l2, second = create_new_firs_and_second(formula, prover)
 
         the_new_formula = Formula(root, first, second)
         ################################################################################################
@@ -278,28 +272,7 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
                 R = new_first.substitute({z: Term('_')})
                 us_1 = Formula('A', x, Formula('->', quantified_new_first, first.predicate))    # Ax[Az[R(z)]->R(x)]
 
-                ######################      Ax[R(x)]->Az[R(z)]   #########################
-                us = Formula('->', first, new_first) # Ax[R(x)]->R(z)
-                l3 = prover.add_instantiated_assumption(us, Prover.UI, {'R':R, 'x':x, 'c':z})   # Ax[R(x)]->R(z)
-                general_us = Formula('A', z, us)
-                l4 = prover.add_ug(general_us, l3) # Az[Ax[R(x)]->R(z)]
-                conc_us = Formula('->', general_us, Formula('->', first, quantified_new_first)) # Az[Ax[R(x)]->R(z)] -> Ax[R(x)]->Az[R(z)]
-                l5 = prover.add_instantiated_assumption(conc_us, Prover.US, {'Q': first, 'R': R, 'x': z})
-                l6 = prover.add_mp(conc_us.second, l4, l5)  # Ax[R(x)]->Az[R(z)]
-
-
-                                ######################     Ax[R(x)]->Az[R(z)]    #########################
-                us2 = Formula('->', quantified_new_first, first.predicate)  # Az[R(z)]->R(x)
-                l7 = prover.add_instantiated_assumption(us2, Prover.UI, {'R': R, 'x': z, 'c': x})  # Az[R(z)]->R(x)
-                general_us2 = Formula('A', x, us2)
-                l8 = prover.add_ug(general_us2, l7)  # Ax[Az[R(z)]->R(x)]
-                conc_us2 = Formula('->', general_us2, Formula('->', quantified_new_first,
-                                                            first))  # Ax[Az[R(z)]->R(x)] -> Az[R(z)]->Ax[R(x)]
-                l9 = prover.add_instantiated_assumption(conc_us2, Prover.US, {'Q': quantified_new_first, 'R': R, 'x': x})
-                l10 = prover.add_mp(conc_us2.second, l8, l9)  # Ax[R(x)]->Az[R(z)]
-
-
-                l11 = prover.add_tautological_implication(equivalence_of(first, quantified_new_first), {l6, l10}) # Ax[R(x)]<->Az[R(z)]
+                l11 = prove_eq_all_rename_var(R, first, new_first, prover, quantified_new_first, x, z)
 
                 new_formula = Formula(root, quantified_new_first, new_second)
                 origin_formula_eq_new_formula = equivalence_of(formula, new_formula)
@@ -333,6 +306,59 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
         # print("new formula: ", new_formula)
         # "Ax[R(x)] <-> Az[R(z)]"
         return new_formula, Proof(assumptions, equivalence_of(formula, new_formula), prover._lines)
+
+
+def create_new_firs_and_second(formula, prover):
+    """
+    creates the recursivly first and second in the binary case
+    Args:
+        formula:
+        prover:
+
+    Returns:
+
+    """
+    first, first_proof = _uniquely_rename_quantified_variables(formula.first)
+    l1 = prover.add_proof(first_proof.conclusion, first_proof)  # origin_first <-> first
+    origin_eq_first = equivalence_of(formula.first, first)
+    second, second_proof = _uniquely_rename_quantified_variables(formula.second)
+    l2 = prover.add_proof(second_proof.conclusion, second_proof)  # origin_second <-> second
+    origin_eq_second = equivalence_of(formula.second, second)
+    return first, l1, l2, second
+
+
+def prove_eq_all_rename_var(R, first, new_first, prover, quantified_new_first, x, z):
+    """
+    proves: Ax[R(x)]<->Az[R(z)]
+
+    """
+
+    ######################      Ax[R(x)]->Az[R(z)]   #########################
+    us = Formula('->', first, new_first)  # Ax[R(x)]->R(z)
+    l3 = prover.add_instantiated_assumption(us, Prover.UI, {'R': R, 'x': x, 'c': z})  # Ax[R(x)]->R(z)
+    general_us = Formula('A', z, us)
+    l4 = prover.add_ug(general_us, l3)  # Az[Ax[R(x)]->R(z)]
+    conc_us = Formula('->', general_us,
+                      Formula('->', first, quantified_new_first))  # Az[Ax[R(x)]->R(z)] -> Ax[R(x)]->Az[R(z)]
+    l5 = prover.add_instantiated_assumption(conc_us, Prover.US, {'Q': first, 'R': R, 'x': z})
+    l6 = prover.add_mp(conc_us.second, l4, l5)  # Ax[R(x)]->Az[R(z)]
+
+    ######################     Ax[R(x)]->Az[R(z)]    #########################
+    us2 = Formula('->', quantified_new_first, first.predicate)  # Az[R(z)]->R(x)
+    l7 = prover.add_instantiated_assumption(us2, Prover.UI, {'R': R, 'x': z, 'c': x})  # Az[R(z)]->R(x)
+    general_us2 = Formula('A', x, us2)
+    l8 = prover.add_ug(general_us2, l7)  # Ax[Az[R(z)]->R(x)]
+    conc_us2 = Formula('->', general_us2, Formula('->', quantified_new_first,
+                                                  first))  # Ax[Az[R(z)]->R(x)] -> Az[R(z)]->Ax[R(x)]
+    l9 = prover.add_instantiated_assumption(conc_us2, Prover.US, {'Q': quantified_new_first, 'R': R, 'x': x})
+    l10 = prover.add_mp(conc_us2.second, l8, l9)  # Ax[R(x)]->Az[R(z)]
+
+    ######## conclusion   ########
+    l11 = prover.add_tautological_implication(equivalence_of(first, quantified_new_first),
+                                              {l6, l10})  # Ax[R(x)]<->Az[R(z)]
+    return l11
+
+
 
 
 
