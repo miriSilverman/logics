@@ -267,15 +267,35 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
                 print("x is free in second")
                 z = next(fresh_variable_name_generator)
                 new_first = first.predicate.substitute({x:Term(z)})
-                quantified_new_first = Formula('A', z, new_first)
-                print("first", first)
+                quantified_new_first = Formula('A', z, new_first)   # Az[R(z)]
+                print("first", first)   # Ax[R(x)]
                 print("new_first", new_first)
                 print("quantified_new_first", quantified_new_first)
                 R = new_first.substitute({z: Term('_')})
-                l3 = prover.add_instantiated_assumption(Formula('->', first, new_first),
-                                                        Prover.UI, {'R':R, 'x':x, 'c':z})   # Ax[R(x)]->R(z)
-                l4 = prover.add_ug()
-                print("R", R)
+                us_1 = Formula('A', x, Formula('->', quantified_new_first, first.predicate))    # Ax[Az[R(z)]->R(x)]
+
+                ######################      Ax[R(x)]->Az[R(z)]   #########################
+                us = Formula('->', first, new_first) # Ax[R(x)]->R(z)
+                l3 = prover.add_instantiated_assumption(us, Prover.UI, {'R':R, 'x':x, 'c':z})   # Ax[R(x)]->R(z)
+                general_us = Formula('A', z, us)
+                l4 = prover.add_ug(general_us, l3) # Az[Ax[R(x)]->R(z)]
+                conc_us = Formula('->', general_us, Formula('->', first, quantified_new_first)) # Az[Ax[R(x)]->R(z)] -> Ax[R(x)]->Az[R(z)]
+                l5 = prover.add_instantiated_assumption(conc_us, Prover.US, {'Q': first, 'R': R, 'x': z})
+                l6 = prover.add_mp(conc_us.second, l4, l5)  # Ax[R(x)]->Az[R(z)]
+
+
+                                ######################     Ax[R(x)]->Az[R(z)]    #########################
+                us2 = Formula('->', quantified_new_first, first.predicate)  # Az[R(z)]->R(x)
+                l7 = prover.add_instantiated_assumption(us2, Prover.UI, {'R': R, 'x': z, 'c': x})  # Az[R(z)]->R(x)
+                general_us2 = Formula('A', x, us2)
+                l8 = prover.add_ug(general_us2, l7)  # Ax[Az[R(z)]->R(x)]
+                conc_us2 = Formula('->', general_us2, Formula('->', quantified_new_first,
+                                                            first))  # Ax[Az[R(z)]->R(x)] -> Az[R(z)]->Ax[R(x)]
+                l9 = prover.add_instantiated_assumption(conc_us2, Prover.US, {'Q': quantified_new_first, 'R': R, 'x': x})
+                l10 = prover.add_mp(conc_us2.second, l8, l9)  # Ax[R(x)]->Az[R(z)]
+
+
+                print("!R", R)
 
 
 
@@ -295,8 +315,8 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
         # (origin_first &|-> origin_second) <-> (first &|-> second)
         eq = equivalence_of(first, quantified_new_first)
         print("eq", eq)
-        l5 = prover.add_tautology(eq)
-        l6 = prover.add_tautological_implication(origin_formula_eq_new_formula, {l1, l2})
+        l533 = prover.add_tautology(eq)
+        l633 = prover.add_tautological_implication(origin_formula_eq_new_formula, {l1, l2})
         print("binary done with ", formula)
         # "Ax[R(x)] <-> Az[R(z)]"
         return new_formula, Proof(assumptions, equivalence_of(formula, new_formula), prover._lines)
