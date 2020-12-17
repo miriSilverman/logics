@@ -242,11 +242,21 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
             if x in second_free_vars:
                 print("x is free in second")
                 z = next(fresh_variable_name_generator)
-                new_first = first.predicate.substitute({x:Term(z)})
-                quantified_new_first = Formula('A', z, new_first)   # Az[R(z)]
-                R = new_first.substitute({z: Term('_')})    # R(_)
+                Rz = first.predicate.substitute({x:Term(z)})     # R(z)
+                quantified_new_first = Formula(root, z, Rz)   # Az[R(z)]
+                R = Rz.substitute({z: Term('_')})    # R(_)
 
-                l11 = prove_eq_all_rename_var(R, first, new_first, prover, quantified_new_first, x, z) # "Ax[R(x)] <-> Az[R(z)]"
+                if root == 'A':
+                    l11 = prove_eq_all_rename_var(R, first, Rz, prover, quantified_new_first, x, z) # "Ax[R(x)] <-> Az[R(z)]"
+                elif root == 'E':
+                    pred = Formula('->', Rz, first)  # R(z)->Ex[R(x)]
+                    s1 = prover.add_instantiated_assumption(pred, Prover.EI,
+                                                            {'R': R, 'x': x, 'c': z})   # R(z)->Ex[R(x)]
+                    form = Formula('A', z, pred)    # Az[R(z)->Ex[R(x)]]
+                    and_form = Formula('&', form, quantified_new_first) # Az[R(z)->Ex[R(x)]] & Ez[R(z)]
+                    imp_form = Formula('->', and_form, first)
+                    s2 = prover.add_instantiated_assumption(imp_form, Prover.ES, {'Q': quantified_new_first, 'R': R, 'x': z}) # Az[R(z)->Ex[R(x)]] & Ez[R(z)] -> Ez[R(z)]
+
 
                 new_formula = Formula(root, quantified_new_first, quantified_new_second)    # (Az[R(z)] * second)
                 origin_formula_eq_new_formula = equivalence_of(formula, new_formula)
@@ -276,7 +286,7 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
             if x in first_free_vars:
                 z = next(fresh_variable_name_generator)
                 new_second = quantified_new_second.predicate.substitute({x:Term(z)})
-                quantified_new_second = Formula('A', z, new_second)   # Az[R(z)]
+                quantified_new_second = Formula(root, z, new_second)   # Az[R(z)]
                 R = new_second.substitute({z: Term('_')})    # R(_)
 
                 ll11 = prove_eq_all_rename_var(R, second, new_second, prover, quantified_new_second, x, z) # "Ax[R(x)] <-> Az[R(z)]"
