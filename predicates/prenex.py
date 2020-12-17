@@ -213,39 +213,19 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
 
         phi_eq_psi = prover._lines[l1].formula
         if root == 'A':
-            assump15 = Schema(Formula.parse('(((R(x)->Q(x))&(Q(x)->R(x)))->'
-                         '((Ax[R(x)]->Ay[Q(y)])&(Ay[Q(y)]->Ax[R(x)])))'), {'x', 'y', 'R', 'Q'})
-            Axphi_eq_Axpsi = equivalence_of(Formula('A', x, phi), Formula('A', x, psi))  # Ax[phi] <-> Ax[psi]
-            form = Formula('->', phi_eq_psi, Axphi_eq_Axpsi)
-
-            l2 = prover.add_instantiated_assumption(form, assump15, {'x': x, 'y': x, 'R': phi.substitute({x: Term('_')}),
-                    'Q':psi.substitute({x: Term('_')})})   # (phi <-> psi) -> (Ax[phi] <-> Ax[psi])
-            l3 = prover.add_mp(Axphi_eq_Axpsi, l1, l2) # Ax[phi] <-> Ax[psi]
-
-            print("quant done with ", formula)
+            Axphi_eq_Axpsi = quantifier_all_case(formula, l1, phi, phi_eq_psi, prover, psi, x)
             return Formula(root, formula.variable, psi), Proof(assumptions, Axphi_eq_Axpsi, prover._lines)
 
         elif root == 'E':
-            assump16 = Schema(Formula.parse('(((R(x)->Q(x))&(Q(x)->R(x)))->'
-                         '((Ex[R(x)]->Ey[Q(y)])&(Ey[Q(y)]->Ex[R(x)])))'),
-           {'x', 'y', 'R', 'Q'})
-            Exphi_eq_Expsi = equivalence_of(Formula('E', x, phi), Formula('E', x, psi))  # Ex[phi] <-> Ex[psi]
-            form = Formula('->', phi_eq_psi, Exphi_eq_Expsi)
-            l2 = prover.add_instantiated_assumption(form, assump16, {'x': x, 'y': x, 'R': phi.substitute({x: Term('_')}),
-                                    'Q':psi.substitute({x: Term('_')})})   # (phi <-> psi) -> (Ex[phi] <-> Ex[psi])
-            l3 = prover.add_mp(Exphi_eq_Expsi, l1, l2) # Ex[phi] <-> Ex[psi]
+            Exphi_eq_Expsi = quantifier_exist_case(l1, phi, phi_eq_psi, prover, psi, x)
             return Formula(root, formula.variable, psi), Proof(assumptions, Exphi_eq_Expsi, prover._lines)
 
 
     elif is_binary(root):
         print("!!!! in binary   !!!!!")
 
-        ########################   creating new first and second recursivly  ##########################
         first, l1, l2, second = create_new_firs_and_second(formula, prover)
-
         the_new_formula = Formula(root, first, second)
-        ################################################################################################
-
 
         first_free_vars = first.free_variables()
         second_free_vars = second.free_variables()
@@ -308,22 +288,68 @@ def _uniquely_rename_quantified_variables(formula: Formula) -> \
         return new_formula, Proof(assumptions, equivalence_of(formula, new_formula), prover._lines)
 
 
+def quantifier_exist_case(l1, phi, phi_eq_psi, prover, psi, x):
+    """
+    proves: Ex[phi] <-> Ex[psi]
+    Args:
+        l1:  line in the proof that proves: phi <-> psi
+        phi: phi
+        phi_eq_psi:  phi <-> psi
+        prover: the prover
+        psi: psi
+        x: the variable of the exist
+
+    Returns: the formula Ex[phi] <-> Ex[psi]
+
+    """
+    assump16 = Schema(Formula.parse('(((R(x)->Q(x))&(Q(x)->R(x)))->'
+                                    '((Ex[R(x)]->Ey[Q(y)])&(Ey[Q(y)]->Ex[R(x)])))'),
+                      {'x', 'y', 'R', 'Q'})
+    Exphi_eq_Expsi = equivalence_of(Formula('E', x, phi), Formula('E', x, psi))  # Ex[phi] <-> Ex[psi]
+    form = Formula('->', phi_eq_psi, Exphi_eq_Expsi)
+    l2 = prover.add_instantiated_assumption(form, assump16, {'x': x, 'y': x, 'R': phi.substitute({x: Term('_')}),
+                                                             'Q': psi.substitute({x: Term(
+                                                                 '_')})})  # (phi <-> psi) -> (Ex[phi] <-> Ex[psi])
+    l3 = prover.add_mp(Exphi_eq_Expsi, l1, l2)  # Ex[phi] <-> Ex[psi]
+    return Exphi_eq_Expsi
+
+
+def quantifier_all_case(formula, l1, phi, phi_eq_psi, prover, psi, x):
+    """
+    proves: Ax[phi] <-> Ax[psi]
+    Args:
+        l1:  line in the proof that proves: phi <-> psi
+        phi: phi
+        phi_eq_psi:  phi <-> psi
+        prover: the prover
+        psi: psi
+        x: the variable of the exist
+
+    Returns: the formula Ax[phi] <-> Ax[psi]
+
+    """
+    assump15 = Schema(Formula.parse('(((R(x)->Q(x))&(Q(x)->R(x)))->'
+                                    '((Ax[R(x)]->Ay[Q(y)])&(Ay[Q(y)]->Ax[R(x)])))'), {'x', 'y', 'R', 'Q'})
+    Axphi_eq_Axpsi = equivalence_of(Formula('A', x, phi), Formula('A', x, psi))  # Ax[phi] <-> Ax[psi]
+    form = Formula('->', phi_eq_psi, Axphi_eq_Axpsi)
+    l2 = prover.add_instantiated_assumption(form, assump15, {'x': x, 'y': x, 'R': phi.substitute({x: Term('_')}),
+                                                             'Q': psi.substitute({x: Term(
+                                                                 '_')})})  # (phi <-> psi) -> (Ax[phi] <-> Ax[psi])
+    l3 = prover.add_mp(Axphi_eq_Axpsi, l1, l2)  # Ax[phi] <-> Ax[psi]
+    print("quant done with ", formula)
+    return Axphi_eq_Axpsi
+
+
 def create_new_firs_and_second(formula, prover):
     """
     creates the recursivly first and second in the binary case
-    Args:
-        formula:
-        prover:
-
-    Returns:
-
     """
     first, first_proof = _uniquely_rename_quantified_variables(formula.first)
     l1 = prover.add_proof(first_proof.conclusion, first_proof)  # origin_first <-> first
-    origin_eq_first = equivalence_of(formula.first, first)
+    # origin_eq_first = equivalence_of(formula.first, first)
     second, second_proof = _uniquely_rename_quantified_variables(formula.second)
     l2 = prover.add_proof(second_proof.conclusion, second_proof)  # origin_second <-> second
-    origin_eq_second = equivalence_of(formula.second, second)
+    # origin_eq_second = equivalence_of(formula.second, second)
     return first, l1, l2, second
 
 
