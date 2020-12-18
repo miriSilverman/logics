@@ -471,11 +471,14 @@ def _pull_out_quantifications_across_negation(formula: Formula) -> \
         # f = axiom.formula.substitute({'x': Term(x), 'R': R})
         eq_formula = f.first.second   # Ex[~R(x)]
         l1 = prover.add_instantiated_assumption(f, axiom, {'x': x, 'R': R})  # ~Ax[R(x)] <-> Ex[~R(x)]
+        print("f", f)
+
 
         eq_pred_formula, proof =_pull_out_quantifications_across_negation(eq_formula.predicate)     # ~R(x) <-> eq_pred_formula
         pred_eq_line = prover.add_proof(proof.conclusion, proof)
         new_formula = Formula(eq_formula.root, eq_formula.variable, eq_pred_formula)    # Ex[eq_pred_formula]
         eq = equivalence_of(formula, new_formula)    # Ax[~R(x)] <-> Ex[eq_pred_formula]
+        print("eq", eq)
         l2 = prover.add_tautological_implication(eq, {l1, pred_eq_line})
         print("new_formula", new_formula)
         return new_formula, Proof(assumptions, eq, prover._lines)
