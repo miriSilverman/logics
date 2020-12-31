@@ -81,7 +81,7 @@ def manage_ug_line(line, line_conversion_map, num, phi, prover):
     ug_formula = Formula('A', x, phi_imp_alpha)
     line1 = prover.add_ug(ug_formula, alpha_new_line_num)  # Ax[phi->alpha]
     foo = Formula('->', ug_formula, Formula('->', phi, Formula('A', x, alpha)))
-    print(alpha.substitute({x: Term('_')}))
+
     line2 = prover.add_instantiated_assumption(foo, Prover.US, {'Q': phi, 'R': alpha.substitute({x: Term('_')}),
                                                                 'x': x})  # Ax[phi->alpha] -> (phi->Ax[alpha])
     line3 = prover.add_mp(Formula('->', phi, formula), line1, line2)  # phi->Ax[alpha]
@@ -164,7 +164,7 @@ def proof_by_way_of_contradiction(proof: Proof, assumption: Formula,
     not_axiom = proof.conclusion
     axiom = Formula('~', not_axiom)
 
-    prover = Prover(proof.assumptions, False)
+    prover = Prover(proof.assumptions, print_as_proof_forms)
 
     proof_of_not_phi_imp_not_axsiom = remove_assumption(proof, not_phi)
 

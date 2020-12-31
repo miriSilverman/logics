@@ -445,7 +445,6 @@ def _pull_out_quantifications_across_negation(formula: Formula) -> \
     """
     assert is_unary(formula.root)
     # Task 11.6
-    print("formula", formula)
     first = formula.first
     root = first.root
     assumptions = Prover.AXIOMS.union(ADDITIONAL_QUANTIFICATION_AXIOMS)
@@ -459,29 +458,35 @@ def _pull_out_quantifications_across_negation(formula: Formula) -> \
     elif is_quantifier(root):   # ~Ax[R(x)] ------> Ex[~R(x)]
         x = first.variable
         phi = first.predicate
+        phi_neg = Formula('~', phi)     # ~R(x)
         R = phi.substitute({x:Term('_')})
+
+        new_phi, proof =_pull_out_quantifications_across_negation(phi_neg)     # equivalent to ~R(x) in the right format
+        pred_eq_line = prover.add_proof(proof.conclusion, proof)    # ~R(x) <-> new_phi
+
 
         if root == 'A':
             axiom = Schema(Formula.parse('((~Ax[R(x)]->Ex[~R(x)])&(Ex[~R(x)]->~Ax[R(x)]))'), {'x', 'R'})
-            f = equivalence_of(formula, Formula('E', x, Formula('~', phi)))
+            eq_formula = Formula('E', x, Formula('~', phi))  # Ex[~R(x)]
+            f = equivalence_of(formula, eq_formula) # ~Ax[R(x)] <-> Ex[~R(x)]
+            equ_form, l2 = quantifier_exist_case(pred_eq_line, phi_neg, equivalence_of(phi_neg, new_phi), prover, new_phi, eq_formula.variable)
+
 
         elif root == 'E':
             axiom = Schema(Formula.parse('((~Ex[R(x)]->Ax[~R(x)])&(Ax[~R(x)]->~Ex[R(x)]))'), {'x', 'R'})
-            f = equivalence_of(formula, Formula('A', x, Formula('~', phi)))
-        # f = axiom.formula.substitute({'x': Term(x), 'R': R})
-        eq_formula = f.first.second   # Ex[~R(x)]
+            eq_formula =  Formula('A', x, Formula('~', phi)) # Ex[~R(x)]
+            f = equivalence_of(formula, eq_formula) # ~Ex[R(x)] <-> Ax[~R(x)]
+            equ_form, l2 = quantifier_all_case(formula, pred_eq_line, phi_neg, equivalence_of(phi_neg, new_phi), prover, new_phi, eq_formula.variable)
+
         l1 = prover.add_instantiated_assumption(f, axiom, {'x': x, 'R': R})  # ~Ax[R(x)] <-> Ex[~R(x)]
-        print("f", f)
+
+        quantified_new_phi = Formula(eq_formula.root, eq_formula.variable, new_phi)   # Ex[new_phi]
+
+        conclusion_formula_equivalence = equivalence_of(formula, quantified_new_phi)
+        l3 = prover.add_tautological_implication(conclusion_formula_equivalence, {l1, l2}) # ~Ax[R(x)] <-> Ex[new_phi]
 
 
-        eq_pred_formula, proof =_pull_out_quantifications_across_negation(eq_formula.predicate)     # ~R(x) <-> eq_pred_formula
-        pred_eq_line = prover.add_proof(proof.conclusion, proof)
-        new_formula = Formula(eq_formula.root, eq_formula.variable, eq_pred_formula)    # Ex[eq_pred_formula]
-        eq = equivalence_of(formula, new_formula)    # Ax[~R(x)] <-> Ex[eq_pred_formula]
-        print("eq", eq)
-        l2 = prover.add_tautological_implication(eq, {l1, pred_eq_line})
-        print("new_formula", new_formula)
-        return new_formula, Proof(assumptions, eq, prover._lines)
+        return quantified_new_phi, Proof(assumptions, conclusion_formula_equivalence, prover._lines)
 
 
 def _pull_out_quantifications_from_left_across_binary_operator(formula:
