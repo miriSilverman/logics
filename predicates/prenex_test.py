@@ -264,4 +264,4 @@ if __name__ == '__main__':
     test_uniquely_rename_quantified_variables()
     test_pull_out_quantifications_across_negation()
     test_pull_out_quantifications_from_left_across_binary_operator()
-
+    test_pull_out_quantifications_from_right_across_binary_operator()
