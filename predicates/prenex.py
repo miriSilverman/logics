@@ -538,7 +538,6 @@ def _pull_out_quantifications_from_left_across_binary_operator(formula:
     assert has_uniquely_named_variables(formula)
     assert is_binary(formula.root)
     # Task 11.7.1
-    print("formula: ", formula)
     first = formula.first
     root = formula.root
     first_root = first.root
@@ -569,19 +568,34 @@ def _pull_out_quantifications_from_left_across_binary_operator(formula:
         x = first.variable
 
         if root in {'&', '|'}:
-            print("root: ", root, "   first is:", first)
 
             if root == '&':
                 if first_root == 'A':
                     scheme = all_and
+                    quant = 'A'
+
                 elif first_root == 'E':
                     scheme = exist_and
+                    quant = 'E'
+
 
             elif root == '|':
                 if first_root == 'A':
                     scheme = all_or
+                    quant = 'A'
+
                 elif first_root == 'E':
                     scheme = exist_or
+                    quant = 'E'
+
+
+            elif root == '->':
+                if first_root == 'A':
+                    quant = 'E'
+                    scheme = all_implies
+                elif first_root == 'E':
+                    quant = 'A'
+                    scheme = exist_implies
 
             phi_root_psi = Formula(root, phi, psi)
             f, proof = _pull_out_quantifications_from_left_across_binary_operator(phi_root_psi)  # phi & psi
@@ -590,17 +604,11 @@ def _pull_out_quantifications_from_left_across_binary_operator(formula:
             l1 = prover.add_proof(eq_f_phi_and_psi, proof) # (phi & psi) <-> f
 
             eq_formula_phi_and_psi = equivalence_of(formula, Formula(first_root, x, phi_root_psi))  # (Ax[phi] & psi) <-> Ax[phi & psi]
-            print("eq_formula_phi_and_psi", eq_formula_phi_and_psi)
-            # print(scheme)
-            # print(x)
-            # print(phi)
-            # print(psi)
 
             l2 = prover.add_instantiated_assumption(eq_formula_phi_and_psi, scheme, {'x': x,
                                 'R': phi.substitute({x: Term('_')}), 'Q': psi}) # (Ax[phi] & psi) <-> Ax[phi & psi]
 
             quantified_f = Formula(first_root, x, f)    # Ax[f]
-            # eq_all_phi_f = equivalence_of(phi_root_psi, quantified_f) # Ax[phi & psi] <-> Ax[f]
 
             if first_root == 'A':
                 Axphi_and_psi_eq_Axf, l3 = quantifier_all_case(formula, l1, phi_root_psi, eq_f_phi_and_psi, prover, f, x) # Ax[phi & psi] <-> Ax[f]
@@ -630,7 +638,8 @@ def _pull_out_quantifications_from_left_across_binary_operator(formula:
             l1 = prover.add_proof(eq_f_phi_and_psi, proof) # (phi -> psi) <-> f
 
             eq_formula_phi_and_psi = equivalence_of(formula, Formula(quant, x, phi_root_psi))  # (Ax[phi] -> psi) <-> Ex[phi -> psi]
-            l2 = prover.add_instantiated_assumption(eq_formula_phi_and_psi, scheme, {'x': x, 'R': phi, 'Q': psi}) # (Ax[phi] -> psi) <-> Ex[phi -> psi]
+            l2 = prover.add_instantiated_assumption(eq_formula_phi_and_psi, scheme,
+                        {'x': x, 'R': phi.substitute({x: Term('_')}), 'Q': psi}) # (Ax[phi] -> psi) <-> Ex[phi -> psi]
 
             quantified_f = Formula(quant, x, f)    # Ax[f]
             # eq_all_phi_f = equivalence_of(phi_root_psi, quantified_f) # Ax[phi & psi] <-> Ax[f]
