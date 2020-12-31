@@ -538,7 +538,74 @@ def _pull_out_quantifications_from_left_across_binary_operator(formula:
     assert has_uniquely_named_variables(formula)
     assert is_binary(formula.root)
     # Task 11.7.1
-    
+    first = formula.first
+    root = formula.root
+    first_root = first.root
+    assumptions = Prover.AXIOMS.union(ADDITIONAL_QUANTIFICATION_AXIOMS)
+    prover = Prover(assumptions, False)
+
+    if is_quantifier_free(first):
+        eq = equivalence_of(formula, formula)
+        prover.add_tautology(eq)
+        return formula, Proof(assumptions, eq, prover._lines)
+
+    elif is_quantifier(first_root):
+        all_and = Schema(Formula.parse('(((Ax[R(x)]&Q())->Ax[(R(x)&Q())])&'
+                             '(Ax[(R(x)&Q())]->(Ax[R(x)]&Q())))'), {'x', 'R', 'Q'})
+        exist_and = Schema(Formula.parse('(((Ex[R(x)]&Q())->Ex[(R(x)&Q())])&'
+                             '(Ex[(R(x)&Q())]->(Ex[R(x)]&Q())))'), {'x', 'R', 'Q'})
+        all_or = Schema(Formula.parse('(((Ax[R(x)]|Q())->Ax[(R(x)|Q())])&'
+                             '(Ax[(R(x)|Q())]->(Ax[R(x)]|Q())))'), {'x', 'R', 'Q'})
+        exist_or = Schema(Formula.parse('(((Ex[R(x)]|Q())->Ex[(R(x)|Q())])&'
+                             '(Ex[(R(x)|Q())]->(Ex[R(x)]|Q())))'), {'x', 'R', 'Q'})
+        all_implies = Schema(Formula.parse('(((Ax[R(x)]->Q())->Ex[(R(x)->Q())])&'
+                             '(Ex[(R(x)->Q())]->(Ax[R(x)]->Q())))'), {'x', 'R', 'Q'})
+        exist_implies = Schema(Formula.parse('(((Ex[R(x)]->Q())->Ax[(R(x)->Q())])&'
+                             '(Ax[(R(x)->Q())]->(Ex[R(x)]->Q())))'), {'x', 'R', 'Q'})
+
+        if first_root == 'A':
+            # formula   Ax[phi]  &  psi
+            phi = first.predicate
+            psi = formula.second
+            x = first.variable
+
+            if root == '&':
+                phi_root_psi = Formula(root, phi, psi)
+                f, proof = _pull_out_quantifications_from_left_across_binary_operator(phi_root_psi)  # phi & psi
+
+                eq_f_phi_and_psi = proof.conclusion # (phi & psi) <-> f
+                l1 = prover.add_proof(eq_f_phi_and_psi, proof) # (phi & psi) <-> f
+
+                eq_formula_phi_and_psi = equivalence_of(formula, Formula(first_root, x, phi_root_psi))  # (Ax[phi] & psi) <-> Ax[phi & psi]
+                l2 = prover.add_instantiated_assumption(eq_formula_phi_and_psi, all_and, {'x': x, 'R': phi, 'Q': psi}) # (Ax[phi] & psi) <-> Ax[phi & psi]
+
+                quantified_f = Formula(first_root, x, f)    # Ax[f]
+                # eq_all_phi_f = equivalence_of(phi_root_psi, quantified_f) # Ax[phi & psi] <-> Ax[f]
+                Axphi_and_psi_eq_Axf, l3 = quantifier_all_case(formula, l1, phi_root_psi, eq_f_phi_and_psi, prover, f, x) # Ax[phi & psi] <-> Ax[f]
+
+                eq_formula_f = equivalence_of(formula, quantified_f)   # (Ax[phi] & psi) <->  Ax[f]
+                l4 = prover.add_tautological_implication(eq_formula_f, {l2, l3})  # (Ax[phi] & psi) <->  Ax[f]
+
+                return quantified_f, Proof(assumptions, eq_formula_f, prover._lines)
+
+            elif root == '|':
+
+
+            elif root == '->':
+
+
+        elif first_root == 'E':
+            if root == '&':
+
+
+            elif root == '|':
+
+
+            elif root == '->':
+
+
+
+
 def _pull_out_quantifications_from_right_across_binary_operator(formula:
                                                                 Formula) -> \
         Tuple[Formula, Proof]:
