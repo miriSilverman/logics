@@ -461,22 +461,25 @@ def _pull_out_quantifications_across_negation(formula: Formula) -> \
         phi_neg = Formula('~', phi)     # ~R(x)
         R = phi.substitute({x:Term('_')})
 
-        new_phi, proof =_pull_out_quantifications_across_negation(phi_neg)     # equivalent to ~R(x) in the right format
-        pred_eq_line = prover.add_proof(proof.conclusion, proof)    # ~R(x) <-> new_phi
+        new_phi, proof =_pull_out_quantifications_across_negation(phi_neg)   # equivalent to ~R(x) in the right format
+        equivalence_neg_phi_and_new_phi = proof.conclusion
+        pred_eq_line = prover.add_proof(equivalence_neg_phi_and_new_phi, proof)    # ~R(x) <-> new_phi
 
 
         if root == 'A':
             axiom = Schema(Formula.parse('((~Ax[R(x)]->Ex[~R(x)])&(Ex[~R(x)]->~Ax[R(x)]))'), {'x', 'R'})
             eq_formula = Formula('E', x, Formula('~', phi))  # Ex[~R(x)]
             f = equivalence_of(formula, eq_formula) # ~Ax[R(x)] <-> Ex[~R(x)]
-            equ_form, l2 = quantifier_exist_case(pred_eq_line, phi_neg, equivalence_of(phi_neg, new_phi), prover, new_phi, eq_formula.variable)
+            equ_form, l2 = quantifier_exist_case(pred_eq_line, phi_neg, equivalence_neg_phi_and_new_phi,
+                                                 prover, new_phi, eq_formula.variable)
 
 
         elif root == 'E':
             axiom = Schema(Formula.parse('((~Ex[R(x)]->Ax[~R(x)])&(Ax[~R(x)]->~Ex[R(x)]))'), {'x', 'R'})
             eq_formula =  Formula('A', x, Formula('~', phi)) # Ex[~R(x)]
             f = equivalence_of(formula, eq_formula) # ~Ex[R(x)] <-> Ax[~R(x)]
-            equ_form, l2 = quantifier_all_case(formula, pred_eq_line, phi_neg, equivalence_of(phi_neg, new_phi), prover, new_phi, eq_formula.variable)
+            equ_form, l2 = quantifier_all_case(formula, pred_eq_line, phi_neg, equivalence_neg_phi_and_new_phi,
+                                               prover, new_phi, eq_formula.variable)
 
         l1 = prover.add_instantiated_assumption(f, axiom, {'x': x, 'R': R})  # ~Ax[R(x)] <-> Ex[~R(x)]
 

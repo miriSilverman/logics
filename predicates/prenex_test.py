@@ -262,6 +262,6 @@ if __name__ == '__main__':
     test_is_quantifier_free()
     test_is_in_prenex_normal_form()
     test_uniquely_rename_quantified_variables()
-    test_pull_out_quantifications_across_negation(True)
+    test_pull_out_quantifications_across_negation()
 
 
