@@ -905,6 +905,31 @@ def _to_prenex_normal_form_from_uniquely_named_variables(formula: Formula) -> \
     """
     assert has_uniquely_named_variables(formula)
     # Task 11.9
+    root = formula.root
+    assumptions = Prover.AXIOMS.union(ADDITIONAL_QUANTIFICATION_AXIOMS)
+    prover = Prover(assumptions, False)
+
+    if is_quantifier_free(formula):
+        eq = equivalence_of(formula, formula)
+        prover.add_tautology(eq)
+        return formula, Proof(assumptions, eq, prover._lines)
+
+    if is_unary(root): # ~phi
+        psi, proof =_to_prenex_normal_form_from_uniquely_named_variables(formula.first) # psi: prenex format
+        l1 = prover.add_proof(proof.conclusion, proof)  # phi <-> psi
+        new_f = Formula('~', psi)
+        prenexed_formula, proof_eq = _pull_out_quantifications_across_negation(new_f)
+        l2 = prover.add_proof(proof_eq.conclusion, proof_eq) # ~psi <-> prenexed_formula
+
+        l3 = prover.add_tautological_implication(equivalence_of(formula, prenexed_formula), {l1, l2})   # ~phi <-> prenexed_formula
+
+        return prenexed_formula, Proof(assumptions, proof_eq.conclusion, prover._lines)
+
+    elif is_binary(root):
+        
+
+
+
 
 def to_prenex_normal_form(formula: Formula) -> Tuple[Formula, Proof]:
     """Converts the given formula to an equivalent formula in prenex normal
