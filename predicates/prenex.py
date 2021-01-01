@@ -926,7 +926,45 @@ def _to_prenex_normal_form_from_uniquely_named_variables(formula: Formula) -> \
         return prenexed_formula, Proof(assumptions, proof_eq.conclusion, prover._lines)
 
     elif is_binary(root):
-        
+        prenexed_first, first_proof =_to_prenex_normal_form_from_uniquely_named_variables(formula.first) # psi: prenex format
+        l1 = prover.add_proof(first_proof.conclusion, first_proof) # first <-> prenexed_first
+        prenexed_second, second_proof =_to_prenex_normal_form_from_uniquely_named_variables(formula.second) # psi: prenex format
+        l2 = prover.add_proof(second_proof.conclusion, second_proof) # second <-> prenexed_second
+
+        new_binary_formula = Formula(root, prenexed_first, prenexed_second)
+        l3 = prover.add_tautological_implication(equivalence_of(formula, new_binary_formula), {l1, l2})    # formula <-> new_binary_formula
+
+        prenexed_binary, binary_proof = _pull_out_quantifications_across_binary_operator(new_binary_formula)
+        l4 = prover.add_proof(binary_proof.conclusion, binary_proof) # new_binary_formula <-> prenexed_binary
+
+        eq = equivalence_of(formula, prenexed_binary)
+        l5 = prover.add_tautological_implication(eq, {l3, l4})    # formula <-> prenexed_binary
+
+        return prenexed_binary, Proof(assumptions, eq, prover._lines)
+
+
+
+    elif is_quantifier(root):
+        prenexed_predicate, proof_pred = _to_prenex_normal_form_from_uniquely_named_variables(formula.predicate)
+        pred_eq = proof_pred.conclusion
+        l1 = prover.add_proof(pred_eq, proof_pred) # predicate <-> prenexed_predicate
+
+        x = formula.variable
+        prenexed_formula = Formula(root, x, prenexed_predicate)
+
+
+        if root == 'A': # formula <-> prenexed_formula
+            quantified_eq, l3 = quantifier_all_case(formula, l1, formula.predicate, pred_eq, prover, prenexed_formula, x)
+
+        elif root == 'E':
+            quantified_eq, l3 = quantifier_exist_case(l1, formula.predicate, pred_eq, prover, prenexed_formula, x)
+
+        return prenexed_formula, Proof(assumptions, equivalence_of(formula, prenexed_formula), prover._lines)
+    
+
+
+
+
 
 
 
