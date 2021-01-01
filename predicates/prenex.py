@@ -1023,9 +1023,10 @@ def _to_prenex_normal_form_from_uniquely_named_variables(formula: Formula) -> \
         prenexed_formula, proof_eq = _pull_out_quantifications_across_negation(new_f)
         l2 = prover.add_proof(proof_eq.conclusion, proof_eq) # ~psi <-> prenexed_formula
 
-        l3 = prover.add_tautological_implication(equivalence_of(formula, prenexed_formula), {l1, l2})   # ~phi <-> prenexed_formula
+        eq = equivalence_of(formula, prenexed_formula)
+        l3 = prover.add_tautological_implication(eq, {l1, l2})   # ~phi <-> prenexed_formula
 
-        return prenexed_formula, Proof(assumptions, proof_eq.conclusion, prover._lines)
+        return prenexed_formula, Proof(assumptions, eq, prover._lines)
 
     elif is_binary(root):
         prenexed_first, first_proof =_to_prenex_normal_form_from_uniquely_named_variables(formula.first) # psi: prenex format
@@ -1037,10 +1038,13 @@ def _to_prenex_normal_form_from_uniquely_named_variables(formula: Formula) -> \
         l3 = prover.add_tautological_implication(equivalence_of(formula, new_binary_formula), {l1, l2})    # formula <-> new_binary_formula
 
         prenexed_binary, binary_proof = _pull_out_quantifications_across_binary_operator(new_binary_formula)
+        print("prenexed_binary")
+        print(new_binary_formula)
+        print(binary_proof.conclusion)
         l4 = prover.add_proof(binary_proof.conclusion, binary_proof) # new_binary_formula <-> prenexed_binary
-
         eq = equivalence_of(formula, prenexed_binary)
         l5 = prover.add_tautological_implication(eq, {l3, l4})    # formula <-> prenexed_binary
+        print("miri", formula, eq, prenexed_binary)
 
         return prenexed_binary, Proof(assumptions, eq, prover._lines)
 
@@ -1056,10 +1060,10 @@ def _to_prenex_normal_form_from_uniquely_named_variables(formula: Formula) -> \
 
 
         if root == 'A': # formula <-> prenexed_formula
-            quantified_eq, l3 = quantifier_all_case(formula, l1, formula.predicate, pred_eq, prover, prenexed_formula, x)
+            quantified_eq, l3 = quantifier_all_case(formula, l1, formula.predicate, pred_eq, prover, prenexed_predicate, x)
 
         elif root == 'E':
-            quantified_eq, l3 = quantifier_exist_case(l1, formula.predicate, pred_eq, prover, prenexed_formula, x)
+            quantified_eq, l3 = quantifier_exist_case(l1, formula.predicate, pred_eq, prover, prenexed_predicate, x)
 
         return prenexed_formula, Proof(assumptions, equivalence_of(formula, prenexed_formula), prover._lines)
 
