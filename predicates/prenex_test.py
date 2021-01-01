@@ -196,6 +196,12 @@ def test_to_prenex_normal_form_from_uniquely_named_variables(debug=False):
         if debug:
             print('... got', result)
         assert is_in_prenex_normal_form(result)
+
+
+
+        print(str(result))
+
+
         assert str(result) == pnf
         assert proof.assumptions == \
             Prover.AXIOMS.union(ADDITIONAL_QUANTIFICATION_AXIOMS)
@@ -266,3 +272,4 @@ if __name__ == '__main__':
     test_pull_out_quantifications_from_left_across_binary_operator()
     test_pull_out_quantifications_from_right_across_binary_operator()
     test_pull_out_quantifications_across_binary_operator()
+    # test_to_prenex_normal_form_from_uniquely_named_variables(True)
