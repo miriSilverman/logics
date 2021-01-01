@@ -810,19 +810,22 @@ def _pull_out_quantifications_across_binary_operator(formula: Formula) -> \
     prover = Prover(assumptions, False)
     # formula:  (quant_first[phi] & quant_second[psi])
 
-    formula_no_right_quantifiers, right_proof = _pull_out_quantifications_from_right_across_binary_operator(formula)
-    print("formula_no_right_quantifiers", formula_no_right_quantifiers)
+    formula_no_right_quantifiers, right_proof = _pull_out_quantifications_from_right_across_binary_operator(formula) # quant_second[ quant_first[phi] & psi ]
+
     l1 = prover.add_proof(right_proof.conclusion, right_proof) # (quant_first[phi] & quant_second[psi]) <-> quant_second[ quant_first[phi] & psi ]
+
     binary_formula = reducing_quantifiers(formula_no_right_quantifiers) # quant_first[phi] & psi
-    print("binary_formula", binary_formula)
 
     formula_no_left_quantifiers, left_proof = _pull_out_quantifications_from_left_across_binary_operator(binary_formula)  # quant_first[phi & psi ]
-    print("formula_no_left_quantifiers", formula_no_left_quantifiers)
+
     l2 = prover.add_proof(left_proof.conclusion, left_proof)    #  quant_first[phi] & psi <-> quant_first[phi & psi ]
 
-    l3 = prove_equality_extra_quantified(formula_no_right_quantifiers, binary_formula.second, l2, prover) # quant_second[ quant_first[phi] & psi ] <-> quant_second[ quant_first[phi & psi ]]
-    # l2 = prover.add_proof(left_proof.conclusion, left_proof)    # quant_second[ quant_first[phi] & psi ] <-> quant_second[quant_first[  phi & psi ]]
+    # quant_second[ quant_first[phi] & psi ] <-> quant_second[ quant_first[phi & psi ]]
+    eq_quant, l3 = prove_equality_extra_quantified(formula_no_right_quantifiers, formula_no_left_quantifiers, l2, prover)
 
+
+    # (quant_first[phi] & quant_second[psi]) <-> quant_second[ quant_first[phi & psi ]]
+    l4 = prover.add_tautological_implication(equivalence_of(formula, eq_quant.first.second), {l1, l3})
 
     return formula_no_left_quantifiers, Proof(assumptions, left_proof.conclusion, prover._lines)
 
@@ -834,24 +837,38 @@ def reducing_quantifiers(formula: Formula) -> Formula:
         return formula
 
 
-def prove_equality_extra_quantified(formula, psi, line_of_phi_eq_psi, prover):
+def prove_equality_extra_quantified(formula, first_psi, line_of_phi_eq_psi, prover):
     """
+        formula:  quant_second[ quant_first[phi] & psi ]
+        first psi: quant_first[phi & psi ]
         proves that if  phi<->psi   then  Ex[Ay[Az...[phi]]] <-> Ex[Ay[Az...[psi]]]
     """
+    # quant_second[ quant_first[phi] & psi ] <-> quant_second[ quant_first[phi & psi ]]
+    # formula <-> quant_second[ first_psi]
+
     quantifiers = []    # ["Ax", "Ey", "Ez"]
-    cur_formula = formula
-    while is_quantifier(cur_formula.predicate.root):
-        cur_formula = cur_formula.predicate
+    cur_formula = formula   # at the end-->  (quant_first[phi] & psi)
+    while is_quantifier(cur_formula.root):
         quantifiers.append(cur_formula.root+cur_formula.variable)
+        cur_formula = cur_formula.predicate
+
 
     last_line = line_of_phi_eq_psi
-    phi = cur_formula
-    psi = psi
+    phi = cur_formula # (quant_first[phi] & psi) ---> quant_second[ quant_first[phi] & psi ]
+    psi = first_psi # quant_first[phi & psi ]  -----> quant_second[ quant_first[phi & psi ] ]
     for i in reversed(quantifiers):
         if i[0] == 'A':
-            quantifier_all_case(formula, last_line, )
+            x = i[1]
+            Axphi_eq_Axpsi, last_line = quantifier_all_case(formula, last_line, phi, equivalence_of(phi, psi), prover, psi, x)
+            phi = Formula('A', x, phi)
+            psi = Formula('A', exit(), psi)
+        elif i[0] == 'E':
+            x = i[1]
+            Axphi_eq_Axpsi, last_line = quantifier_exist_case(last_line, phi, equivalence_of(phi, psi), prover, psi, x)
+            phi = Formula('E', x, phi)
+            psi = Formula('E', x, psi)
 
-
+    return equivalence_of(phi, psi), last_line
 
 
 def _to_prenex_normal_form_from_uniquely_named_variables(formula: Formula) -> \
