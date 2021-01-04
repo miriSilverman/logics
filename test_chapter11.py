@@ -55,4 +55,4 @@ if __name__ == '__main__':
     test_task7()
     test_task8()
     test_task9()
-    test_task10(True)
+    test_task10()
