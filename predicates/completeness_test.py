@@ -1017,3 +1017,6 @@ def test_ex12(debug=False):
 
 def test_all(debug=False):
     test_ex12(debug)
+
+if __name__ == '__main__':
+    test_is_primitively_closed()
