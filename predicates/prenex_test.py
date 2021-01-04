@@ -174,7 +174,6 @@ def test_pull_out_quantifications_across_binary_operator(debug=False):
 def test_to_prenex_normal_form_from_uniquely_named_variables(debug=False):
     from predicates.prenex import \
          _to_prenex_normal_form_from_uniquely_named_variables
-
     for formula,pnf in [
         ('Q(x,c)', 'Q(x,c)'),
         ('Ax[Q(x,c)]', 'Ax[Q(x,c)]'),
@@ -184,8 +183,10 @@ def test_to_prenex_normal_form_from_uniquely_named_variables(debug=False):
          'Ex[Ay[Ez[Aw[~~(~R(x,y)|~z=w)]]]]'),
         ('~~(~Ax[Ey[R(x,y)]]->~Az[Ew[z=w]])',
          'Ax[Ey[Ez[Aw[~~(~R(x,y)->~z=w)]]]]'),
-        ('~(z=x|Au[(Ezz[(zz=u&Aw[w=zz])]->Auu[uu=y])])',
-         'Eu[Ezz[Aw[Euu[~(z=x|((zz=u&w=zz)->uu=y))]]]]')]:
+
+    ('~(z=x|Au[(Ezz[(zz=u&Aw[w=zz])]->Auu[uu=y])])',
+         'Eu[Ezz[Aw[Euu[~(z=x|((zz=u&w=zz)->uu=y))]]]]')
+    ]:
         formula = Formula.parse(formula)
         if debug:
             print('Testing '
@@ -268,4 +269,12 @@ if __name__ == '__main__':
     test_pull_out_quantifications_from_left_across_binary_operator()
     test_pull_out_quantifications_from_right_across_binary_operator()
     test_pull_out_quantifications_across_binary_operator()
+    # f ='(Ezz[(zz=u&Aw[w=zz])]->Auu[uu=y])'
+    # f ='(Ezz[(zz=u&w=zz)]->Auu[uu=y])'
+    # f = Formula.parse(f)
+    # print(f)
+    # pred = 'Auu[Azz[((zz=u&w=zz)->uu=y)]]'
+    # from predicates.prenex import \
+    #     _pull_out_quantifications_across_binary_operator
+    # _pull_out_quantifications_across_binary_operator(f)
     test_to_prenex_normal_form_from_uniquely_named_variables(True)

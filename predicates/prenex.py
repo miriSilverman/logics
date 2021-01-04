@@ -398,10 +398,6 @@ def prove_eq_all_rename_var(R, first, new_first, prover, quantified_new_first, x
 
 
 
-
-
-
-
 def _pull_out_quantifications_across_negation(formula: Formula) -> \
         Tuple[Formula, Proof]:
     """Converts the given formula with uniquely named variables of the form
@@ -824,80 +820,14 @@ def _pull_out_quantifications_across_binary_operator(formula: Formula) -> \
 
     # (quant_first[phi] & quant_second[psi]) <->  quant_first[ quant_second[phi & psi ] ]
     eq = equivalence_of(formula, eq_quant.first.second)
+    p1 = prover._lines[l1].formula
+    p2 = prover._lines[l3].formula
+
+    # print("p1", p1)
+    # print("p2", p2)
     l4 = prover.add_tautological_implication(eq, {l1, l3})
     return eq_quant.first.second, Proof(assumptions, eq, prover._lines)
 
-#
-# def _pull_out_quantifications_across_binary_operator(formula: Formula) -> \
-#         Tuple[Formula, Proof]:
-#     """Converts the given formula with uniquely named variables of the form
-#     ``'(``\ `Q1`\ `x1`\ ``[``\ `Q2`\ `x2`\ ``[``...\ `Qn`\ `xn`\ ``[``\ `inner_first`\ ``]``...\ ``]]``\ `*`\ `P1`\ `y1`\ ``[``\ `P2`\ `y2`\ ``[``...\ `Pm`\ `ym`\ ``[``\ `inner_second`\ ``]``...\ ``]])'``
-#     to an equivalent formula of the form
-#     ``'``\ `Q'1`\ `x1`\ ``[``\ `Q'2`\ `x2`\ ``[``...\ `Q'n`\ `xn`\ ``[``\ `P'1`\ `y1`\ ``[``\ `P'2`\ `y2`\ ``[``...\ `P'm`\ `ym`\ ``[(``\ `inner_first`\ `*`\ `inner_second`\ ``)]``...\ ``]]]``...\ ``]]'``
-#     and proves the equivalence of these two formulas.
-#
-#     Parameters:
-#         formula: formula with uniquely named variables to convert, whose root
-#             is a binary operator, i.e., which is of the form
-#             ``'(``\ `Q1`\ `x1`\ ``[``\ `Q2`\ `x2`\ ``[``...\ `Qn`\ `xn`\ ``[``\ `inner_first`\ ``]``...\ ``]]``\ `*`\ `P1`\ `y1`\ ``[``\ `P2`\ `y2`\ ``[``...\ `Pm`\ `ym`\ ``[``\ `inner_second`\ ``]``...\ ``]])'``
-#             where `*` is a binary operator, `n`>=0, `m`>=0, each `Qi` and `Pi`
-#             is a quantifier, each `xi` and `yi` is a variable name, and neither
-#             `inner_first` nor `inner_second` starts with a quantifier.
-#
-#     Returns:
-#         A pair. The first element of the pair is a formula equivalent to the
-#         given formula, but of the form
-#         ``'``\ `Q'1`\ `x1`\ ``[``\ `Q'2`\ `x2`\ ``[``...\ `Q'n`\ `xn`\ ``[``\ `P'1`\ `y1`\ ``[``\ `P'2`\ `y2`\ ``[``...\ `P'm`\ `ym`\ ``[(``\ `inner_first`\ `*`\ `inner_second`\ ``)]``...\ ``]]]``...\ ``]]'``
-#         where each `Q'i` and `P'i` is a quantifier, and where the operator `*`,
-#         the `xi` and `yi` variable names, `inner_first`, and `inner_second` are
-#         the same as in the given formula. The second element of the pair is a
-#         proof of the equivalence of the given formula and the returned formula
-#         (i.e., a proof of
-#         `equivalence_of`\ ``(``\ `formula`\ ``,``\ `returned_formula`\ ``)``)
-#         via `~predicates.prover.Prover.AXIOMS` and
-#         `ADDITIONAL_QUANTIFICATION_AXIOMS`.
-#
-#     Examples:
-#         >>> formula = Formula.parse('(Ax[Ey[R(x,y)]]->Ez[P(1,z)])')
-#         >>> returned_formula, proof = _pull_out_quantifications_across_binary_operator(
-#         ...     formula)
-#         >>> returned_formula
-#         Ex[Ay[Ez[(R(x,y)->P(1,z))]]]
-#         >>> proof.is_valid()
-#         True
-#         >>> proof.conclusion == equivalence_of(formula, returned_formula)
-#         True
-#         >>> proof.assumptions == Prover.AXIOMS.union(
-#         ...     ADDITIONAL_QUANTIFICATION_AXIOMS)
-#         True
-#     """
-#     assert has_uniquely_named_variables(formula)
-#     assert is_binary(formula.root)
-#     # Task 11.8
-#     assumptions = Prover.AXIOMS.union(ADDITIONAL_QUANTIFICATION_AXIOMS)
-#     prover = Prover(assumptions, False)
-#     # formula:  (quant_first[phi] & quant_second[psi])
-#
-#     formula_no_right_quantifiers, right_proof = _pull_out_quantifications_from_right_across_binary_operator(formula) # quant_second[ quant_first[phi] & psi ]
-#     l1 = prover.add_proof(right_proof.conclusion, right_proof) # (quant_first[phi] & quant_second[psi]) <-> quant_second[ quant_first[phi] & psi ]
-#
-#     binary_formula = reducing_quantifiers(formula_no_right_quantifiers) # quant_first[phi] & psi
-#
-#     formula_no_left_quantifiers, left_proof = _pull_out_quantifications_from_left_across_binary_operator(binary_formula)  # quant_first[phi & psi ]
-#
-#     l2 = prover.add_proof(left_proof.conclusion, left_proof)    #  quant_first[phi] & psi <-> quant_first[phi & psi ]
-#     print(formula_no_left_quantifiers)
-#     # quant_second[ quant_first[phi] & psi ] <-> quant_second[ quant_first[phi & psi ]]
-#     eq_quant, l3 = prove_equality_extra_quantified(formula_no_right_quantifiers, formula_no_left_quantifiers, l2, prover)
-#     print("eq_quant",eq_quant)
-#     print("eq_quant",eq_quant.first.second, formula)
-#
-#
-#     # (quant_first[phi] & quant_second[psi]) <-> quant_second[ quant_first[phi & psi ]]
-#     l4 = prover.add_tautological_implication(equivalence_of(formula, eq_quant.first.second), {l1, l3})
-#
-#     print("formula_no_left_quantifiers", formula_no_left_quantifiers)
-#     return eq_quant.first.second, Proof(assumptions, left_proof.conclusion, prover._lines)
 
 
 def reducing_quantifiers(formula: Formula) -> Formula:
@@ -927,51 +857,18 @@ def prove_equality_extra_quantified(formula, first_psi, line_of_phi_eq_psi, prov
     psi = first_psi # quant_second[ phi & psi ] -----> quant_first[ quant_second[phi & psi ] ]
     for i in reversed(quantifiers):
         if i[0] == 'A':
-            x = i[1]
+            x = i[1:]
             Axphi_eq_Axpsi, last_line = quantifier_all_case(formula, last_line, phi, equivalence_of(phi, psi), prover, psi, x)
             phi = Formula('A', x, phi)
             psi = Formula('A', x, psi)
         elif i[0] == 'E':
-            x = i[1]
+            x = i[1:]
             Axphi_eq_Axpsi, last_line = quantifier_exist_case(last_line, phi, equivalence_of(phi, psi), prover, psi, x)
             phi = Formula('E', x, phi)
             psi = Formula('E', x, psi)
     return equivalence_of(phi, psi), last_line
 
 
-# def prove_equality_extra_quantified(formula, first_psi, line_of_phi_eq_psi, prover):
-#     """
-#         formula:  quant_second[ quant_first[phi] & psi ]
-#         first psi: quant_first[phi & psi ]
-#         proves that if  phi<->psi   then  Ex[Ay[Az...[phi]]] <-> Ex[Ay[Az...[psi]]]
-#     """
-#     # quant_second[ quant_first[phi] & psi ] <-> quant_second[ quant_first[phi & psi ]]
-#     # formula <-> quant_second[ first_psi]
-#
-#     quantifiers = []    # ["Ax", "Ey", "Ez"]
-#     cur_formula = formula   # at the end-->  (quant_first[phi] & psi)
-#     while is_quantifier(cur_formula.root):
-#         quantifiers.append(cur_formula.root+cur_formula.variable)
-#         cur_formula = cur_formula.predicate
-#
-#
-#     last_line = line_of_phi_eq_psi
-#     phi = cur_formula # (quant_first[phi] & psi) ---> quant_second[ quant_first[phi] & psi ]
-#     psi = first_psi # quant_first[phi & psi ]  -----> quant_second[ quant_first[phi & psi ] ]
-#     for i in reversed(quantifiers):
-#         if i[0] == 'A':
-#             x = i[1]
-#             Axphi_eq_Axpsi, last_line = quantifier_all_case(formula, last_line, phi, equivalence_of(phi, psi), prover, psi, x)
-#             phi = Formula('A', x, phi)
-#             psi = Formula('A', x, psi)
-#         elif i[0] == 'E':
-#             x = i[1]
-#             Axphi_eq_Axpsi, last_line = quantifier_exist_case(last_line, phi, equivalence_of(phi, psi), prover, psi, x)
-#             phi = Formula('E', x, phi)
-#             psi = Formula('E', x, psi)
-#
-#     return equivalence_of(phi, psi), last_line
-#
 
 def _to_prenex_normal_form_from_uniquely_named_variables(formula: Formula) -> \
         Tuple[Formula, Proof]:
@@ -1019,12 +916,15 @@ def _to_prenex_normal_form_from_uniquely_named_variables(formula: Formula) -> \
     if is_unary(root): # ~phi
         psi, proof =_to_prenex_normal_form_from_uniquely_named_variables(formula.first) # psi: prenex format
         l1 = prover.add_proof(proof.conclusion, proof)  # phi <-> psi
+
         new_f = Formula('~', psi)
+        l2 = prover.add_tautological_implication(equivalence_of(formula, new_f), {l1}) # ~phi <-> ~psi
         prenexed_formula, proof_eq = _pull_out_quantifications_across_negation(new_f)
-        l2 = prover.add_proof(proof_eq.conclusion, proof_eq) # ~psi <-> prenexed_formula
+        l3 = prover.add_proof(proof_eq.conclusion, proof_eq) # ~psi <-> prenexed_formula
 
         eq = equivalence_of(formula, prenexed_formula)
-        l3 = prover.add_tautological_implication(eq, {l1, l2})   # ~phi <-> prenexed_formula
+        ## todo: if failes here add ~phi <-> ~psi
+        l3 = prover.add_tautological_implication(eq, {l1, l2, l3})   # ~phi <-> prenexed_formula
 
         return prenexed_formula, Proof(assumptions, eq, prover._lines)
 
@@ -1038,14 +938,9 @@ def _to_prenex_normal_form_from_uniquely_named_variables(formula: Formula) -> \
         l3 = prover.add_tautological_implication(equivalence_of(formula, new_binary_formula), {l1, l2})    # formula <-> new_binary_formula
 
         prenexed_binary, binary_proof = _pull_out_quantifications_across_binary_operator(new_binary_formula)
-        print("prenexed_binary")
-        print(new_binary_formula)
-        print(binary_proof.conclusion)
         l4 = prover.add_proof(binary_proof.conclusion, binary_proof) # new_binary_formula <-> prenexed_binary
         eq = equivalence_of(formula, prenexed_binary)
         l5 = prover.add_tautological_implication(eq, {l3, l4})    # formula <-> prenexed_binary
-        print("miri", formula, eq, prenexed_binary)
-
         return prenexed_binary, Proof(assumptions, eq, prover._lines)
 
 

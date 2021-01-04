@@ -546,7 +546,9 @@ def russell_paradox_proof(print_as_proof_forms: bool = False) -> Proof:
     # Ay[(Ax[((In(x,y)->~In(x,x))&(~In(x,x)->In(x,y)))]->(z=z&~z=z))]
 
     es_form = Formula('->', Formula('&', Formula('A', 'y', Formula('->', ax, conclusion)), Formula('E', 'y', ax)), conclusion)
+
     # ((Ay[(Ax[((In(x,y)->~In(x,x))&(~In(x,x)->In(x,y)))]->(z=z&~z=z))]&Ey[Ax[((In(x,y)->~In(x,x))&(~In(x,x)->In(x,y)))]])->(z=z&~z=z))
+
     R = ax.substitute({'y': Term('_')})
     l6 = prover.add_instantiated_assumption(es_form, Prover.ES, {'Q': conclusion, 'R': R, 'x': 'y'})
     l7 = prover.add_tautological_implication(conclusion, {l5, l1, l6})
