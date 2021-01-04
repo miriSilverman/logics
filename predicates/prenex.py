@@ -241,12 +241,12 @@ def _uniquely_rename_quantified_variables_helper(formula: Formula, vars_to_chang
 
 
 def recuesively_uniqely_first_and_second(formula, prover, vars_to_change):
-    origin_second_free_vars = formula.second.free_variables().union(vars_to_change)
+    origin_second_free_vars = formula.second.variables().union(vars_to_change)
     if is_quantifier(formula.second.root):
         origin_second_free_vars = origin_second_free_vars.union({formula.second.variable})
     first, first_proof = _uniquely_rename_quantified_variables_helper(formula.first, origin_second_free_vars)
     l1 = prover.add_proof(first_proof.conclusion, first_proof)  # origin_first <-> first
-    first_free_vars = first.free_variables().union(vars_to_change)
+    first_free_vars = first.variables().union(vars_to_change)
     if is_quantifier(first.root):
         first_free_vars = first_free_vars.union({first.variable})
     second, second_proof = _uniquely_rename_quantified_variables_helper(formula.second, first_free_vars)
@@ -965,12 +965,6 @@ def _to_prenex_normal_form_from_uniquely_named_variables(formula: Formula) -> \
 
 
 
-
-
-
-
-
-
 def to_prenex_normal_form(formula: Formula) -> Tuple[Formula, Proof]:
     """Converts the given formula to an equivalent formula in prenex normal
     form, and proves the equivalence of these two formulas.
@@ -1004,3 +998,12 @@ def to_prenex_normal_form(formula: Formula) -> Tuple[Formula, Proof]:
     for variable in formula.variables():
         assert variable[0] != 'z'
     # Task 11.10
+    assumptions = Prover.AXIOMS.union(ADDITIONAL_QUANTIFICATION_AXIOMS)
+    prover = Prover(assumptions, False)
+    uniquely_formula, proof_uniquely = _uniquely_rename_quantified_variables(formula)
+    l1 = prover.add_proof(proof_uniquely.conclusion, proof_uniquely) # formula <-> uniquely_formula
+    prenexed_uniquely, proof = _to_prenex_normal_form_from_uniquely_named_variables(uniquely_formula)
+    l2 = prover.add_proof(proof.conclusion, proof)  # uniquely_formula <-> prenexed_uniquely
+    eq = equivalence_of(formula, prenexed_uniquely)
+    l3 = prover.add_tautological_implication(eq, {l1, l2})
+    return prenexed_uniquely, Proof(assumptions, eq, prover._lines)

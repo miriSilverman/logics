@@ -262,19 +262,13 @@ def test_all(debug=False):
     test_ex11(debug)
 
 if __name__ == '__main__':
-    test_is_quantifier_free()
-    test_is_in_prenex_normal_form()
-    test_uniquely_rename_quantified_variables()
-    test_pull_out_quantifications_across_negation()
-    test_pull_out_quantifications_from_left_across_binary_operator()
-    test_pull_out_quantifications_from_right_across_binary_operator()
-    test_pull_out_quantifications_across_binary_operator()
-    # f ='(Ezz[(zz=u&Aw[w=zz])]->Auu[uu=y])'
-    # f ='(Ezz[(zz=u&w=zz)]->Auu[uu=y])'
-    # f = Formula.parse(f)
-    # print(f)
-    # pred = 'Auu[Azz[((zz=u&w=zz)->uu=y)]]'
-    # from predicates.prenex import \
-    #     _pull_out_quantifications_across_binary_operator
-    # _pull_out_quantifications_across_binary_operator(f)
-    test_to_prenex_normal_form_from_uniquely_named_variables(True)
+    # test_is_quantifier_free()
+    # test_is_in_prenex_normal_form()
+    # test_uniquely_rename_quantified_variables(True)
+    # test_pull_out_quantifications_across_negation()
+    # test_pull_out_quantifications_from_left_across_binary_operator()
+    # test_pull_out_quantifications_from_right_across_binary_operator()
+    # test_pull_out_quantifications_across_binary_operator()
+    # test_to_prenex_normal_form_from_uniquely_named_variables()
+    # test_to_prenex_normal_form(True)
+    test_all()
