@@ -139,7 +139,19 @@ def is_existentially_closed(sentences: AbstractSet[Formula]) -> bool:
         assert is_in_prenex_normal_form(sentence) and \
                len(sentence.free_variables()) == 0
     # Task 12.1.3
-
+    constants = list(get_constants(sentences))
+    for formula in sentences:
+        had_a_constant = False
+        if is_quantifier(formula.root) and formula.root == 'E':
+            pred = formula.predicate
+            x = formula.variable
+            for constant in constants:
+                new_formula = pred.substitute({x : Term(constant)})
+                if new_formula in sentences:
+                    had_a_constant = True
+            if not had_a_constant:
+                return False
+    return True
 def find_unsatisfied_quantifier_free_sentence(sentences: Container[Formula],
                                               model: Model[str],
                                               unsatisfied: Formula) -> Formula:
