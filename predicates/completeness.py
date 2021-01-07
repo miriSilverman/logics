@@ -152,6 +152,8 @@ def is_existentially_closed(sentences: AbstractSet[Formula]) -> bool:
             if not had_a_constant:
                 return False
     return True
+
+
 def find_unsatisfied_quantifier_free_sentence(sentences: Container[Formula],
                                               model: Model[str],
                                               unsatisfied: Formula) -> Formula:
@@ -190,6 +192,36 @@ def find_unsatisfied_quantifier_free_sentence(sentences: Container[Formula],
     assert unsatisfied in sentences
     assert not model.evaluate_formula(unsatisfied)
     # Task 12.2
+    constants = list(model.universe)
+    f = find_unsatisfied_quantifier_free_sentence_helper(sentences, model, unsatisfied, constants)
+    print("f is", f)
+    return f
+    # root = unsatisfied.root
+    # check = is_quantifier(root)
+    # if check:
+
+
+def find_unsatisfied_quantifier_free_sentence_helper(sentences: Container[Formula],
+                                              model: Model[str],
+                                              unsatisfied: Formula, constants: list) -> Formula:
+    # print(constants)
+    # print(unsatisfied)
+    root = unsatisfied.root
+
+    if not is_quantifier(root):
+        return unsatisfied
+
+    if is_quantifier(root):
+        for constant in constants:
+            pred = unsatisfied.predicate
+            x = unsatisfied.variable
+            assigned = pred.substitute({x : Term(constant)})
+
+            check_if_assigned_is_true_in_model = model.evaluate_formula(assigned)
+            if not result and (root == 'A' or assigned in sentences):
+                f = find_unsatisfied_quantifier_free_sentence_helper(sentences, model, assigned, constants)
+                return f
+
 
 def get_primitives(quantifier_free: Formula) -> Set[Formula]:
     """Finds all primitive subformulas of the given quantifier-free formula.

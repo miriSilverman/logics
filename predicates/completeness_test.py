@@ -211,6 +211,7 @@ def test_find_unsatisfied_quantifier_free_sentence(debug=False):
     quantifier_free = find_unsatisfied_quantifier_free_sentence(
         noniterable_collection(sentences),
         SIX_ELEMENT_NONCOMMUTATIVE_GROUP_MODEL, COMMUTATIVITY_AXIOM)
+    # print(quantifier_free)
     assert is_quantifier_free(quantifier_free)
     assert quantifier_free in sentences
     assert not SIX_ELEMENT_NONCOMMUTATIVE_GROUP_MODEL.evaluate_formula(
@@ -1022,3 +1023,4 @@ if __name__ == '__main__':
     test_is_primitively_closed()
     test_is_universally_closed()
     test_is_existentially_closed()
+    test_find_unsatisfied_quantifier_free_sentence(True)
