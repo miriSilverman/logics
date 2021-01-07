@@ -488,6 +488,7 @@ def _pull_out_quantifications_across_negation(formula: Formula) -> \
         return quantified_new_phi, Proof(assumptions, conclusion_formula_equivalence, prover._lines)
 
 
+
 def _pull_out_quantifications_from_left_across_binary_operator(formula:
                                                                Formula) -> \
         Tuple[Formula, Proof]:
@@ -568,7 +569,7 @@ def _pull_out_quantifications_from_left_across_binary_operator(formula:
         quant, scheme = preprocessing(all_and, all_implies, all_or, exist_and, exist_implies, exist_or, first_root,
                                       root)
 
-        phi_root_psi = Formula(root, phi, psi)
+        phi_root_psi = Formula(root, phi, psi)   #  Ax[phi] & psi ---> Ax [phi&psi]
         f, proof = _pull_out_quantifications_from_left_across_binary_operator(phi_root_psi)  # phi & psi
 
         eq_f_phi_and_psi = proof.conclusion # (phi & psi) <-> f
@@ -923,7 +924,6 @@ def _to_prenex_normal_form_from_uniquely_named_variables(formula: Formula) -> \
         l3 = prover.add_proof(proof_eq.conclusion, proof_eq) # ~psi <-> prenexed_formula
 
         eq = equivalence_of(formula, prenexed_formula)
-        ## todo: if failes here add ~phi <-> ~psi
         l3 = prover.add_tautological_implication(eq, {l1, l2, l3})   # ~phi <-> prenexed_formula
 
         return prenexed_formula, Proof(assumptions, eq, prover._lines)

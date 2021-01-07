@@ -266,7 +266,7 @@ if __name__ == '__main__':
     # test_is_in_prenex_normal_form()
     # test_uniquely_rename_quantified_variables(True)
     # test_pull_out_quantifications_across_negation()
-    # test_pull_out_quantifications_from_left_across_binary_operator()
+    test_pull_out_quantifications_from_left_across_binary_operator()
     # test_pull_out_quantifications_from_right_across_binary_operator()
     # test_pull_out_quantifications_across_binary_operator()
     # test_to_prenex_normal_form_from_uniquely_named_variables()
