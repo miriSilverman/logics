@@ -288,49 +288,45 @@ def model_or_inconsistency(sentences: AbstractSet[Formula]) -> \
 
 
     model = Model(universe, constants_meanings, relations_meanings)
-    print("~~~~~~~~~~~~model:~~~~~~~~~~~~~~~\n", model)
 
     if model.is_model_of(sentences):
-        print("satisfied")
         return model
 
-    print("not satisfied")
-    prover = Prover(Prover.AXIOMS, False)
+    prover = Prover(Prover.AXIOMS.union(sentences), False)
 
     for s in sentences:
         if not model.evaluate_formula(s):
-            print("s", s)
-            # l1 = prover.add_assumption(s)   # s not satisfied in the model
+            lines_nums = set()
             f = find_unsatisfied_quantifier_free_sentence(sentences, model, s)  # f not satisfied and quantified free
-            print("f", f)
-            print("primitive_sentences", primitive_sentences)
+            l1 = prover.add_assumption(f)   # s not satisfied in the model
+            lines_nums.add(l1)
             primitives_in_f = get_primitives(f)
             primitives_in_sentences_that_in_f = set()
             for primitive in primitive_sentences:
-                # if is_relation(primitive.root):
-                #     pos = primitive
-                # else:
-                #     pos = primitive.first
                 if primitive in primitives_in_f :
                     primitives_in_sentences_that_in_f.add(primitive)
+                    li = prover.add_assumption(primitive)
+                    lines_nums.add(li)
                 if is_unary(primitive.root):
                     first = primitive.first
                     if first in primitives_in_f:
                         primitives_in_sentences_that_in_f.add(primitive)
+                        li = prover.add_assumption(primitive)
+                        lines_nums.add(li)
+
                 if is_relation(primitive.root):
                     if Formula('~', primitive) in primitives_in_f:
                         primitives_in_sentences_that_in_f.add(primitive)
+                        li = prover.add_assumption(primitive)
+                        lines_nums.add(li)
 
-
-
-
-            print("primitives_in_sentences_that_in_f", primitives_in_sentences_that_in_f)
             concatenation = concatenate_and(list({f}.union(primitives_in_sentences_that_in_f)), 0)
-            tautology = Formula('~', concatenation)
-            print("tautology", tautology)
 
-            # print(tautology)
-            l1 = prover.add_tautology(tautology)
+            concat_line = prover.add_tautological_implication(concatenation, lines_nums)
+            tautology = Formula('~', concatenation)
+
+            tautology_line = prover.add_tautology(tautology)
+            contradiction = prover.add_tautological_implication(Formula('&', concatenation, tautology), {concat_line, tautology_line})
             return prover.qed()
     # concatenation = concatenate_and(list(sentences), 0)
     # tautology = Formula('~', concatenation)
