@@ -1023,4 +1023,6 @@ if __name__ == '__main__':
     test_is_primitively_closed()
     test_is_universally_closed()
     test_is_existentially_closed()
-    test_find_unsatisfied_quantifier_free_sentence(True)
+    test_find_unsatisfied_quantifier_free_sentence()
+
+    test_model_or_inconsistency()

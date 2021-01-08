@@ -185,7 +185,7 @@ class Model(Generic[T]):
         for relation,arity in formula.relations():
             assert relation in self.relation_meanings and \
                    self.relation_arities[relation] in {-1, arity}
-        # Task 7.8
+        # Task 7.
         if is_equality(formula.root):
             eval_of_first = self.evaluate_term(formula.arguments[0], assignment)
             eval_of_second = self.evaluate_term(formula.arguments[1], assignment)
@@ -256,8 +256,6 @@ class Model(Generic[T]):
             formula, ``False`` otherwise.
         """
         for formula in formulas:
-            # print(formula.constants())
-            # print(self.constant_meanings.keys())
             assert formula.constants().issubset(self.constant_meanings.keys())
             for function,arity in formula.functions():
                 assert function in self.function_meanings and \

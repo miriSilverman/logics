@@ -238,6 +238,17 @@ def get_primitives(quantifier_free: Formula) -> Set[Formula]:
     """
     assert is_quantifier_free(quantifier_free)
     # Task 12.3.1
+    root = quantifier_free.root
+    if is_binary(root):
+        first_primitives = get_primitives(quantifier_free.first)
+        second_primitives = get_primitives(quantifier_free.second)
+        return first_primitives.union(second_primitives)
+    if is_unary(root):
+        first_primitives = get_primitives(quantifier_free.first)
+        return first_primitives
+    else:
+        return {quantifier_free}
+
 
 def model_or_inconsistency(sentences: AbstractSet[Formula]) -> \
         Union[Model[str], Proof]:
@@ -255,6 +266,98 @@ def model_or_inconsistency(sentences: AbstractSet[Formula]) -> \
     """    
     assert is_closed(sentences)
     # Task 12.3.2
+    constants = get_constants(sentences)
+
+    universe = {c for c in constants}
+    constants_meanings  = dict()
+    for c in constants:
+        constants_meanings[c] = c
+    primitive_sentences = set()
+    relations_meanings = dict()
+    for formula in sentences:
+        relations = formula.relations()
+        for r in relations:
+            relations_meanings[r[0]] = set()
+        if is_relation(formula.root) or (is_unary(formula.root) and is_relation(formula.first.root)):
+            primitive_sentences.add(formula)
+
+    for p in sentences:
+        if is_relation(p.root):
+            args = tuple(str(c) for c in p.arguments)
+            relations_meanings[p.root].add(args)
+
+
+    model = Model(universe, constants_meanings, relations_meanings)
+    print("~~~~~~~~~~~~model:~~~~~~~~~~~~~~~\n", model)
+
+    if model.is_model_of(sentences):
+        print("satisfied")
+        return model
+
+    print("not satisfied")
+    prover = Prover(Prover.AXIOMS, False)
+
+    for s in sentences:
+        if not model.evaluate_formula(s):
+            print("s", s)
+            # l1 = prover.add_assumption(s)   # s not satisfied in the model
+            f = find_unsatisfied_quantifier_free_sentence(sentences, model, s)  # f not satisfied and quantified free
+            print("f", f)
+            print("primitive_sentences", primitive_sentences)
+            primitives_in_f = get_primitives(f)
+            primitives_in_sentences_that_in_f = set()
+            for primitive in primitive_sentences:
+                # if is_relation(primitive.root):
+                #     pos = primitive
+                # else:
+                #     pos = primitive.first
+                if primitive in primitives_in_f :
+                    primitives_in_sentences_that_in_f.add(primitive)
+                if is_unary(primitive.root):
+                    first = primitive.first
+                    if first in primitives_in_f:
+                        primitives_in_sentences_that_in_f.add(primitive)
+                if is_relation(primitive.root):
+                    if Formula('~', primitive) in primitives_in_f:
+                        primitives_in_sentences_that_in_f.add(primitive)
+
+
+
+
+            print("primitives_in_sentences_that_in_f", primitives_in_sentences_that_in_f)
+            concatenation = concatenate_and(list({f}.union(primitives_in_sentences_that_in_f)), 0)
+            tautology = Formula('~', concatenation)
+            print("tautology", tautology)
+
+            # print(tautology)
+            l1 = prover.add_tautology(tautology)
+            return prover.qed()
+    # concatenation = concatenate_and(list(sentences), 0)
+    # tautology = Formula('~', concatenation)
+    #
+    # prover = Prover(Prover.AXIOMS)
+    # print(tautology)
+    # prover.add_tautology(tautology)
+    # return prover.qed()
+
+def concatenate_and(sentences, idx: int):
+    if idx == len(sentences) - 1:
+        return sentences[idx]
+    return Formula('&', sentences[idx], concatenate_and(sentences, idx+1))
+
+if __name__ == '__main__':
+    f1 = Formula.parse("~Plus(0)")
+    f2 = Formula.parse("Plus(0)")
+    mode = Model({'0'}, {'0': '0'}, {'Plus': set()})
+    # i = mode.is_model_of({f1})
+    # print(i)
+    # f3 = Formula.parse("Plus(2)")
+    # f4 = Formula.parse("Plus(3)")
+    s = {f1, f2}
+    p = model_or_inconsistency(s)
+    print(p)
+    # f = concatenate_and([f1, f2, f3, f4], 0)
+    # print(f)
 
 def combine_contradictions(proof_from_affirmation: Proof,
                            proof_from_negation: Proof) -> Proof:
