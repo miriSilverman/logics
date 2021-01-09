@@ -628,6 +628,8 @@ def eliminate_existential_witness_assumption(proof: Proof, constant: str,
     return prover.qed()
 
 
+def is_exist_quantifier(root: str):
+    return is_quantifier(root) and root=='E'
 
 def existential_closure_step(sentences: AbstractSet[Formula]) -> Set[Formula]:
     """Augments the given sentences with an existential witness that uses a new
@@ -650,3 +652,23 @@ def existential_closure_step(sentences: AbstractSet[Formula]) -> Set[Formula]:
         assert is_in_prenex_normal_form(sentence) and \
                len(sentence.free_variables()) == 0
     # Task 12.8
+    constants = get_constants(sentences)
+    formulas = set()
+
+    for formula in sentences:
+        if is_exist_quantifier(formula.root):
+            x = formula.variable
+            pred =  formula.predicate
+            already_in = False
+            for c in constants:
+                if pred.substitute({x:Term(c)}) in sentences:
+                    already_in = True
+            if not already_in:
+                new_const = next(fresh_constant_name_generator)
+                formulas.add(pred.substitute({x:Term(new_const)}))
+
+
+    sets = set(sentences).union(formulas)
+    return sets
+
+
