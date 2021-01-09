@@ -1029,5 +1029,6 @@ if __name__ == '__main__':
     test_eliminate_universal_instantiation_assumption()
     # test_universal_closure_step()
     test_replace_constant()
+    test_eliminate_existential_witness_assumption()
 
 

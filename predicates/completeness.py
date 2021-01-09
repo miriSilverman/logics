@@ -592,6 +592,42 @@ def eliminate_existential_witness_assumption(proof: Proof, constant: str,
     for assumption in proof.assumptions.difference({Schema(witness)}):
         assert constant not in assumption.formula.constants()
     # Task 12.7.2
+    assumptions = proof.assumptions.difference({Schema(witness)})
+    prover = Prover(assumptions)
+    new_witness = witness.substitute({constant: Term('zz')})
+    proof_of_contradiction = replace_constant(proof, constant)
+    p = proof_by_way_of_contradiction(proof_of_contradiction, new_witness)  # (all eithout R(zz) )-> ~R(zz)
+    neg_R = p.conclusion
+    neg_Rzz = prover.add_proof(neg_R, p)
+    f = Formula('A', 'zz', neg_R)
+    Rzz = prover.add_ug(f, neg_Rzz)  # Azz[~R(zz)]
+    x = existential.variable
+    neg_rx = neg_R.substitute({'zz': Term(x)})
+    ui_form = Formula('->', f, neg_rx)
+    R = neg_R.substitute({'zz':Term('_')})
+    neg_Rx_line = prover.add_instantiated_assumption(ui_form, Prover.UI,
+                                {'R': R, 'x': 'zz', 'c': x})    # Azz[~R(zz)]->~R(x)
+
+    neg_rx_line = prover.add_mp(neg_rx, Rzz, neg_Rx_line)   # ~R(x)
+    ug_form = Formula('A', x, neg_rx)
+    all_x = prover.add_ug(ug_form, neg_rx_line) # Ax[~R(x)]
+    exist_line = prover.add_assumption(existential) # Ex[R(x)]
+
+    rx = neg_rx.first
+    ui_imp = Formula('->', ug_form, neg_rx)
+    l1 = prover.add_instantiated_assumption(ui_imp, Prover.UI,  {'R': R, 'x':x, 'c':x}) #(Ax[~R(x)]->~R(x))
+    con =Formula('~', ug_form)
+    imp = Formula('->', rx, con)
+    l2 = prover.add_tautological_implication(imp, {l1}) # (R(x)->~Ax[~R(x)])
+    all_imp = Formula('A', x, imp)
+    l3 = prover.add_ug(all_imp, l2)    # Ax[(R(x)->~Ax[~R(x)])]
+    es = Formula('->', Formula('&', all_imp, existential), con)
+    l4 = prover.add_instantiated_assumption(es, Prover.ES, {'Q': con, 'R': R.first, 'x': x})  # ((Ax[(R(x)->~Ax[~R(x)])]&Ex[R(x)])->~Ax[~R(x)])
+    l5 = prover.add_tautological_implication(con, {l4, exist_line, l3}) # ~Ax[~R(x)]
+    l6 = prover.add_tautological_implication(Formula('&', ug_form, con), {all_x, l5})   # (Ax[~R(x)]&~Ax[~R(x)])
+    return prover.qed()
+
+
 
 def existential_closure_step(sentences: AbstractSet[Formula]) -> Set[Formula]:
     """Augments the given sentences with an existential witness that uses a new
