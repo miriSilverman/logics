@@ -432,8 +432,12 @@ def eliminate_universal_instantiation_assumption(proof: Proof, constant: str,
                                                            'x': universal.variable, 'c':constant})  # Ax[R(x)] -> R(c)
     l3 = prover.add_assumption(universal)   # Ax[R(x)]
     l4 = prover.add_mp(instantiation, l3, l2)   # R(c)
-    l5 = prover.add_tautological_implication(Formula('&', instantiation, Formula('~', instantiation)), {l1, l4})
+    l5 = prover.add_tautological_implication(Formula('&', instantiation, Formula('~', instantiation)), {l1, l4})    # R(c)&~R(c)
     return prover.qed()
+
+def is_universal_quantifier(root: str):
+    return is_quantifier(root) and root == 'A'
+
 
 def universal_closure_step(sentences: AbstractSet[Formula]) -> Set[Formula]:
     """Augments the given sentences with all universal instantiations of each
@@ -454,6 +458,17 @@ def universal_closure_step(sentences: AbstractSet[Formula]) -> Set[Formula]:
         assert is_in_prenex_normal_form(sentence) and \
                len(sentence.free_variables()) == 0
     # Task 12.6
+    constants = get_constants(sentences)
+    formulas = set()
+    for formula in sentences:
+        if is_universal_quantifier(formula.root):
+            x = formula.variable
+            pred =  formula.predicate
+            for const in constants:
+                formulas.add(pred.substitute({x:Term(const)}))
+    sets = set(sentences).union(formulas)
+    return sets
+
 
 def replace_constant(proof: Proof, constant: str, variable: str = 'zz') -> \
         Proof:

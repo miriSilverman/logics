@@ -1027,5 +1027,6 @@ if __name__ == '__main__':
     test_model_or_inconsistency()
     test_combine_contradictions()
     test_eliminate_universal_instantiation_assumption()
+    test_universal_closure_step()
 
 
