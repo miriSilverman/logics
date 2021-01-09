@@ -419,6 +419,21 @@ def eliminate_universal_instantiation_assumption(proof: Proof, constant: str,
     for assumption in proof.assumptions:
         assert len(assumption.formula.free_variables()) == 0
     # Task 12.5
+    assumptions = set()
+    for a in proof.assumptions:
+        if a.formula != instantiation:
+            assumptions.add(a)
+
+    prover = Prover(assumptions)
+    all_but_implies_neg_rc = proof_by_way_of_contradiction(proof, instantiation)    # (everything but R(c))-> ~R(c)
+    l1 = prover.add_proof(all_but_implies_neg_rc.conclusion, all_but_implies_neg_rc)    # ~R(c)
+    f = Formula('->', universal, instantiation)
+    l2 = prover.add_instantiated_assumption(f, Prover.UI, {'R': instantiation.substitute({constant: Term('_')}),
+                                                           'x': universal.variable, 'c':constant})  # Ax[R(x)] -> R(c)
+    l3 = prover.add_assumption(universal)   # Ax[R(x)]
+    l4 = prover.add_mp(instantiation, l3, l2)   # R(c)
+    l5 = prover.add_tautological_implication(Formula('&', instantiation, Formula('~', instantiation)), {l1, l4})
+    return prover.qed()
 
 def universal_closure_step(sentences: AbstractSet[Formula]) -> Set[Formula]:
     """Augments the given sentences with all universal instantiations of each
