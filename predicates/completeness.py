@@ -496,6 +496,64 @@ def replace_constant(proof: Proof, constant: str, variable: str = 'zz') -> \
     for line in proof.lines:
         assert variable not in line.formula.variables()
     # Task 12.7.1
+    assumptions = set()
+    for a in proof.assumptions:
+        f = a.formula.substitute({constant:Term(variable)})
+        templates = set()
+        for temp in a.templates:
+            if temp == constant:
+                templates.add(variable)
+            else:
+                templates.add(temp)
+        scheme = Schema(f, templates)
+        assumptions.add(scheme)
+
+    prover = Prover(assumptions)
+
+    for line in proof.lines:
+        new_formula = line.formula.substitute({constant:Term(variable)})
+
+        if type(line) == Proof.MPLine:
+            prover.add_mp(new_formula, line.antecedent_line_number, line.conditional_line_number)
+
+        elif type(line) == Proof.AssumptionLine:
+            assump = line.assumption.formula.substitute({constant: Term(variable)})
+            templates = set()
+            for template in line.assumption.templates:
+                if template == constant:
+                    templates.add(variable)
+                else:
+                    templates.add(template)
+            scheme =Schema(assump, templates)
+            map = dict()
+            old_map = line.instantiation_map
+            for key in old_map:
+                new_key = key
+                new_value = old_map[key]
+                if type(new_value) == Term or type(new_value) == Formula:
+                    new_value = old_map[key].substitute({constant: Term(variable)})
+                if type(new_value) == str:
+                    if new_value == constant:
+                        new_value = variable
+                if key == constant:
+                    new_key = variable
+                map[new_key] = new_value
+            assump_line = Proof.AssumptionLine(new_formula, scheme, map)
+            prover._add_line(assump_line)
+
+        elif type(line) == Proof.UGLine:
+            prover.add_ug(new_formula, line.predicate_line_number)
+
+        elif type(line) == Proof.TautologyLine:
+            prover.add_tautology(new_formula)
+
+    return prover.qed()
+
+
+
+
+
+
 
 def eliminate_existential_witness_assumption(proof: Proof, constant: str,
                                              witness: Formula,
