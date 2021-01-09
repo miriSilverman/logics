@@ -272,6 +272,7 @@ def model_or_inconsistency(sentences: AbstractSet[Formula]) -> \
     constants_meanings  = dict()
     for c in constants:
         constants_meanings[c] = c
+
     primitive_sentences = set()
     relations_meanings = dict()
     for formula in sentences:
@@ -281,10 +282,11 @@ def model_or_inconsistency(sentences: AbstractSet[Formula]) -> \
         if is_relation(formula.root) or (is_unary(formula.root) and is_relation(formula.first.root)):
             primitive_sentences.add(formula)
 
-    for p in sentences:
-        if is_relation(p.root):
-            args = tuple(str(c) for c in p.arguments)
-            relations_meanings[p.root].add(args)
+
+    for formula in sentences:
+        if is_relation(formula.root):
+            args = tuple(str(c) for c in formula.arguments)
+            relations_meanings[formula.root].add(args)
 
 
     model = Model(universe, constants_meanings, relations_meanings)
@@ -300,8 +302,10 @@ def model_or_inconsistency(sentences: AbstractSet[Formula]) -> \
             f = find_unsatisfied_quantifier_free_sentence(sentences, model, s)  # f not satisfied and quantified free
             l1 = prover.add_assumption(f)   # s not satisfied in the model
             lines_nums.add(l1)
+
             primitives_in_f = get_primitives(f)
             primitives_in_sentences_that_in_f = set()
+
             for primitive in primitive_sentences:
                 if primitive in primitives_in_f :
                     primitives_in_sentences_that_in_f.add(primitive)
@@ -328,32 +332,12 @@ def model_or_inconsistency(sentences: AbstractSet[Formula]) -> \
             tautology_line = prover.add_tautology(tautology)
             contradiction = prover.add_tautological_implication(Formula('&', concatenation, tautology), {concat_line, tautology_line})
             return prover.qed()
-    # concatenation = concatenate_and(list(sentences), 0)
-    # tautology = Formula('~', concatenation)
-    #
-    # prover = Prover(Prover.AXIOMS)
-    # print(tautology)
-    # prover.add_tautology(tautology)
-    # return prover.qed()
 
 def concatenate_and(sentences, idx: int):
     if idx == len(sentences) - 1:
         return sentences[idx]
     return Formula('&', sentences[idx], concatenate_and(sentences, idx+1))
 
-if __name__ == '__main__':
-    f1 = Formula.parse("~Plus(0)")
-    f2 = Formula.parse("Plus(0)")
-    mode = Model({'0'}, {'0': '0'}, {'Plus': set()})
-    # i = mode.is_model_of({f1})
-    # print(i)
-    # f3 = Formula.parse("Plus(2)")
-    # f4 = Formula.parse("Plus(3)")
-    s = {f1, f2}
-    p = model_or_inconsistency(s)
-    print(p)
-    # f = concatenate_and([f1, f2, f3, f4], 0)
-    # print(f)
 
 def combine_contradictions(proof_from_affirmation: Proof,
                            proof_from_negation: Proof) -> Proof:
@@ -396,6 +380,13 @@ def combine_contradictions(proof_from_affirmation: Proof,
                                                 negated_assumption}):
         assert len(assumption.formula.free_variables()) == 0
     # Task 12.4
+    prover = Prover(common_assumptions)
+    proof_implies_from_affirm = remove_assumption(proof_from_affirmation, affirmed_assumption.formula, False)
+    phi_implies_contradiction = prover.add_proof(proof_implies_from_affirm.conclusion, proof_implies_from_affirm)
+    proof_implies_from_neg = remove_assumption(proof_from_negation, negated_assumption.formula, False)
+    neg_phi_implies_contradiction = prover.add_proof(proof_implies_from_neg.conclusion, proof_implies_from_neg)
+    contradiction_line = prover.add_tautological_implication(proof_from_negation.conclusion, {phi_implies_contradiction, neg_phi_implies_contradiction})
+    return prover.qed()
 
 def eliminate_universal_instantiation_assumption(proof: Proof, constant: str,
                                                  instantiation: Formula,
