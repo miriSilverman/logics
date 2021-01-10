@@ -36,11 +36,13 @@ def test_task7(debug=False):
 def test_task8(debug=False):
     test_existential_closure_step(debug)
 
-test_task1(True)
-test_task2(True)
-test_task3(True)
-test_task4(True)
-test_task5(True)
-test_task6(True)
-test_task7(True)
-test_task8(True)
+if __name__ == '__main__':
+
+    test_task1()
+    test_task2()
+    test_task3()
+    test_task4()
+    test_task5()
+    test_task6()
+    test_task7()
+    test_task8()
